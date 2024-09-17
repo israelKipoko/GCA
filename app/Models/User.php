@@ -1,0 +1,76 @@
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\News;
+use App\Models\Cases;
+use App\Models\Profiles;
+use App\Models\PendingCases;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class User extends Authenticatable
+{
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'firstname',
+        'name',
+        'lastname',
+        'email',
+        'phone',
+        'password',
+        'position',
+        'address',
+        'events',
+        'gender',
+    ];
+    protected $guard_name = 'web';
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    protected function address(): Attribute{
+        return Attribute::make(
+            get: fn($value) => json_decode($value,true),
+            set: fn($value) => json_encode($value),
+        );
+    }
+    public function profiles(){
+        return $this->hasOne(Profiles::class, 'user_id');
+    }
+    public function cases(){
+        return $this->hasMany(Cases::class, 'created_by');
+    }
+    public function news(){
+        return $this->hasMany(News::class,'created_ny');
+    }
+    public function pendingCases(){
+        return $this->hasMany(PendingCases::class,'user_id');
+    }
+}

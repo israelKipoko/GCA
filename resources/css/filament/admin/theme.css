@@ -1,0 +1,24 @@
+@import '/vendor/filament/filament/resources/css/theme.css';
+
+@config 'tailwind.config.js';
+
+@layer components {
+    .fi-ta{
+        background-color: #1d1b31 ;
+      }
+      .fi-pagination{
+        background-color: #1d1b31 ;
+      
+      }
+    .fi-ta-content{
+  background-color: yellow ;
+}
+.fi-ta-header-ctn{
+  background-color: #1d1b31 ;
+}
+
+.fi-ta-search-field, .fi-input-wrp,.fi-input{
+  background-color: #1d1b31 ;
+
+}
+}
