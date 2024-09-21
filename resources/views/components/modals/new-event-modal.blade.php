@@ -13,16 +13,16 @@
     <div x-on:click="show = false" class="fixed inset-0 bg-[#000] opacity-40"></div>
 
     {{-- Modal --}}
-    <section class="new-event-modal-wrapper absolute rounded m-auto fixed inset-0 w-fit overflow-y-auto" style="max-height:500px">
+    <section class="new-event-modal-wrapper absolute rounded m-auto text-[#fff] fixed inset-0 w-fit overflow-y-auto" style="max-height:500px">
         <div class=" w-full flex flex-col h-full py-4 px-6">
-            <h1 class="font-bold text-[16px] opacity-[0.7] mb-4">@lang('messages.Nouvel Evénement')</h1>
+            <h1 class="font-bold text-[16px] opacity-[0.7] mb-4 text-[#fff]">@lang('messages.Nouvel Evénement')</h1>
             <div class="flex gap-x-6">
-                <form wire:submit="saveEvent">
+                <form action="/home/event/create" method="POST">
                     @csrf
                     <div class="w-fit my-3">
-                        <button type="submit" class="action_button rounded-md"><i class="fa-regular fa-floppy-disk"></i> @lang('messages.save')</button>
+                        <button type="submit" class="action_button rounded-md"><i class="fa-regular fa-floppy-disk"></i> @lang('Sauvegarder')</button>
                     </div>
-                    <section class="flex gap-x-9 py-4">
+                    <section class="flex gap-x-9 py-4" wire:ignore>
                         <div class="flex flex-col gap-y-6">
                             <div class="input_div">
                                 <input
@@ -36,7 +36,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <div class="input_div">
-                                    <input wire:model="date" type="text" name="date" id="datepicker" class="focus:outline-none border px-2 py-1.5 rounded-md text-[14px]  w-[260px] border-[#fff] bg-[#262626]" placeholder="Entrer une date" required/>
+                                    <input  type="text" name="date" id="datepicker" class="focus:outline-none border px-2 py-1.5 rounded-md text-[14px]  w-[260px] border-[#fff] bg-[#262626]" placeholder="Entrer une date" required/>
                                     <i class="fa-solid fa-calendar-days absolute right-3 top-2"></i>
                                 </div>
                                 <div class="flex gap-x-2 items-center">
@@ -45,7 +45,7 @@
                                             <button id="hs-dropdown-unstyled" type="button" class="hs-dropdown-toggle event_time_trigger border border-[#fff] event_reminder_trigger inline-flex justify-center items-center text-[14px] gap-x-1 p-1 rounded-md bg-[#262626]" aria-expanded="false" aria-label="Menu">
                                                 <i class='bx bxs-time' ></i><span></span><i class='bx bx-chevron-down bx-sm'></i>
                                             </button>
-                                            <input wire:model="start_time"  type="text"  id="start_time" name="start_time" class="hidden"/>
+                                            <input   type="text"  id="start_time" name="start_time" class="hidden"/>
                                             <div class="event_reminder_options event_time_options hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-30 bg-white shadow-md rounded-lg text-[#262626] p-1 space-y-0.5 mt-2 dark:border dark:border-neutral-700 dark:divide-neutral-700 after:h-4 after:absolute after:-bottom-4 after:start-0 after:w-full before:h-4 before:absolute before:-top-4 before:start-0 before:w-full" role="menu" aria-orientation="vertical" aria-labelledby="hs-dropdown-default">
                                               {{-- {{HOURS}} --}}
                                             </div>
@@ -57,7 +57,7 @@
                                             <button id="hs-dropdown-unstyled" type="button" class="hs-dropdown-toggle event_time_trigger border border-[#fff] event_reminder_trigger inline-flex justify-center items-center text-[14px] gap-x-1 p-1 rounded-md bg-[#262626]" aria-expanded="false" aria-label="Menu">
                                                 <i class='bx bxs-time-five'></i><span></span><i class='bx bx-chevron-down bx-sm'></i>
                                             </button>
-                                            <input wire:model="end_time"  type="text"  id="end_time" name="end_time" class="hidden" />
+                                            <input  type="text"  id="end_time" name="end_time" class="hidden" />
                                             <div class="event_reminder_options event_time_options hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-30 min-h-fit bg-white shadow-md rounded-lg text-[#262626] p-1 space-y-0.5 mt-2 dark:border dark:border-neutral-700 dark:divide-neutral-700 after:h-4 after:absolute after:-bottom-4 after:start-0 after:w-full before:h-4 before:absolute before:-top-4 before:start-0 before:w-full" role="menu" aria-orientation="vertical" aria-labelledby="hs-dropdown-default">
                                             
                                             </div>
@@ -86,7 +86,6 @@
                             </div>
                             <div class="input_div">
                                 <input
-                                    wire:model="meeting_link"
                                     type="text"
                                     class="event_title_input focus:outline-none text-[14px]"
                                     name="meeting_link"
@@ -94,7 +93,7 @@
                                     <i class="fa-solid fa-video event_icons"></i>
                             </div>
                             <div class="">
-                                <textarea wire:model="note" id="hs-autoheight-textarea" name="note" class="event_title_input focus:outline-none text-[14px] py-3 px-4 block w-full text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:focus:ring-neutral-600" rows="3" placeholder="Description..."></textarea>
+                                <textarea id="hs-autoheight-textarea" name="note" class="event_title_input focus:outline-none text-[14px] py-3 px-4 block w-full text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:focus:ring-neutral-600" rows="3" placeholder="Description..."></textarea>
                             </div>
                         </div>
                         {{-- <div class="flex flex-col items-start gap-y-6">

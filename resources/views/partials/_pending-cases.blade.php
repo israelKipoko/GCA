@@ -5,7 +5,7 @@
     <ul class="carousel">
         @foreach ($userPendingCases as $case)
             <li class="card ">
-                <a href="/home/pending-cases/{{$case->id}}" class="">
+                <a href="" class="">
                     <div class="update_notice">
 
                     </div>

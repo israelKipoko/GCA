@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         
-        <link rel="stylesheet" href="{{asset('build/assets/app-BCrJsPBz.css')}}">
+        @vite(['resources/css/app.css'])
 
         <title>Laravel</title>
 
@@ -53,7 +53,7 @@
         
         {{-- @filamentScripts --}}
         @filemanagerScripts
-        <script src="{{asset('build/assets/app-DOtmcpzW.js')}}"></script>
+        @vite('resources/js/app.jsx')
     </body>
     <script src="{{asset('script/script.js')}}"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>

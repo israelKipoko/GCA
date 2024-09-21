@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ActivityController;
-
+use Illuminate\Support\Facades\Artisan;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,6 +15,9 @@ use App\Http\Controllers\ActivityController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::get('/foo', function () {
+    Artisan::call('storage:link');
+});
 Route::get('/', function(){
     return redirect('/GCA/welcome');
 });
@@ -35,6 +38,8 @@ Route::group(['middleware' => ['auth','role:Admin|User']], function () {
     Route::get('/home/pending-cases/{case}',[ActivityController::class,"showCaseDetails"]);
     Route::post('/home/pending-cases/{case}/update-case/file',[ActivityController::class,"updateCase"]);
 
+    Route::get('/home/calendar',[ContentController::class, "showCalendar"]);
+
     Route::post('/home/pending-cases/{case}/upload-file',[ActivityController::class,"uploadFile"])->middleware('auth');
     Route::delete('/home/pending-cases/{case}/delete-file',[ActivityController::class,"deleteUploadedFile"])->middleware('auth');
 
@@ -53,7 +58,7 @@ Route::group(['middleware' => ['auth','role:Admin|User']], function () {
 });
 
 Route::group(['middleware' => ['auth','role:Super-Admin|Admin']], function () { 
-    Route::get('/home/dashboard',[ContentController::class,"dashboard"])->name('just');
+    Route::get('/home/dashboard',[ContentController::class,"index"])->name('just');
 
     /* CLIENT */
     Route::get('/home/clients',[ContentController::class,"clients"]);

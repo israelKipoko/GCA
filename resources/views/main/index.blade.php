@@ -45,7 +45,10 @@
                 </div>
                
                 <div id="usefull_tools" class="w-full mt-4">
-                    <h1 class="text-white font-bold md:text-[15px] text-[14px] capitalize">@lang('Vos dossiers récents')</h1>
+                    <h1 class="text-white font-bold md:text-[15px] opacity-[0.7] text-[14px] capitalize mb-3">
+                        <i class='bx bx-check-square text-[18px]'></i>
+                        @lang('Vos Tâches')
+                    </h1>
                     <div>
                         @include('partials._todo-list')
                     </div>

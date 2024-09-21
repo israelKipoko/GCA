@@ -271,6 +271,43 @@ class ActivityController extends Controller
 
     }
 
+    public function createEvent(Request $request){
+        $months = [
+            'janvier' => '01',
+            'février' => '02',
+            'mars' => '03',
+            'avril' => '04',
+            'mai' => '05',
+            'juin' => '06',
+            'juillet' => '07',
+            'août' => '08',
+            'septembre' => '09',
+            'octobre' => '10',
+            'novembre' => '11',
+            'décembre' => '12'
+        ];
+        $dateParts = explode(' ', substr($request->date, strpos($request->date, ' ') + 1));
+        $day = $dateParts[0];
+        $month = $months[$dateParts[1]];
+        $year = $dateParts[2];
+        $date = DateTime::createFromFormat('d-m-Y', "$day-$month-$year");
+        $request->date = $date->format('Y-m-d');
+      Event::create([
+        'title' => $request->title,
+        'participants' => $request->participants,
+        'note' => $request->note,
+        'date' => $request->date,
+        'meeting_link' => $request->meeting_link,
+        'time' => [
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+        ],
+        'created_by' => Auth::id(),
+        'reminder' => $request->reminder,
+      ]);
+      return redirect()->back()->with('message', 'Votre événement a été crée avec succès!');
+    }
+
     public function checkAvailability(Request $request){
         $months = [
             'janvier' => '01',
@@ -294,9 +331,16 @@ class ActivityController extends Controller
         $date = $date->format('Y-m-d');
         $events = '';
         $participants = '';
-        $eventExist = Event::whereDate('date',$date)->where('created_by',Auth::id())->orWhereJsonContains("participants",Auth::id())->exists();
+        $eventExist = Event::whereDate('date', '=', $date)->where(function($query) {
+            $query->whereJsonContains('participants', Auth::id())
+                  ->orWhere('created_by', Auth::id());
+        })->exists();
+
         if($eventExist){
-            $events = Event::with('user')->where('created_by',Auth::id())->orWhereJsonContains("participants",Auth::id())->whereDate('date',$date)->get();
+            $events = Event::with('user')->whereDate('date', '=', $date)->where(function($query) {
+                $query->whereJsonContains('participants', Auth::id())
+                    ->orWhere('created_by', Auth::id());
+            })->get();
             // $participants = $events[0]->created_by;
         }
         return response()->json([

@@ -19,7 +19,7 @@
                         </a>
                     </li>
                 @endif
-                <li>
+                {{-- <li>
                     <a href="/home/dashboard?q=dashboard">
                         <span>
                             <i class='bx bxs-dashboard text-white fa-xl'></i>
@@ -27,7 +27,7 @@
                         </span>
                         <span class="sidebar_menu_tooltip">{{__('Tableau de bord')}}</span>
                     </a>
-                </li>
+                </li> --}}
                 {{-- <li>
                     <a href="/home/reports?q=reports">
                         <span>

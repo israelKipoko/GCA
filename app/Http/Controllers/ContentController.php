@@ -62,5 +62,10 @@ class ContentController extends Controller
             'profiles' => $profiles,
         ]);
     }
+
     /* TABS */
+
+    public function showCalendar(){
+        return view('main.activities.calendar');
+    }
 }
