@@ -804,8 +804,15 @@ button.disabled{
   background-color: var(--hover);
   cursor: pointer;
 }
-.activeTodoTabs{
+.tab_link.active{
   background-color: var(--hover);
+}
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
 }
 .add_task{
   position: absolute;
@@ -833,7 +840,6 @@ button.disabled{
 }
 .addTaskInput{
   padding: 10px;
-  width: 100%;
   display: flex;
   align-items: center;
   column-gap: 10px;
@@ -841,28 +847,39 @@ button.disabled{
   cursor: pointer;
   transition: all .25s ease;
   transition-property: box-shadow, transform, border-color;
-  background-color: var(--secondaryColor);
+  background-color: #414040;
   border-radius: 4px;
   position: absolute;
-  bottom: 30px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 700px !important;
-  display: none;
+  width: 95% ;
+}
+.addTaskInput .todo_text{
+  width: 100%;
+}
+.addTaskInput #new_task{
+  height: 100%;
+  width: 100%;
+  background-color: inherit;
+}
+.addTaskInput #new_task:focus{
+  outline: none;
 }
 @keyframes taskInputDisplay {
-  from{
-      width: 100px;
+  0%{
+      width: 10px !important;
   }
 
-  to{
-    width: 700px;
+  100%{
+    width: 700px !important;
 
   }
 }
 .displayInput{
   display: block !important;
   animation: taskInputDisplay ease-in-out 1s forwards;
+  width: 700px;
 }
 
 ::selection{
@@ -891,157 +908,6 @@ button.disabled{
   .filters span.active{
     color: #3C87FF;
   }
-/*  
-  .task-box.overflow{
-    overflow-y: auto;
-    max-height: 300px;
-  }
-  .task-box::-webkit-scrollbar{
-    width: 5px;
-  }
-  .task-box::-webkit-scrollbar-track{
-    background: #f1f1f1;
-    border-radius: 25px;
-  }
-  .task-box::-webkit-scrollbar-thumb{
-    background: #e6e6e6;
-    border-radius: 25px;
-  }
-  .task-box{
-    padding-inline: 20px;
-    
-  }
-  .task-box .task{
-    list-style: none;
-    font-size: 17px;
-    margin-bottom: 18px;
-    padding-bottom: 5px;
-    align-items: flex-start;
-    border-bottom: 1px solid #ccc;
-  }
-  .task-box .task:last-child{
-    margin-bottom: 0;
-    border-bottom: 0;
-    padding-bottom: 0;
-  }
-  .task-box .task label{
-    display: flex;
-    align-items: flex-start;
-  }
-  .task label input{
-    margin-top: 7px;
-    accent-color: #3C87FF;
-  }
-  .task label p{
-    user-select: none;
-    margin-left: 12px;
-    word-wrap: break-word;
-  }
-  .task label p.checked{
-    text-decoration: line-through;
-  }
-  .task-box .settings{
-    position: relative;
-    width: fit-content;
-    margin-left: auto;
-  }
-  .task_containings{
-    display: flex;
-    column-gap: 10px;
-    margin-left: 15px;
-  }
-  .task_containings div, .task_containings div button{
-    display: flex;
-    align-items: center;
-  }
-  .task_containings div p{
-    font-size: 13px;
-  }
-  .settings :where(i, li){
-    cursor: pointer;
-  }
-  .settings .task_menu{
-    z-index: 10;
-    right: -5px;
-    bottom: -65px;
-    padding: 5px 0;
-    background: #fff;
-    color: #000;
-    position: absolute;
-    border-radius: 4px;
-    transform: scale(0);
-    transform-origin: top right;
-    box-shadow: 0 0 6px rgba(0,0,0,0.15);
-    transition: transform 0.2s ease;
-  }
-  .task-box .task:last-child .task_menu{
-    bottom: 0;
-    transform-origin: bottom right;
-  }
-  .task-box .task:first-child .task_menu{
-    bottom: -65px;
-    transform-origin: top right;
-  }
-  .task_menu.show{
-    transform: scale(1);
-  }
-  .task_menu li{
-    height: 25px;
-    font-size: 16px;
-    margin-bottom: 2px;
-    padding: 17px 15px;
-    cursor: pointer;
-    justify-content: flex-start;
-  }
-  .li-deleteTask{
-    margin-bottom: 0;
-    color: red;
-  }
-  .settings li:hover{
-    background: #f5f5f5;
-  }
-  .settings li i{
-    padding-right: 8px;
-  }
-  .task_note_wrapper{
-    position: relative;
-  }
-  .task_containings .task_note_wrapper .task_note{
-    padding: 5px 5px;
-    width: 250px;
-    max-height: 140px;
-    overflow-y: scroll;
-    background: #fff;
-    color: var(--primaryColor);
-    border-radius: 4px;
-    transform: scale(0);
-    transform-origin: center;
-    box-shadow: 0 0 6px rgba(0,0,0,0.15);
-    transition: transform 0.2s ease;
-  }
-  .task_note div p{
-    display: -webkit-box; 
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 5;  
-    text-align: center;
-    overflow: hidden;
-    max-lines: 5;
-    overflow-wrap: break-word;
-    -o-text-overflow: ellipsis;
-    text-overflow: ellipsis;
-    word-wrap: break-word;
-  }
-  .task_note h1{
-    font-weight: bold;
-    text-align: center;
-    text-decoration: underline 2px;
-    margin-bottom: 5px;
-  }
-  #task_note_input_textArea{
-    border-radius: var(--mainBorderRadius);
-    padding: 25px 15px;
-    border: none;
-  } */
   textarea {
     resize: none;
   }
@@ -1339,6 +1205,11 @@ textarea{
   display: flex;
   flex-direction: column;
   row-gap: 5px;
+  overflow: scroll;
+}
+.todo_scroller{
+  height: 280px;
+  overflow: scroll;
 }
 .todo_item{
   padding: 10px;
@@ -1361,9 +1232,13 @@ textarea{
   color: #fff;
   font-size: 14px;
 }
+.todo_text.completed{
+  opacity: 0.6;
+  text-decoration: line-through;
+}
 .check_mark {
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
   border: 2px solid hsl(237, 14%, 26%);
   transition: all 0.25s;
@@ -1397,11 +1272,10 @@ textarea{
 }
 .todo_list_wrapper{
   position: relative;
-  padding: 10px 20px;
   box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
 .todo_list_wrapper h1{
-  font-size: 25px;
+  font-size: 21px;
   margin-bottom: 5px;
   font-weight: bold;
   color: #fff;

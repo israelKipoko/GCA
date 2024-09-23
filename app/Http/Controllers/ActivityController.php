@@ -131,40 +131,20 @@ class ActivityController extends Controller
             notify()->success('Case submitted succesfully!');
             return redirect()->back();
     }
-    public function showTasks(){
-        $nbOfUsers = User::count();
-        $tasksCreatedExists = Task::where('created_by', Auth::id())->exists();
-        // $tasksCreatedArray = null;
-        if($tasksCreatedExists){
-            $tasksCreatedArray[] = Task::where('created_by', Auth::id())->get();
-        }else{
-            $tasksCreatedArray = null;
-        }
-        
-        $tasksAssignedArray = null;
-        for($i=1; $i<=$nbOfUsers; $i++){
-            $tasksAssignedExists = Task::where('assigned_to->'.$i, Auth::id())->exists();
-            if($tasksAssignedExists){
-                $tasksAssignedArray[] = Task::where('assigned_to->'.$i, Auth::id())->get();
-            } 
-        }
-        return response()->json([$tasksCreatedArray,$tasksAssignedArray]);
-    }
-
-    public function storeTasks(Request $request){
-        $formFields = $request->all();
-        $formFields["created_by"] = Auth::id();
-
+    
+    public function NewTask(Request $request){
         try {
+            $formFields['title'] = $request->new_task;
+            $formFields["created_by"] = Auth::id();
+            
+            if($request->category == "my_day" || $request->category == "planned"){
+                $dateToday  = date('Y-m-d');
+                $formFields['due_date'] = $dateToday;
+            }
             $task = Task::create($formFields);
 
             if ($task) {
-                $createdTasks = Task::where('created_by', Auth::id())->get();
-                return response()->json([
-                    'message' => 'Record created successfully',
-                     201,
-                    "updatedTasks" => $createdTasks
-                ]);
+                return response()->json([201]);
             }
         } catch (QueryException $e) {
             return response()->json(['message' => 'Failed to create record', 'error' => $e->getMessage()], 500);
@@ -178,15 +158,19 @@ class ActivityController extends Controller
         }
     }
 
-    public function updateTaskStatus(Request $request, Task $task){
-            $taskToUpdate = Task::find($task->id);
-            if($request->task_status == "completed"){
-                $taskToUpdate->status = "completed";
-            }else{
+    public function updateTaskStatus(Request $request){
+        try {
+            $taskToUpdate = Task::find($request->task_id);
+            if($taskToUpdate->status == "completed"){
                 $taskToUpdate->status = "pending";
+            }else{
+                $taskToUpdate->status = "completed";
             }
             $taskToUpdate->save();
-            return response()->json(['message' => 'Task updated succesfully']); 
+            return response()->json([201]);
+        } catch (QueryException $e) {
+            return response()->json(['message' => 'Failed to create record', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function createCase(Request $request){

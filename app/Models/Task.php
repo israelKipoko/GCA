@@ -20,6 +20,7 @@ class Task extends Model
         'created_by',
         'assigned_to',
         'case_id',
+        'category',
     ];
 
     protected function assignedTo(): Attribute{

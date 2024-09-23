@@ -38,7 +38,7 @@ class UserController extends Controller
        $formFiels['password'] = bcrypt($formFields['password']);
        //Create user
        $user = User::create($formFields);
-       return redirect()->back('message','Vous avez créé avec succès!');
+       return redirect()->back()->with('message','Vous avez créé avec succès!');
 
     }
     /* AUTHENTICATION */
@@ -55,10 +55,6 @@ class UserController extends Controller
             
             $request->session()->regenerate();
 
-            if(auth()->user()->hasRole('Super-Admin')){
-                notify()->success('Vous êtes maintenant connecté!!');
-                return redirect('/home/dashboard');
-            }
             notify()->success('Vous êtes maintenant connecté!!');
             return redirect('/home');
         }

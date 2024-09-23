@@ -239,275 +239,94 @@ try {
         submitCaseDialog.showModal();
     })
 } catch (error) {
-    console.error(error)
+    console.log(error.message)
 }
 
 /* PENDING WORK */
 
 /* TO DO LIST */
 try {
-    const taskInput = document.querySelector(".task-input #title");
-    const filters = document.querySelectorAll(".filters span");
-    const taskBox = document.querySelector(".task-box");
-    const taskContainingsInputs = document.querySelector(".task_containings_wrapper");
-    const taskNoteInputButton = document.querySelector("#task_note_input_button");
-    const taskNoteInputTextArea = document.querySelector("#task_note_input_textArea");
-    const taskForm = document.querySelector("#storeTaskForm");
-    let editId, isEditTask = false;
-
     const todoWrapperTabs = document.querySelectorAll('.todo_wrapper_tabs ul li');
+    const tabPanes = document.querySelectorAll('.tab-pane');
     const todoTodayDate = document.querySelector('.todo_date_now');
     const todoTitleTab = document.querySelector('.todo_list_wrapper h1');
-    const addTaskButton = document.querySelector('.add_task');
     const addTaskInputWrapper = document.querySelector('.addTaskInput');
-    addTaskButton.addEventListener('click',()=>{
-        // addTaskButton.classList.add('hidden');
-        // addTaskInputWrapper.classList.add('displayInput');
-    })
-    todoWrapperTabs.forEach((tab,index)=>{
+    const newTaskForm = document.querySelector('#new_todo_form');
+    const checkMark = document.querySelectorAll('.check_mark');
+    var targetTab = "my_day";
+
+    todoWrapperTabs.forEach((tab)=>{
         tab.addEventListener('click',()=>{
-            todoWrapperTabs.forEach((itemTab)=>{
-                itemTab.classList.remove('activeTodoTabs');
-            })
-            tab.classList.add('activeTodoTabs');
-            todoTitleTab.innerHTML = tab.innerHTML;
-            if(index != 0){
+          targetTab = tab.getAttribute('data-tab');
+
+          todoWrapperTabs.forEach(function(tabLink) {
+            tabLink.classList.remove('active');
+          });
+          tabPanes.forEach(function(pane) {
+              pane.classList.remove('active');
+          });
+
+          tab.classList.add('active');
+          document.getElementById(targetTab).classList.add('active');
+           
+            todoTitleTab.innerHTML = tab.textContent;
+            if(targetTab != "my_day"){
                 todoTitleTab.nextElementSibling.classList.add('hidden');
             }else{
                 todoTitleTab.nextElementSibling.classList.remove('hidden');
             }
         })
     });
-    const date = new Date();
-    const options = {weekday:'short',month:'long', day:'numeric'};
-    const formattedDate = date.toLocaleDateString('fr-FR',options);
-    todoTodayDate.innerHTML = formattedDate;
-document.addEventListener('DOMContentLoaded', function() {
-    localStorage.removeItem('task_list');
-    $.ajax({
-        url: '/home/tasks',
-        type: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            localStorage.setItem("task_list", JSON.stringify(response));
-        },
-        error: function(xhr, status, error) {
-            console.error('Request failed with status ' + xhr.status + ': ' + error);
-        }
-    });
-});
-let tasksArrays = JSON.parse(localStorage.getItem("task_list"));
-filters.forEach(button => {
-    button.addEventListener("click", () => {
-        document.querySelector("span.active").classList.remove("active");
-        button.classList.add("active");
-        showTodo(button.id);
-    });
-});
+    newTaskForm.addEventListener('submit',(event)=>{
+      if(newTaskForm.querySelector('#new_task').value == ""){
+          event.preventDefault();
+      }else{
+        event.preventDefault();
 
-taskInput.addEventListener("focus", ()=>{
-    taskContainingsInputs.style.display = "block";
-})
-document.addEventListener("click", (event)=>{
-    if(!taskInput.contains(event.target) && !taskContainingsInputs.contains(event.target)){
-            taskContainingsInputs.style.display = "none";
-    }
-})
-taskNoteInputButton.addEventListener("click", ()=>{
-    taskNoteInputTextArea.showModal();
-})
-function showTodo(filter) {
-    let liTag = "";
-    if(filter == "for_me") {
-        if(tasksArrays[0] != null) {
-            let tasksCount = 0;
-            tasksArrays[0][0].forEach((task, id) => {
-                let completed = task.status == "completed" ? "checked" : "";
-                    liTag += `<li class="task flex flex-col">
-                                <div class="w-full flex">
-                                    <label for="${task.id}" class="w-fit">
-                                        <input onclick="updateStatus(this,${task.id})" type="checkbox" id="${task.id}" ${completed}>
-                                        <p class="${completed}">${task.title}</p>
-                                    </label>
+        var categoryInput = document.createElement('input');
+        categoryInput.type = "hidden";
+        categoryInput.name = "category";
+        categoryInput.value = targetTab;
+        newTaskForm.appendChild(categoryInput);
+        var data = $(newTaskForm).serialize();
+        jQuery.ajax({
+          headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+          url: "/tasks/new-task",
+          type: 'POST',
+          data: data,
+          success: function(response){
+            Livewire.dispatch('refreshTodoList', { refreshPosts: true });
+            newTaskForm.remove(categoryInput);
+          },
+          error: function(){
 
-                                    <div class="settings">
-                                        <i onclick="showMenu(this)" class="fa-solid fa-ellipsis"></i>
-                                        <i onclick="showMenu(this)" class="uil uil-ellipsis-h"></i>
-                                        <ul class="task_menu">
-                                            <li onclick='editTask(${task.id}, "${task.title}", "${task.note}")'><i class="fa-solid fa-pen text-black"></i>Edit</li>
-                                            <li onclick='deleteTask(${task.id}, "${filter}")' class="li-deleteTask"><i class="fa-solid fa-trash"></i>Delete</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div class="task_containings">
-                                    <div class="task_note_wrapper">
-                                        <div>
-                                            <button onclick="showNote(this)">
-                                                <i class="bx bxs-note bx-xs"></i>
-                                                <p class="">1 note</p>
-                                            </button>
-                                        </div>
-                                        <dialog class="task_note">
-                                            <h1>Note</h1>
-                                                <p>${task.note}</p>
-                                        </dialog>
-                                    </div>
-                                    <div>
-                                        <p>Date limite:${ task.due_date}</p>
-                                    </div>
-                                </div>
-                            </li>`;
-            });
-            tasksCount = tasksArrays[0][0].length;
-            document.querySelector("#count_personal_tasks").textContent = "";
-            document.querySelector("#count_personal_tasks").textContent = "("+ tasksCount + ")";
-        }
-    }else{
-        if(tasksArrays[1] != null) {
-            tasksArrays[1].forEach((tasksArray,index) => {
-                tasksArray.forEach((task,id) =>{
-
-                    let completed = task.status == "completed" ? "checked" : "";
-                    liTag += `<li class="task flex flex-col">
-                                <div class="w-full flex">
-                                    <label for="${task.id}" class="w-fit">
-                                        <input onclick="updateStatus(this,${task.id})" type="checkbox" id="${task.id}" ${completed}>
-                                        <p class="${completed}">${task.title}</p>
-                                    </label>
-                                </div>
-                                <div class="task_containings">
-                                    <div class="task_note_wrapper">
-                                        <div>
-                                            <button onclick="showNote(this)">
-                                                <i class="bx bxs-note bx-xs"></i>
-                                                <p class="">1 note</p>
-                                            </button>
-                                        </div>
-                                        <dialog class="task_note">
-                                            <h1>Note</h1>
-                                                <p>${task.note}</p>
-                                        </dialog>
-                                    </div>
-                                    <div>
-                                        <p>Date limite:${ task.due_date}</p>
-                                    </div>
-                                </div>
-                            </li>`;
-                })
-            });
-        }
-    }
-    taskBox.innerHTML = liTag || `<span>You don't have any task here</span>`;
-    let checkTask = taskBox.querySelectorAll(".task");
-    taskBox.offsetHeight >= 300 ? taskBox.classList.add("overflow") : taskBox.classList.remove("overflow");
-}
-showTodo("for_me");
-function showMenu(selectedTask) {
-    const menuDiv = selectedTask.parentElement.lastElementChild;
-    menuDiv.classList.add("show");
-    document.addEventListener("click", e => {
-        if(e.target.tagName != "I" || e.target != selectedTask) {
-            menuDiv.classList.remove("show");
-        }
-    });
-}
-function showNote(selectedNote){
-    const noteDiv = selectedNote.parentElement.parentElement.lastElementChild;
-    noteDiv.showModal();
-    noteDiv.style.transform = "scale(1)";
-    document.addEventListener("click", (event)=> {
-        if(!selectedNote.contains(event.target) || noteDiv.contains(event.target)) {
-            noteDiv.style.transform = "scale(0)";
-            noteDiv.close();
-        }
-    });
-}
-
-function updateStatus(selectedTask, taskId) {
-    let taskName = selectedTask.parentElement.lastElementChild;
-    let delay = 0;
-    if(selectedTask.checked) {
-        taskName.classList.add("checked");
-        setTimeout(submitUpdateStatus, delay, "completed");
-    } else {
-        taskName.classList.remove("checked");
-        setTimeout(submitUpdateStatus, delay, "pending");
-    }
-
-    function submitUpdateStatus(status){
-        $.ajax({
-            url: '/home/tasks/update-task-status/'+taskId,
-            type: 'POST',
-            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-            data: {
-                "_method": "PUT",
-                "task_status": status
-                },
-            success: function(response) {
-               console.log(response);
-            },
-            error: function(xhr, status, error) {
-                console.error('Request failed with status ' + xhr.status + ': ' + error);
-            }
-        }
-        )}
-}
-function editTask(taskId, textName, taskNote) {
-    editId = taskId;
-    isEditTask = true;
-    taskInput.value = textName;
-    taskNoteInputTextArea.querySelector("#note").value = taskNote;
-    // taskInput.focus();
-    taskInput.classList.add("active");
-}
-
-function deleteTask(deleteTaskId, filter) {
-    if(filter == "for_me"){
-        let taskIndex = tasksArrays[0][0].findIndex(task => task.id === deleteTaskId);
-        if (taskIndex !== -1) {
-            tasksArrays[0][0].splice(taskIndex, 1);
-            localStorage.setItem("task_list", JSON.stringify(tasksArrays));
-            showTodo(filter);
-        }
-    }
-     $.ajax({
-         url: '/home/tasks/delete-task/'+deleteTaskId,
-         type: 'POST',
-         headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-         data: {
-            "_method": "DELETE",
-            "task_status": deleteTaskId
-            },
-         success: function(response) {
-            console.log(response);
-         },
-         error: function(xhr, status, error) {
-             console.error('Request failed with status ' + xhr.status + ': ' + error);
-         }
-     });
-}
-taskForm.addEventListener("submit",(event)=>{
-    event.preventDefault();
-})
-taskInput.addEventListener("keyup", (event) => {
-    let userTask = taskInput.value.trim();
-    if(event.key == "Enter" && userTask) {
-        $.ajax({
-            url: '/home/tasks/add-task',
-            type: 'POST',
-            data: $(taskForm).serialize(),
-            success: function(response) {
-               taskInput.value = "";
-               tasksArrays[0][0] = response.updatedTasks;
-                showTodo("for_me");
-            },
-            error: function(xhr, status, error) {
-                console.error('Request failed with status ' + xhr.status + ': ' + error);
-            }
+          }
         });
-    }
-});
+      };
+    });
 
+    checkMark.forEach((mark)=>{
+      mark.addEventListener('click',()=>{
+        var data = $(mark.querySelector('form')).serialize();
+        jQuery.ajax({
+          headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+          url: "/tasks/update-status",
+          type: 'POST',
+          data: data,
+          success: function(response){
+            Livewire.dispatch('refreshTodoList', { refreshPosts: true });
+          },
+          error: function(){
+
+          }
+        });
+      });
+    });
+   
+    let dateToday = new Date();
+    const options = {weekday:'short',month:'long', day:'numeric'};
+    const newDate = dateToday.toLocaleDateString('fr-FR',options);
+    todoTodayDate.innerHTML = newDate;
 } catch (error) {
     console.log(error.message);
 }

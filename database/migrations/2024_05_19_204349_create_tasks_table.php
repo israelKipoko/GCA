@@ -20,6 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by');
             $table->foreign("created_by")->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('case_id')->nullable();
+            $table->string('task')->nullable();
             $table->foreign("case_id")->references('id')->on('cases')->onDelete('cascade');
             $table->json('assigned_to')->nullable();
             $table->timestamps();

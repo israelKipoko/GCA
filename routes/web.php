@@ -31,10 +31,13 @@ Route::post('/logout/user', [UserController::class, "logout"])->middleware('auth
 Route::get('/home/models',[ContentController::class,"models"])->middleware('auth')->name('yes');
 Route::get('/home/reports',[ContentController::class,"reports"])->middleware('auth');
 Route::get('/home/library',[ContentController::class,"library"])->middleware('auth');
+Route::get('/home',[ContentController::class, "index"])->middleware('auth');
+
+Route::post('/tasks/new-task',[ActivityController::class, "NewTask"])->middleware('auth');
+Route::post('/tasks/update-status',[ActivityController::class,'updateTaskStatus'])->middleware('auth');
 
 
 Route::group(['middleware' => ['auth','role:Admin|User']], function () { 
-    Route::get('/home',[ContentController::class, "index"]);
     Route::get('/home/pending-cases/{case}',[ActivityController::class,"showCaseDetails"]);
     Route::post('/home/pending-cases/{case}/update-case/file',[ActivityController::class,"updateCase"]);
 
@@ -58,7 +61,7 @@ Route::group(['middleware' => ['auth','role:Admin|User']], function () {
 });
 
 Route::group(['middleware' => ['auth','role:Super-Admin|Admin']], function () { 
-    Route::get('/home/dashboard',[ContentController::class,"index"])->name('just');
+    // Route::get('/home/dashboard',[ContentController::class,"index"])->name('just');
 
     /* CLIENT */
     Route::get('/home/clients',[ContentController::class,"clients"]);
