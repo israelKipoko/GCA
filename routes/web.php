@@ -1,10 +1,11 @@
 <?php
 
+use App\Events\Message;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ActivityController;
-use Illuminate\Support\Facades\Artisan;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -20,6 +21,10 @@ Route::get('/foo', function () {
 });
 Route::get('/', function(){
     return redirect('/GCA/welcome');
+});
+
+Route::get('/foot', function(){
+   broadcast(new Message());
 });
 Route::get('/GCA/welcome', [UserController::class, "index"])->name('route_login');
 Route::post('/authenticate/user', [UserController::class, "authenticate"]);
@@ -42,17 +47,17 @@ Route::get('folders/show-my-folers',[ActivityController::class,"showFolders"])->
 Route::get('users/get-all-users',[ActivityController::class,"getUsers"])->middleware('auth');
 Route::get('clients/get-all-clients',[ActivityController::class,"getClients"])->middleware('auth');
 
-
-Route::get('/home/pending-cases/{case}',[ActivityController::class,"showCaseDetails"]);
+Route::get('/home/pending-cases/{case}',[ActivityController::class,"showCaseDetails"])->middleware('auth');
 
 Route::get('cases/get-all-case-messages/{case}',[ActivityController::class,"getAllCaseMessages"]);
+Route::post('cases/create-new-message/{case}',[ActivityController::class,"createMessage"]);
+Route::post('cases/upload-file/{case}',[ActivityController::class,"uploadFile"])->middleware('auth');
 
 Route::group(['middleware' => ['auth','role:Admin|User']], function () { 
     Route::post('/home/pending-cases/{case}/update-case/file',[ActivityController::class,"updateCase"]);
 
     Route::get('/home/calendar',[ContentController::class, "showCalendar"]);
 
-    Route::post('/home/pending-cases/{case}/upload-file',[ActivityController::class,"uploadFile"])->middleware('auth');
     Route::delete('/home/pending-cases/{case}/delete-file',[ActivityController::class,"deleteUploadedFile"])->middleware('auth');
 
     Route::get('/home/tasks',[ActivityController::class,"showTasks"])->middleware('auth');

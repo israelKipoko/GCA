@@ -8,17 +8,19 @@
         </header>
         <nav class="">
             <ul class="flex flex-col gap-y-1 opacity-[0.7]">
-                @if(auth()->user()->hasRole('User') || auth()->user()->hasRole('Admin'))
-                    <li>
-                        <a href="/home">
-                            <span>
-                                <i class="fa-solid fa-house fa-lg " style="color: #fff;"></i>
-                                <h1 class="hide_sidebar_text">{{__('Accueil')}}</h1>
-                            </span>
-                            <span class="sidebar_menu_tooltip">{{__('Accueil')}}</span>
-                        </a>
-                    </li>
-                @endif
+                @auth
+                    @if(auth()->user()->hasRole('User') || auth()->user()->hasRole('Admin'))
+                        <li>
+                            <a href="/home">
+                                <span>
+                                    <i class="fa-solid fa-house fa-lg " style="color: #fff;"></i>
+                                    <h1 class="hide_sidebar_text">{{__('Accueil')}}</h1>
+                                </span>
+                                <span class="sidebar_menu_tooltip">{{__('Accueil')}}</span>
+                            </a>
+                        </li>
+                    @endif
+                @endauth
                 <li>
                     <a href="/home/my-folder?q=myfolder">
                         <span>

@@ -6,16 +6,17 @@ namespace App\Models;
 use App\Models\News;
 use App\Models\Cases;
 use App\Models\Profiles;
+use Spatie\Image\Enums\Fit;
 use App\Models\PendingCases;
+use App\Models\TemporaryFile;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\MediaLibrary\HasMedia;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Spatie\Image\Enums\Fit;
 
 class User extends Authenticatable implements HasMedia
 {
@@ -82,5 +83,8 @@ class User extends Authenticatable implements HasMedia
     }
     public function pendingCases(){
         return $this->hasMany(PendingCases::class,'user_id');
+    }
+    public function temporaryFile(){
+        return $this->hasMany(TemporaryFile::class);
     }
 }

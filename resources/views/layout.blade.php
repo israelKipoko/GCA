@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         
-        {{-- <link rel="stylesheet" href="{{asset('build/assets/app-BCrJsPBz.css')}}"> --}}
+         {{-- <link rel="stylesheet" href="{{asset('build/assets/app-CkRE12Oc.css')}}">  --}}
         @vite(['resources/css/app.css'])
 
         <title>Laravel</title>
@@ -56,7 +56,7 @@
         @vite('resources/js/app.jsx')
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script src="https://cdn.datatables.net/2.1.7/js/dataTables.min.js"></script>
-        {{-- <script src="{{asset('build/assets/app-DOtmcpzW.js')}}"></script> --}}
+        {{-- <script src="{{asset('build/assets/app-HwjrP8VV.js')}}"></script>  --}}
     </body>
     <script src="{{asset('script/script.js')}}"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>

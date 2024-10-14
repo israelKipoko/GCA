@@ -44,10 +44,10 @@ return [
             'throw' => false,
         ],
 
-        'pendingCases' => [
+        'messages' => [
             'driver' => 'local',
-            'root' => storage_path('app/public/files/cases/pending'),
-            'url' => env('APP_URL').'/storage/files/cases/pending',
+            'root' => storage_path('app/public/files/cases/messages'),
+            'url' => env('APP_URL').'/storage/files/cases/messages',
             'visibility' => 'public',
         ],
 

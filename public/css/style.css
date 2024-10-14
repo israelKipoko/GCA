@@ -781,10 +781,13 @@ button.disabled{
   overflow: scroll;
   display: flex;
   flex-direction: column;
-  row-gap: 5px;
+  row-gap: 8px;
 }
 .message_box{
-  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+  border-radius: 8px;
+  max-width: calc(100% - 40px);
+  padding: 0.25rem;
 }
 .auto_expand_textarea{
   width: 100%;
@@ -796,6 +799,17 @@ button.disabled{
   border-radius: 4px;
   font-size: 15px;
   line-height: 1.5;
+}
+.upload_file_name{
+  display: -webkit-box; 
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;  
+  overflow: hidden;
+  max-lines: 1;
+  overflow-wrap: break-word;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  position: relative;
 }
 /* PENDING WORK DETAILS */
 /* USER PROFILE */

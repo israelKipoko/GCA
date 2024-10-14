@@ -18,6 +18,7 @@ class PendingCases extends Model implements HasMedia
 
     protected $fillable = [
         'user_id',
+        'case_id',
         'comments',
     ];
 

@@ -42,7 +42,7 @@
                         <div>
                 </div>
                 <div class="">
-                    <div id="workspace"></div>
+                    <div id="workspace" data-case-id="{{$case->id}}"></div>
                 </div>
             </section>
         </div>

@@ -99,7 +99,7 @@ class ActivityController extends Controller
         foreach($case->assigned_to as $user){
             $assigned_to[] = User::with('profiles')->find($user);
         }
-        $pendingCase = PendingCases::with("media")->where("id",$case->id)->where('action','add')->get();
+        $pendingCase = PendingCases::with("media")->where("id",$case->id)->get();
         foreach ($pendingCase as $item){
             if($item->hasMedia($case->number)){
                 $hasMedia = true;
@@ -113,58 +113,34 @@ class ActivityController extends Controller
      ]);   
     }
     public function getAllCaseMessages(Cases $case){
-        $messages = PendingCases::where('case_id',$case->id)->get();
+        $messages = PendingCases::with('media')->with('user')->where('case_id',$case->id)->latest('created_at')->get();
+        
+        foreach ($messages as $message){
+            if($message->user->hasMedia("profile")){
+                $message->user['avatar_link'] = $message->getFirstMediaUrl('profile');
+            }else{
+                $message->user['avatar_link'] = asset('storage'.$message->user->avatar);
+            }
+         }
         return response()->json([$messages]);
     }
-    public function updateCase(Request $request, Cases $case){
-        
-        $formFields['case_number'] = $case->number;
-        $formFields['user_id'] = Auth::id();
-        $formFields['comments'] = $request->input('comment');
-        
-        $pendingCase = PendingCases::where('case_number', $case->number)->get();
-
-        $temporaryFile = TemporaryFile::get();
-            foreach($temporaryFile as $file){
-                $hyphenatedFileName = str_replace(' ', '-', $file->name);
-
-                $fileExists = false;
-
-                foreach($pendingCase as $item){
-                    $media = $item->getMedia($case->number)
-                                        ->where('file_name', $hyphenatedFileName)
-                                        // ->where('size', $file->size)
-                                        ->first();
-                    if($media){
-                        $fileExists = true;
-                        $fileDetails = PendingCases::where('case_number',$case->number)->find($media->model_id);
-                        break;
-                    }
-                }
-
-
-                if($fileExists){
-                    $fileDetails->clearMediaCollection($case->number);
-                    $fileDetails->addMedia(public_path('/storage/'.$file->path))
-                                ->toMediaCollection($case->number, 'pendingCases');
-                    Storage::delete('/temporary'.$file->path);
-                    $file->delete();
-                    $formFields['action'] = "update";
-                    $formFields['update_file_id'] = $fileDetails->id;
-                     $caseDetails = PendingCases::create($formFields);
-                     notify()->success('File updated succesfully!');
-                }else{
-                    $formFields['action'] = "add";
-                    $caseDetails = PendingCases::create($formFields);
-                    $caseDetails->addMedia(public_path('/storage/'.$file->path))
-                                ->toMediaCollection($case->number, 'pendingCases');
-                    Storage::delete('/temporary'.$file->path);
-                    $file->delete();
-                     notify()->success('File created succesfully!');
-                }
+    public function createMessage(Cases $case,Request $request){
+        $message = PendingCases::create([
+            'case_id' => $case->id,
+            'user_id' => Auth::id(),
+            'comments' => $request->newComment,
+        ]);
+        if($request->has('fileLength')){
+            $files = TemporaryFile::take($request->input('fileLength'))->latest('created_at')->get();
+            foreach($files as $file){
+                $message->addMedia(public_path('/storage/'.$file->path))
+                ->toMediaCollection($case->id, 'messages');
+                Storage::delete('/temporary'.$file->path);
+                $file->delete();
             }
-        
-         return redirect()->back();
+        }
+
+        return response()->json([201]);
     }
 
     public function uploadFile(Request $request){
@@ -175,11 +151,12 @@ class ActivityController extends Controller
             
                 $filePath= $file->storeAs('temporary'.'/'.$fileName);
                 TemporaryFile::create([
+                    'user_id' => Auth::id(),
                     'name' => $fileName,
                     'path' => $filePath,
                     'size' => $fileSize,
                 ]);
-                return response()->json(['message' => 'File created succesfully!']);
+                return response()->json([201]);
             };
         }
     

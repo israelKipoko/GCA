@@ -15,6 +15,8 @@ if(rootElement){
     );
 }
 
+const caseId = document.getElementById('workspace').getAttribute('data-case-id');
+
  ReactDOM.createRoot(document.getElementById('workspace')).render(
-    <WorkSpace/>
+    <WorkSpace caseId={caseId}/>
 );
