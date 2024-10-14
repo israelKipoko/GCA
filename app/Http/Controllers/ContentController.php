@@ -6,7 +6,7 @@ use App\Models\News;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Cases;
-use App\Models\Clients;
+use App\Models\Client;
 use App\Models\Profiles;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,11 +33,11 @@ class ContentController extends Controller
         ]);
     }
      
-    public function dashboard(){
+    public function showFolders(){
         $profiles = Profiles::whereIn('user_id',[Auth::id()])->get();
-        $clients = Clients::where('id',15)->get()->sortBy('name');
+        $clients = Client::where('id',15)->get()->sortBy('name');
         $users = User::with('profiles')->whereIn('id',[1,2])->get();
-        return view ('admin.dashboard',[
+        return view ('main.tabs.my-folders',[
             'profiles' => $profiles,
             'clients' => $clients,
             'users' => $users,

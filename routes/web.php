@@ -36,9 +36,18 @@ Route::get('/home',[ContentController::class, "index"])->middleware('auth');
 Route::post('/tasks/new-task',[ActivityController::class, "NewTask"])->middleware('auth');
 Route::post('/tasks/update-status',[ActivityController::class,'updateTaskStatus'])->middleware('auth');
 
+Route::get('/home/my-folder',[ContentController::class,"showFolders"])->middleware('auth');
+
+Route::get('folders/show-my-folers',[ActivityController::class,"showFolders"])->middleware('auth');
+Route::get('users/get-all-users',[ActivityController::class,"getUsers"])->middleware('auth');
+Route::get('clients/get-all-clients',[ActivityController::class,"getClients"])->middleware('auth');
+
+
+Route::get('/home/pending-cases/{case}',[ActivityController::class,"showCaseDetails"]);
+
+Route::get('cases/get-all-case-messages/{case}',[ActivityController::class,"getAllCaseMessages"]);
 
 Route::group(['middleware' => ['auth','role:Admin|User']], function () { 
-    Route::get('/home/pending-cases/{case}',[ActivityController::class,"showCaseDetails"]);
     Route::post('/home/pending-cases/{case}/update-case/file',[ActivityController::class,"updateCase"]);
 
     Route::get('/home/calendar',[ContentController::class, "showCalendar"]);
@@ -61,16 +70,18 @@ Route::group(['middleware' => ['auth','role:Admin|User']], function () {
 });
 
 Route::group(['middleware' => ['auth','role:Super-Admin|Admin']], function () { 
-    // Route::get('/home/dashboard',[ContentController::class,"index"])->name('just');
-
     /* CLIENT */
     Route::get('/home/clients',[ContentController::class,"clients"]);
     Route::post('/home/clients/store-new-client',[ActivityController::class,"storeNewClient"]);
     Route::post('/home/client/upload-logo',[ActivityController::class,"storeClientLogo"]);
     Route::delete('/home/client/upload-logo',[ActivityController::class,"deleteClientLogo"]);
+
+    Route::post('/clients/create-new-client',[ActivityController::class,"newClient"])->middleware('auth');
+
     /* CLIENT */ 
     
-    Route::post('/home/cases/create',[ActivityController::class,"createCase"]);
+    Route::post('/folders/create-new-folder',[ActivityController::class,"createCase"]);
+    Route::post('/folders/delete-folder',[ActivityController::class,"deleteCase"]);
     
  });
 

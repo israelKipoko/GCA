@@ -60,6 +60,23 @@ passwordEye.addEventListener('click',()=>{
  }
 /* SIDEBAR */
 
+/* My foders */ 
+try {
+  document.addEventListener('DOMContentLoaded', (event) =>  {
+
+    const inputs = document.querySelectorAll('.dt-container thead input');
+  
+    inputs.forEach((input) => {
+      input.addEventListener('keydown', function (evt) {
+        if ((evt.metaKey || evt.ctrlKey) && evt.key === 'a') this.select();
+      });
+    });
+  });
+} catch (error) {
+  console.log(error.message);
+}
+
+/* My foders */
 /* PENDING WORK */
 try{
     const wrapper = document.querySelector(".pending_cases_wrapper");
@@ -215,7 +232,7 @@ try{
     // wrapper.addEventListener("mouseleave", casesAutoPlay);
     newsWrapper.addEventListener("mouseleave", newsAutoPlay);
 }catch(error){
-    console.log(error);
+    console.log(error.message);
 }
 try {
     const updateButton = document.querySelector("#update_button");
@@ -240,7 +257,7 @@ try {
     })
 } catch (error) {
     console.log(error.message)
-}
+} 
 
 /* PENDING WORK */
 

@@ -19,15 +19,15 @@
                         </a>
                     </li>
                 @endif
-                {{-- <li>
-                    <a href="/home/dashboard?q=dashboard">
+                <li>
+                    <a href="/home/my-folder?q=myfolder">
                         <span>
-                            <i class='bx bxs-dashboard text-white fa-xl'></i>
-                            <h1 class="hide_sidebar_text">{{__('Tableau de bord')}}</h1>
+                            <i class='bx bxs-briefcase fa-xl text-[#fff]'></i>
+                            <h1 class="hide_sidebar_text">{{__('Mes Dossiers')}}</h1>
                         </span>
-                        <span class="sidebar_menu_tooltip">{{__('Tableau de bord')}}</span>
+                        <span class="sidebar_menu_tooltip">{{__('Mes Dossiers')}}</span>
                     </a>
-                </li> --}}
+                </li>
                 {{-- <li>
                     <a href="/home/reports?q=reports">
                         <span>
@@ -61,7 +61,7 @@
             <details class="">
                 <summary class="flex items-center justify-center">
                     <div id="user_picture" class="w-[40px] h-[40px]">
-                        <img src="{{asset('storage/'.$profiles[0]->avatar)}}" alt="user-profile">
+                        <img src="{{asset('storage/'.Auth::user()->avatar)}}" alt="user-profile">
                     </div>
                     <div>
                         <h1 class="hide_sidebar_text flex ml-2 text-white font-bold">{{auth()->user()->firstname." ".auth()->user()->name}}</h1>

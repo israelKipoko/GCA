@@ -17,10 +17,8 @@ class PendingCases extends Model implements HasMedia
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
-        'case_number',
         'user_id',
         'comments',
-        'action',
     ];
 
     public function registerMediaConversions(Media $media = null): void{
@@ -30,7 +28,7 @@ class PendingCases extends Model implements HasMedia
             ->Queued();
     }
     public function cases(){
-        return $this->hasOne(Cases::class);
+        return $this->belongsTo(Cases::class);
     }
     public function user(){
         return $this->belongsTo(User::class,'user_id');

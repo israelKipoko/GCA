@@ -100,7 +100,7 @@ select{
     padding: 0.5rem 0.5rem;
 }
 #main{
-    width: calc(100% - 90px);
+    width: calc(100% - 80px);
     min-height:calc(100vh - 20px);
     float: right;
 }
@@ -113,16 +113,8 @@ select{
     background-color: var(--primaryColor); 
     border-radius: var(--mainBorderRadius) var(--mainBorderRadius) 0 0;
 }
-.user_picture{
-    border-radius: 50%;
-}
 .user_picture:not(:first-child){
   margin-left: -20px;
-}
-.user_picture img{
-    width: 100%;
-    object-fit: cover;
-    border-radius: 50%;
 }
 .separator{
     border: 2px solid var(--hover);
@@ -761,22 +753,50 @@ button.disabled{
   position: relative;
 }
 #case_status_submitted, #case_status_pending{
-  position: absolute;
-  right: 10%;
-  top: 2%;
   background-color: rgba(233, 44, 44,0.2);
   color: rgb(233, 44, 44);
-  font-weight: bold;
-  font-size: 18px;
-  padding:  0.25rem 0.5rem;
+  font-size: 14px;
   height: fit-content;
   border-radius: 4px;
 }
 #case_status_pending{
-  color: #3EA53C !important;
-  background-color: rgba(62, 165, 60,0.2) !important;
+  width: fit-content;
+  padding-inline: 0.75rem; /* equivalent to px-3 */
+  padding-block: 0.25rem; /* equivalent to py-1 */
+  border-radius: 16px;
+  text-transform: capitalize;
+  background-color: rgba(255, 222, 77, 0.7); /* equivalent to bg-[#ffde4db3] */
+  display: flex;
+  align-items: center;
+  gap: 0.25rem; /* equivalent to gap-x-1 */
+  color: #fff;
 }
-
+#assigned_user_wrapper{
+  position: absolute;
+  right: 10%;
+  top: 2%;
+}
+#workspace_message_box_wrapper{
+  max-height: 400px;
+  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
+}
+.message_box{
+  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+}
+.auto_expand_textarea{
+  width: 100%;
+  min-height: 20px;
+  box-sizing: border-box;
+  resize: none !important;  /* Disable manual resizing */
+  overflow: hidden; /* Hide scrollbar */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 15px;
+  line-height: 1.5;
+}
 /* PENDING WORK DETAILS */
 /* USER PROFILE */
 /* HOME */
@@ -1041,7 +1061,8 @@ button.disabled{
   padding-left: 23px;
   padding-block: 8px;
   transition: all ease-in-out 0.2s;
-  width: 500px;
+  width: 500px !important;
+  color: #fff;
 }
 .event_title_input:focus{
   border-bottom: 2px solid var(--mainBlue);
@@ -1054,6 +1075,7 @@ button.disabled{
   position: absolute;
   top: 10px;
   left: 0px;
+  color: #fff;
 }
 #participants_badges_wrapper{
   display: flex;
@@ -1064,7 +1086,7 @@ button.disabled{
   background-color: #b1afaf80;
 }
 .event_time_options{
-  height: 250px;
+  height: 200px;
   overflow-y: scroll;
   z-index: 10;
 }
@@ -1147,7 +1169,8 @@ textarea{
   left: 0;
   right: 0;
   border-top: none;
-  background-color: #fff;
+  background-color: var(--secondaryColor);
+  color: #fff;
   overflow: hidden;
   max-height: 0;
   transition: all 0.2s ease-in-out;
@@ -1167,10 +1190,9 @@ textarea{
   cursor: pointer;
 }
 .options.open {
-  max-height: 200px;
+  max-height: 150px;
   overflow-y: auto;
   border-top: 1px solid #ccc;
-  border: 1px solid #ccc;
   border-radius: 4px;
 }
 
@@ -1179,7 +1201,6 @@ textarea{
   font-size: 14px;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
 }
 
 .option img {
@@ -1190,8 +1211,7 @@ textarea{
 }
 
 .option:hover {
-  background-color: #e9e4e4;
-  background-color: #f0f0f0;
+  background-color: var(--hover);
 }
 /* multiple select */
 /* CALENDAR */
@@ -1286,7 +1306,7 @@ textarea{
 }
 
 /* TO DO LIST */
-/* DASHBOARD */
+/* My Folders */
 .dashboard_boxes{
   width: 400px;
   height: 100px;
@@ -1300,14 +1320,19 @@ textarea{
   font-weight: bold;
   backdrop-filter: blur(20px);
 }
-.status_wrapper #pending{
-  color: #3EA53C;
-  background-color: rgba(62, 165, 60,0.2);
+
+.dt-layout-row:has(.dt-search),
+.dt-layout-row:has(.dt-length),
+.dt-scroll-body thead,
+.dt-layout-row:has(.dt-paging) {
+  display: none !important;
 }
-.status_wrapper #submitted{
-  color: rgb(231, 21, 21);
-  background-color: rgba(231, 21, 21,0.2);
+
+.table tr:nth-child(even) {
+    background-color: #d8d8d80d;
 }
+/* My Folders*/
+
 
 /* CLIENTS */
 .search_input_div{

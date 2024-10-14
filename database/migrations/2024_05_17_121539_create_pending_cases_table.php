@@ -13,12 +13,9 @@ return new class extends Migration
     {
         Schema::create('pending_cases', function (Blueprint $table) {
             $table->id();
-            $table->string('case_number');
-            $table->foreign('case_number')->references('number')->on('cases')->onDelete('cascade');
             $table->foreign('user_id');
             $table->foreign('user_id')->references('id')->on('user')->onDelete('cascade');
             $table->longText('comments')->nullable();
-            $table->string('action')->nullable();
             $table->timestamps();
         });
     }

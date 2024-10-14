@@ -1,12 +1,20 @@
 import './bootstrap';
 import 'preline';
-import 'dotenv/config';
-import mysql from 'mysql';
-// import React from 'react';
-// import ReactDOM from 'react-dom/client';
+import 'datatables.net-dt/js/dataTables.dataTables.min.mjs';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import Table from './components/Table';
+import WorkSpace from './components/WorkSpace'
+
 // import DatePicker from './components/DatePicker';
 
+const rootElement = document.getElementById('table');
+if(rootElement){
+    ReactDOM.createRoot(document.getElementById('table')).render(
+        <Table/>
+    );
+}
 
-// ReactDOM.createRoot(document.getElementById('date-picker')).render(
-//     <DatePicker/>
-// );
+ ReactDOM.createRoot(document.getElementById('workspace')).render(
+    <WorkSpace/>
+);

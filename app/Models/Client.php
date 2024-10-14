@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Clients extends Model implements HasMedia
+class Client extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
@@ -45,6 +45,6 @@ class Clients extends Model implements HasMedia
     }
 
     public function cases(){
-        return $this->hasMany(Cases::class, 'client_id');
+        return $this->hasMany(Cases::class);
     }
 }

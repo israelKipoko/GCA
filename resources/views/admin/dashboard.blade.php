@@ -19,12 +19,10 @@
                         <div class="w-fit ml-auto mr-6">
                             <button type="button" x-data x-on:click="$dispatch('open-create-case');" class="py-1 px-2 bg-[#356B8C] rounded-[4px] text-white font-bold">{{__("+ Créer un dossier")}}</button>
                         </div>
-                        <livewire:cases-table/>
                     </div>
                 </div>
             </section>
         </div>
-        <x-admin.new-case :clients="$clients" :users="$users"/>
         {{-- <x-filament::modal id="new-case"  slide-over>
          
             {{-- Modal content -

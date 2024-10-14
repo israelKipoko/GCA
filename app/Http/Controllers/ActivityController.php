@@ -8,7 +8,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Models\Cases;
 use App\Models\Event;
-use App\Models\Clients;
+use App\Models\Client;
 use App\Models\Profiles;
 use Spatie\PdfToImage\Pdf;
 use App\Models\PendingCases;
@@ -21,16 +21,85 @@ use Spatie\MediaLibrary\Support\PathGenerator\PathGenerator;
 
 class ActivityController extends Controller
 {
+    public function showFolders(){
+        $folders= Cases::with('user')->with('client')->where(function($query) {
+            $query->whereJsonContains('assigned_to', Auth::id())
+                ->orWhere('created_by', Auth::id());
+        })->latest('updated_at')->get();
+        foreach ($folders as $folder){
+            if($folder->user->hasMedia("profile")){
+                $folder->user['avatar_link'] = $folder->user->getFirstMediaUrl();
+            }else{
+                $folder->user['avatar_link'] = asset('storage'.$folder->user->avatar);
+            }
+         }
+         foreach ($folders as $folder){
+            foreach($folder->assigned_to as $index=>$user){
+                $assignedUser = User::find($user);
+                if($assignedUser->hasMedia("profile")){
+                    $folder->assigned_to[$index] = [
+                        "avatar_link" => $assignedUser->getFirstMediaUrl(),
+                        "name" => $assignedUser->firstname. " ".$assignedUser->name,
+                    ];
+                }else{
+                    $t= $folder->assigned_to;
+                    $t[$index] = [
+                        "avatar_link" => asset('storage'.$assignedUser->avatar),
+                        "name" => $assignedUser->firstname. " ".$assignedUser->name,
+                    ];
+                    $folder->assigned_to = $t;
+                }
+            }
+         }
+        return response()->json([$folders]);
+    }
+    public function getUsers(){
+        $users = User::whereNot('id',Auth::id())->get();
+        foreach ($users as $user){
+            if($user->hasMedia("profile")){
+                $user['avatar_link'] = $user->getFirstMediaUrl();
+            }else{
+                $user['avatar_link'] = asset('storage'.$user->avatar);
+            }
+         }
+         return response()->json([$users]);
+    }
+    public function getClients(){
+        $clients = Client::all();
+        foreach ($clients as $client){
+            if($client->hasMedia("logo")){
+                $client['logo_link'] = $client->getFirstMediaUrl();
+            }else{
+                $client['logo_link'] = null;
+            }
+         }
+         return response()->json([$clients]);
+    }
+    public function newClient(Request $request){
+        $client = Client::create([
+            'name' => $request->input('createNewClient'),
+            'sector' => 'not determined',
+            'company_id' => 1,
+        ]);
+        $newClientId = $client->id;
+
+        return response()->json(['id' => $newClientId]);
+    }
+
+    public function deleteCase(Request $request){
+        $case = Cases::find($request->folderToDelete);
+        $case->delete();
+
+        return response()->json([201]);
+    }
     public function showCaseDetails(Cases $case){
-        
-        $profiles = Profiles::whereIn('user_id',[Auth::id()])->get();
         
         $assigned_to;
         $hasMedia = false;
         foreach($case->assigned_to as $user){
             $assigned_to[] = User::with('profiles')->find($user);
         }
-        $pendingCase = PendingCases::with("media")->where("case_number",$case->number)->where('action','add')->get();
+        $pendingCase = PendingCases::with("media")->where("id",$case->id)->where('action','add')->get();
         foreach ($pendingCase as $item){
             if($item->hasMedia($case->number)){
                 $hasMedia = true;
@@ -41,8 +110,11 @@ class ActivityController extends Controller
         'assigned_to' => $assigned_to,
         'pendingCase' => $pendingCase,
         'hasMedia' => $hasMedia,
-        'profiles' => $profiles
      ]);   
+    }
+    public function getAllCaseMessages(Cases $case){
+        $messages = PendingCases::where('case_id',$case->id)->get();
+        return response()->json([$messages]);
     }
     public function updateCase(Request $request, Cases $case){
         
@@ -174,20 +246,19 @@ class ActivityController extends Controller
     }
 
     public function createCase(Request $request){
-        $formFields['number'] = fake()->numberBetween(1000, 9999);
-        $formFields['title'] = $request->title;
+        $formFields['title'] = $request->newFolder['title'];
         $formFields['company_id'] = 1;
-        $formFields['description'] = $request->description;
-        $formFields['client_id'] = $request->client;
-        $formFields['assigned_to'] = $request->assigned_to;
+        $formFields['description'] =  $request->newFolder['description'];
+        $formFields['client_id'] =  $request->newFolder['clientId'];
+        $formFields['priority'] =  $request->newFolder['priority'];
+        $formFields['assigned_to'] =  $request->newFolder['selectedOptions'];
         $formFields['created_by'] = Auth::id();
-        $formFields['type'] = "juridique";
-        $formFields['due_date'] = $request->due_date;
+        $formFields['type'] = "CJ";
+        $formFields['due_date'] = $request->newFolder['formattedDate'];
        
 
-        $client = Cases::create($formFields);
-         notify()->success('Folder created succesfully!');
-         return redirect()->back();
+         $folder = Cases::create($formFields);
+         return response()->json(['folder' => $folder]);
     }
 
     /* NEWS */ 
@@ -226,7 +297,7 @@ class ActivityController extends Controller
         ];
         $temporaryFile = TemporaryFile::where('name',$request->logo)->get();
 
-        $client = Clients::create($formFields);
+        $client = client::create($formFields);
         $client->addMedia(public_path('/storage/'.$temporaryFile[0]->path))
                     ->toMediaCollection('client-logo', 'logos');
         Storage::delete('/temporary'.$temporaryFile[0]->path);

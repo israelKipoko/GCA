@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Models\User;
-use App\Models\Clients;
+use App\Models\Client;
 use App\Models\PendingCases;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -19,11 +19,11 @@ class Cases extends Model implements HasMedia
     
     protected $fillable = [
         'title',
-        'number',
         'description',
         'assigned_to',
         'client_id',
         'due_date',
+        'priority',
         'created_by',
         'status',
         'type',
@@ -41,8 +41,8 @@ class Cases extends Model implements HasMedia
         );
     }
 
-    public function clients(){
-        return $this->belongsTo(Clients::class, 'client_id');
+    public function client(){
+        return $this->belongsTo(Client::class);
     }
     public function user(){
         return $this->belongsTo(User::class, 'created_by');
