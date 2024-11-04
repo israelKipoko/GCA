@@ -393,6 +393,35 @@ select{
   width: 90%;
 }
 /* PENDING WORK */
+.overlay_left, .overlay_right {
+  position: absolute;
+  top: 0;
+  width: 50px; /* Width of the side overlay */
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s;
+}
+.overlay_left {
+  left: 0;
+}
+.overlay_right{
+  right: 0;
+}
+.carousel_scroll{
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.carousel_scroll::-webkit-scrollbar {
+  display: none;
+}
+.scrollable-container::-moz-scrollbar {
+  display: none; 
+}
 .pending_cases_wrapper{
     width: 100%;
     position: relative;
@@ -785,6 +814,7 @@ button.disabled{
 }
 .message_box{
   box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+  border-bottom: 1px solid hsl(237, 14%, 26%);
   border-radius: 8px;
   max-width: calc(100% - 40px);
   padding: 0.25rem;
@@ -799,6 +829,7 @@ button.disabled{
   border-radius: 4px;
   font-size: 15px;
   line-height: 1.5;
+  padding-left: 20px;
 }
 .upload_file_name{
   display: -webkit-box; 
@@ -811,34 +842,95 @@ button.disabled{
   text-overflow: ellipsis;
   position: relative;
 }
+.workspace_tools_wrapper{
+  padding: 0.5rem;
+  background-color: var(--secondaryColor);
+  color: #fff;
+  border-bottom: 1px solid hsl(237, 14%, 26%);
+  width: 400px;
+  transition: all ease-in-out 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  &:hover{
+    transform: scale(1.01);
+  }
+}
+.workspace_tools_wrapper h1{
+  font-weight: bold;
+  font-size: 15px;
+}
+.workspace_tools_wrapper span{
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 100% !important;
+  text-align: center;
+  background-color: var(--hover);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.workspace_tabs_header{
+  color: #fff;
+  background-color: var(--mainBlueHover);
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 4px;
+  text-align: center;
+  position: relative;
+}
+.workspace_tabs_header h1{
+  font-weight: bold;
+  font-size: 15px;
+  text-align: center;
+}
+.workspace_tabs_content_wrapper{
+  position: relative;
+  height: 400px;
+  overflow-y: auto;
+}
 /* PENDING WORK DETAILS */
 /* USER PROFILE */
 /* HOME */
 /* TODO LIST*/
-
-.todo_wrapper_tabs ul{
-  display: flex;
-  flex-direction: column;
-  padding-inline: 5px;
-  padding-block: 10px;
-}
-.todo_wrapper_tabs ul li{
+.todo_wrapper_tabs{
   display: flex;
   align-items: center;
-  column-gap: 10px;
-  color: #fff;
+  justify-content: space-between;
   padding: 5px;
-  border-radius: 4px;
+  width: 100%;
   transition: all ease-in-out 0.2s;
+  border-radius: 4px;
 }
-.todo_wrapper_tabs ul li i {
+.todo_wrapper_tabs div{
+  display: flex;
+  justify-content: left;
+  align-items: start;
+  column-gap: 5px;
+  color: #fff;
+}
+.todo_wrapper_tabs span{
+  color: #fff;
+  font-size: 12px;
+  width: 22px;
+  height: 22px;
+  /* background-color: #d8d8d844; */
+  border-radius: 50%;
+}
+.todo_wrapper_tabs_list{
+  box-shadow:  var(--hover) 3px 0 5px -5px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+}
+.todo_wrapper_tabs i {
   font-size: 18px;
 }
-.todo_wrapper_tabs ul li:hover{
+.todo_wrapper_tabs:hover{
   background-color: var(--hover);
   cursor: pointer;
 }
-.tab_link.active{
+.active_tab{
   background-color: var(--hover);
 }
 .tab-pane {
@@ -887,7 +979,8 @@ button.disabled{
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 95% ;
+  width: calc(100% - 15px) ;
+  margin-inline: auto;
 }
 .addTaskInput .todo_text{
   width: 100%;
@@ -1231,19 +1324,34 @@ textarea{
 /* CALENDAR */
 /* Register */
 /* TO DO LIST */
-.todo_items_wrapper{
-  overflow: hidden;
-}
 .todo_items{
   padding-inline: 10px;
   display: flex;
   flex-direction: column;
-  row-gap: 5px;
-  overflow: scroll;
+  row-gap: 1px;
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: calc(100% - 60px);
 }
-.todo_scroller{
-  height: 280px;
-  overflow: scroll;
+.todo_items::-webkit-scrollbar {
+  width: 10px;
+}
+
+.todo_items::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.todo_items::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 10px;
+}
+
+.todo_items::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+.todolist_tabs_content_wrapper{
+  position: relative;
+  height: 380px;
 }
 .todo_item{
   padding: 10px;
@@ -1295,11 +1403,12 @@ textarea{
 
 .check_mark.checked {
   background-color: pink;
-  background: linear-gradient(135deg, #55DDFF 0%, #C058F3 100%);   
+  background: linear-gradient(135deg, #55DDFF 0%, #C058F3 100%); 
+  border: none;  
 }
 #todo_wrapper{
   width: 100%;
-  height: 400px;
+  height: 450px;
   background: var(--primaryColor);
   border-radius: 7px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
@@ -1315,10 +1424,15 @@ textarea{
   color: #fff;
   text-transform: capitalize;
 }
-.todo_date_now{
-  margin-top: 10px;
+.todolist_accordion_trigger{
+  width: 150px;
+  color: #fff;
+  transition: all .25s ease;
+  transition-property: box-shadow, transform, border-color;
+  background-color: var(--secondaryColor);
+  border-radius: 4px;
+  margin-block: 8px;
 }
-
 /* TO DO LIST */
 /* My Folders */
 .dashboard_boxes{

@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\User;
 use App\Events\Message;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\UserController;
@@ -24,7 +26,7 @@ Route::get('/', function(){
 });
 
 Route::get('/foot', function(){
-   broadcast(new Message());
+    broadcast(new Message(User::find(Auth::id())));
 });
 Route::get('/GCA/welcome', [UserController::class, "index"])->name('route_login');
 Route::post('/authenticate/user', [UserController::class, "authenticate"]);
@@ -38,20 +40,27 @@ Route::get('/home/reports',[ContentController::class,"reports"])->middleware('au
 Route::get('/home/library',[ContentController::class,"library"])->middleware('auth');
 Route::get('/home',[ContentController::class, "index"])->middleware('auth');
 
-Route::post('/tasks/new-task',[ActivityController::class, "NewTask"])->middleware('auth');
+Route::get('/tasks/get-all-tasks',[ActivityController::class, "showTasks"])->middleware('auth');
+Route::post('/tasks/create-new-task',[ActivityController::class, "newTask"])->middleware('auth');
 Route::post('/tasks/update-status',[ActivityController::class,'updateTaskStatus'])->middleware('auth');
 
+/* Folders */
 Route::get('/home/my-folder',[ContentController::class,"showFolders"])->middleware('auth');
-
-Route::get('folders/show-my-folers',[ActivityController::class,"showFolders"])->middleware('auth');
-Route::get('users/get-all-users',[ActivityController::class,"getUsers"])->middleware('auth');
-Route::get('clients/get-all-clients',[ActivityController::class,"getClients"])->middleware('auth');
+Route::get('/folders/show-my-folders',[ActivityController::class,"showFolders"])->middleware('auth');
+Route::get('/users/get-all-users',[ActivityController::class,"getUsers"])->middleware('auth');
+Route::get('/clients/get-all-clients',[ActivityController::class,"getClients"])->middleware('auth');
 
 Route::get('/home/pending-cases/{case}',[ActivityController::class,"showCaseDetails"])->middleware('auth');
 
-Route::get('cases/get-all-case-messages/{case}',[ActivityController::class,"getAllCaseMessages"]);
-Route::post('cases/create-new-message/{case}',[ActivityController::class,"createMessage"]);
-Route::post('cases/upload-file/{case}',[ActivityController::class,"uploadFile"])->middleware('auth');
+Route::get('/cases/get-all-case-messages/{case}',[ActivityController::class,"getAllCaseMessages"]);
+Route::post('/cases/create-new-message/{case}',[ActivityController::class,"createMessage"]);
+Route::post('/cases/upload-file/{case}',[ActivityController::class,"uploadFile"])->middleware('auth');
+
+Route::get('/folders/show-pending-folders',[ActivityController::class,"showPendingCases"])->middleware('auth');
+
+/* TASKS */
+Route::get('/tasks/get-all-case-tasks/{case}',[ActivityController::class,"getAllTasks"])->middleware('auth');
+Route::post('/tasks/create-new-task/{case}',[ActivityController::class,"createCaseTask"])->middleware('auth');
 
 Route::group(['middleware' => ['auth','role:Admin|User']], function () { 
     Route::post('/home/pending-cases/{case}/update-case/file',[ActivityController::class,"updateCase"]);
@@ -81,7 +90,9 @@ Route::group(['middleware' => ['auth','role:Super-Admin|Admin']], function () {
     Route::post('/home/client/upload-logo',[ActivityController::class,"storeClientLogo"]);
     Route::delete('/home/client/upload-logo',[ActivityController::class,"deleteClientLogo"]);
 
-    Route::post('/clients/create-new-client',[ActivityController::class,"newClient"])->middleware('auth');
+    Route::post('/clients/create-new-client',[ActivityController::class,"newClient"]);
+
+    Route::get('/clients/show-my-clients',[ActivityController::class,"showClients"]);
 
     /* CLIENT */ 
     

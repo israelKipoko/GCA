@@ -80,7 +80,6 @@ export const columns: ColumnDef<Payment>[] = [
         return <div className="capitalize ">{formatDate(row.getValue("dead_line"))}</div>
 
       }
-
     },
   },
   {

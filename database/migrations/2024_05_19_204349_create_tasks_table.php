@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('task')->nullable();
             $table->foreign("case_id")->references('id')->on('cases')->onDelete('cascade');
             $table->json('assigned_to')->nullable();
+            $table->json('category')->nullable();
             $table->timestamps();
         });
     }

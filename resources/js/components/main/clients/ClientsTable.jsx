@@ -1,10 +1,10 @@
-import { columns } from "./Columns"
-import { DataTable } from "./DataTable"
+import { columns } from "./ClientsColumns"
+import { DataTable } from "./ClientsDataTable"
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Toaster } from "../../../components/ui/toaster"
+import { Toaster } from "../../../../../components/ui/toaster"
 
-const Table = () =>{
+const ClientTable = () =>{
   const [refreshKey, setRefreshKey] = useState(0);
 
   const dataRefresh = () => {
@@ -13,23 +13,22 @@ const Table = () =>{
   const [data, setData] = useState([]);
   var transformedData;
    function getData() {
-      axios.get('/folders/show-my-folders')
+      axios.get('/clients/show-my-clients')
         .then(response => {
           transformedData = response.data[0].map(element => ({
             id:element.id,
-            title: element.title,
-            statut: element.status,
-            client: element.client.name,
-            dead_line: element.due_date,
-            priority: element.priority,
-            created_by: element.user.firstname +" "+ element.user.name,
-            description: element.description,
-            users: element.assigned_to,
+            name: element.name,
+            sector: element.sector,
+            location: element.location.city + "/"+ element.location.district,
+            contact: element.contacts.email,
+            cases: element.case_count,
           }));
+          console.log(response.data[0])
+          console.log(transformedData)
          setData(transformedData);
         })
         .catch(error => {
-          console.log('no')
+          console.log(error.message)
 
         });
 
@@ -46,11 +45,11 @@ const Table = () =>{
   return (
     <div className="container mx-auto py-10">
       <DataTable columns={columns} data={data} dataRefresh={dataRefresh}/>
-      <Toaster />
+      {/* <Toaster /> */}
     </div>
   )
 }
 
-export default Table
+export default ClientTable
 
 

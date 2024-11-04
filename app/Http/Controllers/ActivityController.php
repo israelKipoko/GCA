@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Cases;
 use App\Models\Event;
 use App\Models\Client;
+use App\Events\Message;
 use App\Models\Profiles;
 use Spatie\PdfToImage\Pdf;
 use App\Models\PendingCases;
@@ -53,6 +54,27 @@ class ActivityController extends Controller
          }
         return response()->json([$folders]);
     }
+    function showPendingCases(){
+        $folders= Cases::with('user')->with('client')->withCount('task')->where('status','pending')->where(function($query) {
+            $query->whereJsonContains('assigned_to', Auth::id())
+                ->orWhere('created_by', Auth::id());
+        })->latest('updated_at')->get();
+
+        foreach($folders as $folder){
+            $assignedTo = [];
+            foreach ($folder->assigned_to as $id){
+                $user = User::find($id);
+                if($user->hasMedia("profile")){
+                    $user['avatar_link'] = $user->getFirstMediaUrl();
+                }else{
+                    $user['avatar_link'] = asset('storage'.$user->avatar);
+                }
+                    $assignedTo[] = $user;
+             }
+             $folder->assigned_to = $assignedTo;
+        }
+        return response()->json([$folders]);
+    }
     public function getUsers(){
         $users = User::whereNot('id',Auth::id())->get();
         foreach ($users as $user){
@@ -78,7 +100,11 @@ class ActivityController extends Controller
     public function newClient(Request $request){
         $client = Client::create([
             'name' => $request->input('createNewClient'),
-            'sector' => 'not determined',
+            'sector' => 'undetermined',
+            'location' => [
+                'city' => "undetermined",
+                'district' => "undetermined",
+            ],
             'company_id' => 1,
         ]);
         $newClientId = $client->id;
@@ -114,7 +140,16 @@ class ActivityController extends Controller
     }
     public function getAllCaseMessages(Cases $case){
         $messages = PendingCases::with('media')->with('user')->where('case_id',$case->id)->latest('created_at')->get();
-        
+        $users;
+        foreach($case->assigned_to as $item){
+            $user = User::find($item);
+            if($user->hasMedia("profile")){
+                $user['avatar_link'] = $user->getFirstMediaUrl('profile');
+            }else{
+                $user['avatar_link'] = asset('storage'.$user->avatar);
+            }
+            $users[] = $user;
+        }
         foreach ($messages as $message){
             if($message->user->hasMedia("profile")){
                 $message->user['avatar_link'] = $message->getFirstMediaUrl('profile');
@@ -122,7 +157,7 @@ class ActivityController extends Controller
                 $message->user['avatar_link'] = asset('storage'.$message->user->avatar);
             }
          }
-        return response()->json([$messages]);
+        return response()->json([$messages,$users]);
     }
     public function createMessage(Cases $case,Request $request){
         $message = PendingCases::create([
@@ -130,7 +165,7 @@ class ActivityController extends Controller
             'user_id' => Auth::id(),
             'comments' => $request->newComment,
         ]);
-        if($request->has('fileLength')){
+        if($request->input('fileLength') != 0){
             $files = TemporaryFile::take($request->input('fileLength'))->latest('created_at')->get();
             foreach($files as $file){
                 $message->addMedia(public_path('/storage/'.$file->path))
@@ -139,7 +174,7 @@ class ActivityController extends Controller
                 $file->delete();
             }
         }
-
+        // broadcast(new Message(User::find(Auth::id())));
         return response()->json([201]);
     }
 
@@ -181,14 +216,49 @@ class ActivityController extends Controller
             return redirect()->back();
     }
     
-    public function NewTask(Request $request){
+    /* CASE TASKS API */
+    public function getAllTasks(Request $request, Cases $case){
+        $tasks = Task::with('case')->where('case_id',$case->id)->where(function($query) {
+            $query->whereJsonContains('assigned_to', Auth::id())
+                ->orWhere('created_by', Auth::id());
+        })->orderByRaw("FIELD(status, 'pending', 'completed')")->latest('updated_at')->get();
+        $role = 'User';
+        if(Auth::user()->hasRole('Super-Admin') || Auth::user()->hasRole('Admin')){
+            $role = 'Admin';
+        }
+        return response()->json([$tasks,Auth::id(),$role]);
+    }
+    public function createCaseTask(Request $request, Cases $case){
+       $task = Task::create([
+            'title' => $request->title,
+            'case_id' => $case->id,
+            'created_by' => Auth::id(),
+        ]);
+        return response()->json([201]);
+    }
+    /* CASE TASKS API */
+
+    public function showTasks(){
+        $tasks = Task::with('user')->with('case')->where(function($query) {
+            $query->whereJsonContains('assigned_to', Auth::id())
+                ->orWhere('created_by', Auth::id());
+        })->orderByRaw("FIELD(status, 'pending', 'completed')")->latest()->get();
+
+        return response()->json([$tasks,Auth::id()]);
+    }
+
+    public function newTask(Request $request){
         try {
-            $formFields['title'] = $request->new_task;
+            $formFields['title'] = $request->title;
             $formFields["created_by"] = Auth::id();
             
             if($request->category == "my_day" || $request->category == "planned"){
                 $dateToday  = date('Y-m-d');
                 $formFields['due_date'] = $dateToday;
+                $formFields['category'] = "tasks";
+            }
+            if($request->caseId != null){
+                $formFields['case_id'] = $request->caseId;
             }
             $task = Task::create($formFields);
 
@@ -215,10 +285,11 @@ class ActivityController extends Controller
             }else{
                 $taskToUpdate->status = "completed";
             }
+            $status = $taskToUpdate->status;
             $taskToUpdate->save();
-            return response()->json([201]);
+            return response()->json([$status],201);
         } catch (QueryException $e) {
-            return response()->json(['message' => 'Failed to create record', 'error' => $e->getMessage()], 500);
+            return response()->json([500]);
         }
     }
 
@@ -253,6 +324,10 @@ class ActivityController extends Controller
 
     /* CLIENTS */ 
 
+    public function showClients(){
+        $clients = Client::with('case')->withCount('case')->where('company_id',1)->get();
+        return response()->json([$clients]);
+    }
     public function storeNewClient(Request $request){
         $request->validate([
             'name' => 'required|string',

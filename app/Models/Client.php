@@ -44,7 +44,7 @@ class Client extends Model implements HasMedia
         );
     }
 
-    public function cases(){
+    public function case(){
         return $this->hasMany(Cases::class);
     }
 }

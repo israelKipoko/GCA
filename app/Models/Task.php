@@ -29,10 +29,16 @@ class Task extends Model
             set: fn($value) => json_encode($value),
         );
     }
+    protected function category(): Attribute{
+        return Attribute::make(
+            get: fn($value) => json_decode($value,true),
+            set: fn($value) => json_encode($value),
+        );
+    }
     public function user(){
         return $this->belongsTo(User::class, 'created_by');
     }
-    public function cases(){
-        return $this->belongsTo(Cases::class, 'case_id');
+    public function case(){
+        return $this->belongsTo(Cases::class,'case_id');
     }
 }

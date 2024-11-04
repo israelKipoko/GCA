@@ -56,6 +56,8 @@
         @vite('resources/js/app.jsx')
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script src="https://cdn.datatables.net/2.1.7/js/dataTables.min.js"></script>
+        @vite(['resources/js/app.jsx'])
+
         {{-- <script src="{{asset('build/assets/app-HwjrP8VV.js')}}"></script>  --}}
     </body>
     <script src="{{asset('script/script.js')}}"></script>

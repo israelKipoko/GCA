@@ -8,7 +8,7 @@
                 <div class="login_logo text-white w-fit mx-auto text-[24px]">logo</div>
                 <div class="overlay"></div>
                 <div class="mb-[24px]">
-                    <h1 class="text-[25px] text-left mb-5">Bienvenu!</h1>
+                    <h1 class="text-[25px] text-left mb-5">Bienvenue!</h1>
                     <p class="text-[14px]">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat</p>
                     {{-- <a href="" id="learn_more">{{__('Apprendre plus')}}</a> --}}
                 </div>

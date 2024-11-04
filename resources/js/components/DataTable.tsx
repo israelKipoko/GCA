@@ -178,9 +178,9 @@ export function DataTable<TData, TValue>({
             </TableHeader>
             <TableBody>
             {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
+                table.getRowModel().rows.map((row,index) => (
                  
-                    <Dialog>
+                    <Dialog key={index}>
       <DialogTrigger asChild>
                 <TableRow
                     key={row.id}
@@ -206,7 +206,7 @@ export function DataTable<TData, TValue>({
             <label htmlFor="" className="text-[14px] text-center">Assigné à:</label>
               <div className=" flex ">
                 {assignedUsers.map((user, index) => (
-                      <TooltipProvider>
+                      <TooltipProvider key={index}>
                       <Tooltip>
                       {(index==0)?
                         <TooltipTrigger className="border-none w-fit ">

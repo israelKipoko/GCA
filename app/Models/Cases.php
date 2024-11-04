@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Task;
 use App\Models\User;
 use App\Models\Client;
+use Spatie\Image\Enums\Fit;
 use App\Models\PendingCases;
+use Spatie\MediaLibrary\HasMedia;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Spatie\Image\Enums\Fit;
 
 class Cases extends Model implements HasMedia
 {
@@ -49,5 +50,8 @@ class Cases extends Model implements HasMedia
     }
     public function pendingcases(){
         return $this->hasMany(PendingCases::class);
+    }
+    public function task(){
+        return $this->hasMany(Task::class,'case_id');
     }
 }

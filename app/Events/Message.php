@@ -2,14 +2,15 @@
 
 namespace App\Events;
 
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class Message implements ShouldBroadcastNow
 {
@@ -18,7 +19,7 @@ class Message implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      */
-    public function __construct()
+    public function __construct(public User $user)
     {
         //
     }
@@ -28,6 +29,16 @@ class Message implements ShouldBroadcastNow
      *
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
+    public function broadcastWith(): array
+    {
+        return [
+           'user' => [
+            'id' => $this->user->id,
+            'name' => $this->user->name,
+            'firstname' => $this->user->firstname,
+           ]
+        ];
+    }
     public function broadcastOn(): array
     {
         return [

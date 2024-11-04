@@ -15,20 +15,14 @@ class ContentController extends Controller
 {
     public function index(){
         $profiles = Profiles::whereIn('user_id',[Auth::id()])->get();
-        $nbOfUsers = User::count();
-        $userPendingCases = Cases::where("status","pending")->whereJsonContains("assigned_to",Auth::id())->latest("updated_at")->get();
-        $assignedTask = null;
-        for($i=1; $i<=$nbOfUsers; $i++){
-            $assignedTasksExists = Task::where('assigned_to->'.$i, Auth::id())->exists();
-            if($assignedTasksExists) $assignedTask += Task::where('assigned_to->'.$i, Auth::id())->count();;
-        }
-        $personalTasks = Task::where('created_by', Auth::id())->count();
+        $userPendingCasesExist= Cases::with('user')->where("status","pending")->where(function($query) {
+            $query->whereJsonContains('assigned_to', Auth::id())
+                ->orWhere('created_by', Auth::id());
+        })->latest('updated_at')->exists();
         $newsCollection = News::with('user.profiles')->where('company_id',1)->where('have_read','no')->latest()->take(3)->get();
         return view('main.index',[
             'profiles' => $profiles,
-            'userPendingCases' => $userPendingCases,
-            'personalTasks' => $personalTasks,
-            'assignedTask' => $assignedTask,
+            'userPendingCasesExist' => $userPendingCasesExist,
             'newsCollection' => $newsCollection,
         ]);
     }
