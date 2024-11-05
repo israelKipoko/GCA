@@ -813,11 +813,10 @@ button.disabled{
   row-gap: 8px;
 }
 .message_box{
-  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
-  border-bottom: 1px solid hsl(237, 14%, 26%);
-  border-radius: 8px;
+  /* box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px; */
+  /* border-bottom: 1px solid hsl(237, 14%, 26%); */
+  /* border-radius: 8px; */
   max-width: calc(100% - 40px);
-  padding: 0.25rem;
 }
 .auto_expand_textarea{
   width: 100%;

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Toaster } from "../../../components/ui/toaster"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { cn } from "../../../lib/utils";
+import { formatDistanceToNow } from 'date-fns';
 import {
   Tooltip,
   TooltipContent,
@@ -49,6 +50,8 @@ const WorkSpace = (caseId) =>{
   const [activeTab, setActiveTab] = useState('my_task');
   const audio = new Audio('../../../sounds/completed_2.mp3');
   const [userRole, setUserRole] = useState('');
+  var [timecreated] = useState(); 
+  var [relativeTime, setRelativeTime] = useState();
   var transformedData;
   var transformedUserData;
  
@@ -62,7 +65,12 @@ const WorkSpace = (caseId) =>{
         name: element.user.firstname +" "+ element.user.name,
         avatar: element.user.avatar_link,
         files: element.media,
+        date: element.created_at
       }));
+      console.log(transformedData.date)
+      timecreated =  transformedData.date;
+      setRelativeTime(formatDistanceToNow(timecreated, { addSuffix: true }));
+
       setAllFiles([]);
       transformedData.forEach((item) =>{
         if(item.files.length != 0){
@@ -134,10 +142,16 @@ const WorkSpace = (caseId) =>{
     textarea.addEventListener('input', handleInput);
     textarea.dispatchEvent(new Event('input'));
 
+    const interval = setInterval(() => {
+      setRelativeTime(formatDistanceToNow(timecreated, { addSuffix: true }));
+    }, 60000);
+
     return () => {
       textarea.removeEventListener('input', handleInput);
+      clearInterval(interval); 
     };
-  }, [refreshKey]);
+
+  }, [refreshKey,timecreated]);
 
   
   const [newMessage, setNewMessage] = useState('');
@@ -268,22 +282,26 @@ const WorkSpace = (caseId) =>{
             <div className='py-1 px-2' id='workspace_message_box_wrapper'>
               {messages.length ? (
               messages.map((message) =>(
-                  <div className='flex flex-wrap gap-x-1'>
-                    <div className='w-[30px] h-[30px]'>
-                      <img src={message.avatar} alt="avatar"className=" object-fit-contain rounded-full" />
-                    </div>
-                    <div className='message_box'>
-                      <p className='text-[15px]  w-fit py-1 px-2 rounded-[4px] text-[#fff]'>{message.comment}</p>
-                      <div className='flex gap-x-2'>
-                        {message.files.map((file)=>(
-                          <div>
-                            <a className='w-[ h-[50px] p-2 bg-[#335b74] text-[#fff] text-[12px] upload_file_name rounded-[4px]' href={file.original_url} download={file.file_name}>{file.file_name}</a>
-                          </div>
-                          
-                      ))}
+                  <div className='flex  flex-row items-start flex-wrap gap-x-1'>
+                      <div className='w-[25px] h-[25px]'>
+                        <img src={message.avatar} alt="avatar"className=" object-fit-contain rounded-full" />
                       </div>
-                    
-                    </div>
+                     <div className='flex flex-col justify-center py-0.5'>
+                        <div>
+                          <h1 className='text-[#fff] text-[14px] capitalize'>{message.name}{`Posted ${relativeTime}`}</h1>
+                        </div>
+                        <div className='message_box'>
+                          <p className='text-[15px]  w-fit py-1 rounded-[4px] text-[#fff]'>{message.comment}</p>
+                          <div className='flex gap-x-2'>
+                            {message.files.map((file)=>(
+                              <div>
+                                <a className='w-[ h-[50px] p-2 bg-[#335b74] text-[#fff] text-[12px] upload_file_name rounded-[4px]' href={file.original_url} download={file.file_name}>{file.file_name}</a>
+                              </div>
+                          ))}
+                          </div>
+                        
+                        </div>
+                     </div>
                 </div>
               ))):
               (
@@ -314,7 +332,7 @@ const WorkSpace = (caseId) =>{
                         <TooltipTrigger asChild>
                           <div>
                             <label htmlFor='file' className='cursor-pointer'><i className="fa-solid fa-paperclip text-[#fff]"></i></label>
-                            <input type="file" accept=".pdf, .doc, .docx, .xls, .xlsx .txt" name='file' id='file' multiple className='hidden' onChange={handleFileChange} />
+                            <input type="file" accept=".pdf, .doc, .docx, .xls, .xlsx .txt .png .jpeg .jpg" name='file' id='file' multiple className='hidden' onChange={handleFileChange} />
                           </div>
                         </TooltipTrigger>
                         <TooltipContent className='bg-[#313131] border-none text-[#fff]'>
