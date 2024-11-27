@@ -21,5 +21,5 @@ Broadcast::channel('folder', function () {
 });
 
 Broadcast::channel('messages', function () {
-    //
+    
 });

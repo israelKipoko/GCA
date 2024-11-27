@@ -205,7 +205,7 @@ export function DataTable<TData, TValue>({
             <div className="text-[#fff]">
             <label htmlFor="" className="text-[14px] text-center">Assigné à:</label>
               <div className=" flex ">
-                {assignedUsers.map((user, index) => (
+                {/* {assignedUsers.map((user, index) => (
                       <TooltipProvider key={index}>
                       <Tooltip>
                       {(index==0)?
@@ -220,7 +220,7 @@ export function DataTable<TData, TValue>({
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                ))} 
+                ))}  */}
               </div>
             </div>
           <div className="text-[#fff] flex flex-col gap-y-2">

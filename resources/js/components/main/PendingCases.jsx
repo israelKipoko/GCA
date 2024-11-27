@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../../../../components/ui/card"
 import { cn } from "../../../../lib/utils";
+import { ScrollArea } from "../../../../components/ui/scroll-area";
+import { useSidebar } from "../../../../components/ui/sidebar"
 import {
     Carousel,
     CarouselContent,
@@ -47,6 +49,15 @@ const PendingCases = () =>{
        
    return transformedData
   }
+   const {
+    state,
+    open,
+    setOpen,
+    openMobile,
+    setOpenMobile,
+    isMobile,
+    toggleSidebar,
+  } = useSidebar()
   useEffect(() => {
     getData();
   }, [refreshKey]);
@@ -55,10 +66,11 @@ const PendingCases = () =>{
   return (
     <div className="container mx-auto ">
       <Carousel opts={{loop: false,}} className=''>
+      <ScrollArea>
         <CarouselContent className=''>
-            {data.length ? (
+           {data.length ? (
                 data.map((item,index) => (
-                    <CarouselItem key={index} className='md:basis-1/2 lg:basis-1/4'>
+                    <CarouselItem key={index} className={cn(open?"basis-1/3":"md:basis-1/2 lg:basis-1/4")}>
                         <a href={`/home/pending-cases/`+ item.id}>
                             <Card className='bg-[#313131] border-none'>
                                 <CardHeader className=' py-2'>
@@ -103,6 +115,7 @@ const PendingCases = () =>{
                 ))
             ):(<div></div>)}
         </CarouselContent>
+        </ScrollArea>
         <CarouselPrevious />
         <CarouselNext />
      </Carousel>

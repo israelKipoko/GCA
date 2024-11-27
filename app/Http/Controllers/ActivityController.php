@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\Support\PathGenerator\PathGenerator;
+use Carbon\Carbon;
 
 class ActivityController extends Controller
 {
@@ -119,7 +120,7 @@ class ActivityController extends Controller
         return response()->json([201]);
     }
     public function showCaseDetails(Cases $case){
-        
+
         $assigned_to;
         $hasMedia = false;
         foreach($case->assigned_to as $user){
@@ -136,7 +137,7 @@ class ActivityController extends Controller
         'assigned_to' => $assigned_to,
         'pendingCase' => $pendingCase,
         'hasMedia' => $hasMedia,
-     ]);   
+     ]);
     }
     public function getAllCaseMessages(Cases $case){
         $messages = PendingCases::with('media')->with('user')->where('case_id',$case->id)->latest('created_at')->get();
@@ -150,13 +151,27 @@ class ActivityController extends Controller
             }
             $users[] = $user;
         }
-        foreach ($messages as $message){
-            if($message->user->hasMedia("profile")){
-                $message->user['avatar_link'] = $message->getFirstMediaUrl('profile');
-            }else{
-                $message->user['avatar_link'] = asset('storage'.$message->user->avatar);
-            }
-         }
+        if($messages != null){
+            foreach ($messages as $message){
+                if($message->user->hasMedia("profile")){
+                    $message->user['avatar_link'] = $message->getFirstMediaUrl('profile');
+                }else{
+                    $message->user['avatar_link'] = asset('storage'.$message->user->avatar);
+                }
+                Carbon::setLocale('fr');
+                $date = Carbon::createFromFormat('Y-m-d H:i:s', $message->created_at);
+                 $difference =  $date->diffInDays(Carbon::now());
+                 if ($difference < 6) {
+                    if($difference <= 2){
+                        $message['date'] =  $date->diffForHumans(['options' => Carbon::JUST_NOW | Carbon::ONE_DAY_WORDS]);
+                    }else{
+                        $message['date'] = $date->isoFormat('dddd');
+                    }
+                } else {
+                    $message['date'] = $date->isoFormat('DD MMMM');
+                }
+             }
+        }
         return response()->json([$messages,$users]);
     }
     public function createMessage(Cases $case,Request $request){
@@ -174,7 +189,7 @@ class ActivityController extends Controller
                 $file->delete();
             }
         }
-        // broadcast(new Message(User::find(Auth::id())));
+        broadcast(new Message());
         return response()->json([201]);
     }
 
@@ -183,7 +198,7 @@ class ActivityController extends Controller
             $file = $request->file('file');
             $fileName = $file->getClientOriginalName();
             $fileSize = $file->getSize();
-            
+
                 $filePath= $file->storeAs('temporary'.'/'.$fileName);
                 TemporaryFile::create([
                     'user_id' => Auth::id(),
@@ -194,7 +209,7 @@ class ActivityController extends Controller
                 return response()->json([201]);
             };
         }
-    
+
     public function deleteUploadedFile(Cases $case){
         // $fileDetails = TemporaryFile::latest()->get();
         // foreach($fileDetails as $file){
@@ -215,7 +230,7 @@ class ActivityController extends Controller
             notify()->success('Case submitted succesfully!');
             return redirect()->back();
     }
-    
+
     /* CASE TASKS API */
     public function getAllTasks(Request $request, Cases $case){
         $tasks = Task::with('case')->where('case_id',$case->id)->where(function($query) {
@@ -229,10 +244,13 @@ class ActivityController extends Controller
         return response()->json([$tasks,Auth::id(),$role]);
     }
     public function createCaseTask(Request $request, Cases $case){
+        $assignedTo = empty($request->users) ? null : $request->users;
        $task = Task::create([
             'title' => $request->title,
             'case_id' => $case->id,
+            'due_date' => $request->dueDate,
             'created_by' => Auth::id(),
+            'assigned_to' => $assignedTo,
         ]);
         return response()->json([201]);
     }
@@ -243,19 +261,35 @@ class ActivityController extends Controller
             $query->whereJsonContains('assigned_to', Auth::id())
                 ->orWhere('created_by', Auth::id());
         })->orderByRaw("FIELD(status, 'pending', 'completed')")->latest()->get();
-
-        return response()->json([$tasks,Auth::id()]);
+        $role = 'User';
+        if(Auth::user()->hasRole('Super-Admin') || Auth::user()->hasRole('Admin')){
+            $role = 'Admin';
+        }
+        $users = User::get();
+        foreach($users as $user){
+            if($user->hasMedia("profile")){
+                $user['avatar_link'] = $user->getFirstMediaUrl('profile');
+            }else{
+                $user['avatar_link'] = asset('storage'.$user->avatar);
+            }
+        }
+        return response()->json([$tasks,Auth::id(),$role,$users]);
     }
 
     public function newTask(Request $request){
         try {
             $formFields['title'] = $request->title;
             $formFields["created_by"] = Auth::id();
-            
-            if($request->category == "my_day" || $request->category == "planned"){
+            $formFields["due_date"] = $request->dueDate;
+            $formFields['category'] = $request->category;
+
+            if($request->dueDate == null && $request->category == "my_day"){
                 $dateToday  = date('Y-m-d');
-                $formFields['due_date'] = $dateToday;
-                $formFields['category'] = "tasks";
+                $formFields["due_date"] = $dateToday;
+            }
+            if($request->dueDate == null && $request->category == "planned"){
+                $dateToday  = date('Y-m-d', strtotime('+1 day'));
+                $formFields["due_date"] = $dateToday;
             }
             if($request->caseId != null){
                 $formFields['case_id'] = $request->caseId;
@@ -273,7 +307,7 @@ class ActivityController extends Controller
     public function deleteTasks(Task $task){
         if($task->created_by == Auth::id()){
             Task::destroy($task->id);
-            return response()->json(['message' => 'Task deleted succesfully']); 
+            return response()->json(['message' => 'Task deleted succesfully']);
         }
     }
 
@@ -303,13 +337,13 @@ class ActivityController extends Controller
         $formFields['created_by'] = Auth::id();
         $formFields['type'] = "CJ";
         $formFields['due_date'] = $request->newFolder['formattedDate'];
-       
+
 
          $folder = Cases::create($formFields);
          return response()->json(['folder' => $folder]);
     }
 
-    /* NEWS */ 
+    /* NEWS */
     public function showNewsDetails(News $news){
         if($news->have_read == 'no' && $news->created_by != Auth::id()){
             $news->have_read = 'yes';
@@ -322,7 +356,7 @@ class ActivityController extends Controller
         ]);
     }
 
-    /* CLIENTS */ 
+    /* CLIENTS */
 
     public function showClients(){
         $clients = Client::with('case')->withCount('case')->where('company_id',1)->get();
@@ -363,7 +397,7 @@ class ActivityController extends Controller
             $file = $request->file('logo');
             $fileName = $file->getClientOriginalName();
             $fileSize = $file->getSize();
-            
+
                 $filePath= $file->storeAs('temporary'.'/'.$fileName);
                 TemporaryFile::create([
                     'name' => $fileName,
@@ -378,41 +412,37 @@ class ActivityController extends Controller
 
     }
 
+    public function getAllEvents(){
+        $events = Event::with('user')->where(function($query) {
+            $query->whereJsonContains('participants', Auth::id())
+                ->orWhere('created_by', Auth::id());
+        })->get();
+        $users;
+        if($events[0]->participants != null){
+            foreach($events[0]->participants as $id){
+                $user = User::find($id);
+                if($user->hasMedia("profile")){
+                    $user['avatar_link'] = $user->getFirstMediaUrl('profile');
+                }else{
+                    $user['avatar_link'] = asset('storage'.$user->avatar);
+                }
+                $users[] = $user;
+            }
+        }
+        return response()->json([$events,$users]);
+    }
     public function createEvent(Request $request){
-        $months = [
-            'janvier' => '01',
-            'février' => '02',
-            'mars' => '03',
-            'avril' => '04',
-            'mai' => '05',
-            'juin' => '06',
-            'juillet' => '07',
-            'août' => '08',
-            'septembre' => '09',
-            'octobre' => '10',
-            'novembre' => '11',
-            'décembre' => '12'
-        ];
-        $dateParts = explode(' ', substr($request->date, strpos($request->date, ' ') + 1));
-        $day = $dateParts[0];
-        $month = $months[$dateParts[1]];
-        $year = $dateParts[2];
-        $date = DateTime::createFromFormat('d-m-Y', "$day-$month-$year");
-        $request->date = $date->format('Y-m-d');
       Event::create([
-        'title' => $request->title,
-        'participants' => $request->participants,
-        'note' => $request->note,
-        'date' => $request->date,
-        'meeting_link' => $request->meeting_link,
+        'title' => $request->data['title'],
+        'participants' => $request->data['selectedUsers'],
+        'date' => $request->data['dataDate'],
+        'meeting_link' => $request->data['eventLink'],
         'time' => [
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
+            'start_time' => $request->data['hour'].":".$request->data['minute'],
         ],
         'created_by' => Auth::id(),
-        'reminder' => $request->reminder,
       ]);
-      return redirect()->back()->with('message', 'Votre événement a été crée avec succès!');
+      return response()->json([201]);
     }
 
     public function checkAvailability(Request $request){
@@ -454,6 +484,36 @@ class ActivityController extends Controller
             'eventExist' => $eventExist,
             'events' => $events
         ]);
+    }
+    public function AuthUser(){
+        $user = Auth::user();
+
+        $user['role'] = "User";
+        if($user->hasRole('Super-Admin') || $user->hasRole('Admin')){
+            $user['role'] = "Admin";
+        }
+        if($user->hasMedia("profile")){
+            $user['avatar_link'] = $user->getFirstMediaUrl('profile');
+        }else{
+            $user['avatar_link'] = asset('storage'.$user->avatar);
+        }
+
+        return response()->json([$user]);
+    }
+    public function getAllUsers(){
+        $users = User::get();
+        foreach ($users as $user) {
+            $user['role'] = "User";
+            if($user->hasRole('Super-Admin') || $user->hasRole('Admin')){
+                $user['role'] = "Admin";
+            }
+            if($user->hasMedia("profile")){
+                $user['avatar_link'] = $user->getFirstMediaUrl('profile');
+            }else{
+                $user['avatar_link'] = asset('storage'.$user->avatar);
+            }
+        }
+        return response()->json([$users]);
     }
 }
 

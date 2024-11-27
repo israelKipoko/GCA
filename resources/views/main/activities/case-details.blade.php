@@ -3,10 +3,8 @@
 @section('content')
     <section>
         <div id="home_wrapper">
-            <section class="lg:block hidden">
-                <x-sidebar />
-            </section>
-            <section id="main" class="activities_wrapper case_details_wrapper flex justify-evenly px-4 py-2">
+          
+            <section id="main" class="activities_wrapper w-[95%] float-right case_details_wrapper flex justify-evenly px-4 py-2">
                 <div class="w-full">
                     <div class="flex flex-col gap-y-2">
                         <div class="flex flex-col gap-x-1 ">
@@ -42,8 +40,11 @@
                         <div>
                 </div>
                 <div class="">
-                    <div id="workspace" data-case-id="{{$case->id}}"></div>
+                    <div id="fornow"  data-case-id="{{$case->id}}"></div>
                 </div>
+                {{-- <div class="">
+                    <div id="workspace""></div>
+                </div> --}}
             </section>
         </div>
     </section>

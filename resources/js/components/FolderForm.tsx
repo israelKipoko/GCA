@@ -6,11 +6,16 @@ import { Button } from "../../../components/ui/button"
 import { Calendar } from "../../../components/ui/calendar"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { useToast } from "../../../hooks/use-toast"
+import { ScrollArea } from '../../../components/ui/scroll-area';
+
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-  } from "../../../components/ui/popover"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../../../components/ui/dropdown-menu";
 import {
     Select,
     SelectContent,
@@ -99,7 +104,7 @@ import {
   const [filter, setFilter] = useState('');
   const triggerRef = useRef<HTMLInputElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
-  const [selectedClientOptions, setSelectedClientOptions] =  useState<string>();
+  const [selectedClientOptions, setSelectedClientOptions] =  useState<string>("");
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState('');
   const triggerClientRef = useRef<HTMLInputElement>(null);
@@ -237,14 +242,16 @@ const handleSubmit = (e:FormEvent) => {
                   <div className="multiple-select">
 
                   <div className=" event_title_input input_div w-fit mx-auto">
-                    <div id='participants_badges_wrapper'>
+                    <div id=''>
                       <div id="participants_badges_wrapper">
-                         {selectedClientOptions != ""?  <div key={selectedClientOptions} data-value={selectedClientOptions} className="participants">
+                         {selectedClientOptions != "" ? 
+                          <div key={selectedClientOptions} data-value={selectedClientOptions} className="participants">
                                 <span>{selectedClientOptionsText}</span>
                               <span onClick={() => handleRemoveClientOption()}>
                                 <i className="fa-solid fa-x text-bold text-[12px]"></i>
                               </span>
-                            </div>:""}
+                          </div>: 
+                          <div className=''></div>}
                       </div>
                       {selectedClientOptions == ""? 
                       <input
@@ -269,7 +276,7 @@ const handleSubmit = (e:FormEvent) => {
                     <i className="fa-solid fa-user event_icons "></i>
                 </div>
                     {isClientDropdownOpen && (
-                      <div ref={optionsClientRef} className="options open">
+                       <ScrollArea ref={optionsClientRef} className=" options h-[150px] open">
                         {clients
                           .filter(option => option.name.toLowerCase().includes(clientFilter))
                           .map(option => (
@@ -287,7 +294,7 @@ const handleSubmit = (e:FormEvent) => {
                                 </div>
                             </div>
                           ))}
-                      </div>
+                      </ScrollArea>
                     )}
      
                 </div>
@@ -349,27 +356,27 @@ const handleSubmit = (e:FormEvent) => {
                 <div className='flex'>
                 <div className="input_div w-fit mx-auto ">
                 <label htmlFor="" className='text-[14px] text-[#fff]'>Date limite:</label>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                        variant={"outline"}
-                        className={
-                            "w-[280px] h-10 justify-start text-[#fff] text-left font-normal"
-                        }
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                      <Button
+                          variant={"outline"}
+                          className={(
+                            "w-[280px] text-white capitalize justify-start text-left font-normal")}
                         >
-                        <CalendarIcon className="mr-2 h-4 w-4 text-[#fff]" />
-                        {date ? format(date, "PPP", { locale: fr }) : <span className='text-[#fff]'>Chossissez une date</span>}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-[#fff] text-[#22243D]">
-                        <Calendar
+                          <CalendarIcon   size={13} className='mr-2'/>
+                          {date ? format(date, "PPP", { locale: fr }) : <span className='text-[#fff]'>Chossissez une date</span>}
+                      </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side='top' className='border-none'>
+                    <Calendar
+                        className='bg-[#262626] rounded-[4px] border-none text-white z-10'
                         mode="single"
                         selected={date}
                         onSelect={setDate}
                         initialFocus
                         />
-                    </PopoverContent>
-                </Popover>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 </div>
                     <div className="input_div w-fit mx-auto ">
                     <label htmlFor="" className='text-[14px] text-[#fff]'>Priorité:</label>
@@ -392,7 +399,7 @@ const handleSubmit = (e:FormEvent) => {
             </section>
             
             <div className='w-fit mx-auto mt-4 py-2'>
-                <button type="submit" className='py-1 px-2 bg-[#356B8C] rounded-[4px] text-white font-bold'>Valider</button>
+                <button type="submit" className='py-1 px-4 bg-[#356B8C] rounded-[4px] text-white font-bold'>Valider</button>
             </div>
         </form>
     );

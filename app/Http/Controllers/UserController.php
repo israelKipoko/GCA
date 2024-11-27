@@ -55,7 +55,7 @@ class UserController extends Controller
             
             $request->session()->regenerate();
 
-            notify()->success('Vous êtes maintenant connecté!!');
+            // notify()->success('Vous êtes maintenant connecté!!');
             return redirect('/home');
         }
         return back()->withErrors(['email'=>'Invalid credentials'])->onlyInput('email');

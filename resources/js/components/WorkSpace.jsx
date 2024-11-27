@@ -3,7 +3,14 @@ import axios from 'axios';
 import { Toaster } from "../../../components/ui/toaster"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { cn } from "../../../lib/utils";
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
+import { Progress } from "../../../components/ui/progress"
+import { fr } from 'date-fns/locale';
+import { ScrollArea } from "../../../components/ui/scroll-area";
+import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
+import "@cyntler/react-doc-viewer/dist/index.css";
+import TodoCreateInput from './utils/TodoCreateInput';
+import TodoItem from './utils/TodoItem';
 import {
   Tooltip,
   TooltipContent,
@@ -14,14 +21,28 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../../components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+  DialogOverlay
+} from "../../../components/ui/dialog";
 
 import Echo from 'laravel-echo';
 
 import Pusher from 'pusher-js';
+
 window.Pusher = Pusher;
 
 window.Echo = new Echo({
@@ -34,43 +55,41 @@ window.Echo = new Echo({
     enabledTransports: ['ws', 'wss'],
 });
 
-window.Echo.channel('messages')
-.listen('Message', (event)=>{
-  getMessages();
-})
+
 const WorkSpace = (caseId) =>{
 
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
   const [assignedUsers, setAssignedUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [assignedTasks, setAssignedTasks] = useState([]);
   const [allFiles, setAllFiles] = useState([]);
   const textareaRef = useRef(null);
-  const [activeTab, setActiveTab] = useState('my_task');
-  const audio = new Audio('../../../sounds/completed_2.mp3');
   const [userRole, setUserRole] = useState('');
-  var [timecreated] = useState(); 
-  var [relativeTime, setRelativeTime] = useState();
+  const [toggleDocRenderer, setToggleDocRedenrer] = useState(false);
+  const [docToRender, setDocToRender] = useState([]);
+  const [docInfo,setDocInfo] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isFileUpoading, setIsFileUpoading] = useState(false);
+  const [filesUploaded, setFilesUploaded] = useState([]);
+  const [showProgress, setShowProgress] = useState(false);
+
   var transformedData;
   var transformedUserData;
- 
+  const dialogRef = useRef(null);
+  const audio = new Audio('../../../sounds/completed_2.mp3');
+
   function getMessages(){
-    axios.get('/cases/get-all-case-messages/'+caseId.caseId)
+    axios.get('/cases/get-all-case-messages/'+caseId.caseId.caseId)
     .then(response => {
       transformedData = response.data[0].map(element => ({
         id:element.id,
         comment: element.comments,
-        date: element.created_at,
         name: element.user.firstname +" "+ element.user.name,
         avatar: element.user.avatar_link,
         files: element.media,
-        date: element.created_at
+        date: element.date,
+        realDate: element.created_at
       }));
-      console.log(transformedData.date)
-      timecreated =  transformedData.date;
-      setRelativeTime(formatDistanceToNow(timecreated, { addSuffix: true }));
-
       setAllFiles([]);
       transformedData.forEach((item) =>{
         if(item.files.length != 0){
@@ -91,9 +110,14 @@ const WorkSpace = (caseId) =>{
       console.log(error.message)
 
     });
+
   }
+  window.Echo.channel('messages')
+.listen('Message', (event)=>{
+  getMessages();
+})
   function getTasks(){
-    axios.get('/tasks/get-all-case-tasks/'+caseId.caseId)
+    axios.get('/tasks/get-all-case-tasks/'+caseId.caseId.caseId)
     .then(response => {
       var transformedDataTasks = response.data[0].map(element => ({
         id:element.id,
@@ -105,12 +129,13 @@ const WorkSpace = (caseId) =>{
       let userId = response.data[1];
       setUserRole(response.data[2]);
       setTasks([]);
-      setAssignedTasks([]);
       transformedDataTasks.forEach((task) => {
        if(task.assigned != null){
-           if(task.assigned.includes(userId)){
+          if(response.data[2] == "Admin"){
+            setTasks(prevAffectedTasks => [...prevAffectedTasks,task]);
+          }else if(task.assigned.includes(userId)){
             //  if(task.status == "pending")
-               setAssignedTasks(prevAffectedTasks => [...prevAffectedTasks,task]);
+            setTasks(prevAffectedTasks => [...prevAffectedTasks,task]);
             //  else
             //    setCompletedAffectedTasks(prevAffectedTasks => [...prevAffectedTasks,task]);
            }
@@ -130,7 +155,6 @@ const WorkSpace = (caseId) =>{
     setRefreshKey((oldKey) => oldKey + 1);
   };
   useEffect(() => {
-
     getMessages();
     getTasks();
     const textarea = textareaRef.current;
@@ -142,24 +166,12 @@ const WorkSpace = (caseId) =>{
     textarea.addEventListener('input', handleInput);
     textarea.dispatchEvent(new Event('input'));
 
-    const interval = setInterval(() => {
-      setRelativeTime(formatDistanceToNow(timecreated, { addSuffix: true }));
-    }, 60000);
-
+    
     return () => {
       textarea.removeEventListener('input', handleInput);
-      clearInterval(interval); 
     };
 
-  }, [refreshKey,timecreated]);
-
-  
-  const [newMessage, setNewMessage] = useState('');
-  const [isFileUpoading, setIsFileUpoading] = useState(false);
-  const [filesUploaded, setFilesUploaded] = useState([]);
-  const [fileProgress, setFileProgress] = useState({});
-  const [uploadStatus, setUploadStatus] = useState({});
-  var allUploaded;
+  }, [refreshKey]);
 
   const handleFileChange = (event) => {
     setIsFileUpoading(true);
@@ -168,46 +180,45 @@ const WorkSpace = (caseId) =>{
     transformedData = files.map(file => ({
         name: file.name,
         size: file.size,
+        loading: 0,
     }));
     setFilesUploaded((prevFilesUploaded) => [...prevFilesUploaded, ...transformedData]);
 
     files.forEach((file, index) => {
-      uploadFile(file, index + files.length); // Adjust index for new files
+      uploadFile(file, index); // Adjust index for new files
     });
-     allUploaded = filesUploaded.length > 0 && filesUploaded.every((file, index) => uploadStatus[index] === 'uploaded');
 
   };
-  const uploadFile = (file, index) => {
+  const uploadFile = (file,index) => {
     const formData = new FormData();
     formData.append('file', file);
-
-    axios.post('/cases/upload-file/'+caseId.caseId, formData, {
-      onUploadProgress: (progressEvent) => {
-        const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        setFileProgress((prevProgress) => ({
-          ...prevProgress,
-          [index]: percentage,
-        }));
+    setShowProgress(true);
+    axios.post('/cases/upload-file/'+caseId.caseId.caseId, formData, {
+      onUploadProgress: ({loaded, total}) => {
+        setFilesUploaded(prevFilesUploaded => {
+          const newFiles = [...prevFilesUploaded];
+          newFiles.forEach((file) => {
+            if(file.loading != 100){
+              file.loading = Math.floor((loaded / total) * 100);
+            }
+          })
+          return newFiles;
+        });
+        if(loaded == total){
+          //something
+        }
       },
-    })
-    .then((response) => {
-      setFileProgress((prevProgress) => ({
-        ...prevProgress,
-        [index]: 100,
-      }));
-      setUploadStatus((prevStatus) => ({
-        ...prevStatus,
-        [index]: 'uploaded',
-      }));
-    })
-    .catch((error) => {
-      setUploadStatus((prevStatus) => ({
-        ...prevStatus,
-        [index]: 'failed',
-      }));
-    });
-
+    }).catch(console.error);
   };
+
+  const removeFile = (id) => {
+    const files = filesUploaded.filter((file,index) => index !== id);
+    setFilesUploaded(files);
+    if(files.length == 0){
+      setIsFileUpoading(false);
+    }
+  };
+
   const formatFileSize = (bytes) => {
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
     let size = bytes;
@@ -220,10 +231,24 @@ const WorkSpace = (caseId) =>{
 
     return `${size.toFixed(2)} ${units[unitIndex]}`;
   };
+  const isSingleWord = (str) => {
+    return str.trim().split(/\s+/).length === 1;
+  };
 
+  const ViewDoc = (url,message=null,model_id=null) => {
+   var doc = [
+      { uri: url},
+    ];
+    if(model_id != null){
+      message = messages.find(item => item.id === model_id);
+    }
+    setDocToRender(doc)
+    setDocInfo(message)
+    setToggleDocRedenrer(true);
+  }
   const SendMessage = (event) => {
-
-      axios.post('/cases/create-new-message/'+caseId.caseId,{
+    if(newMessage !== '' || filesUploaded.length != 0){
+      axios.post('/cases/create-new-message/'+caseId.caseId.caseId,{
         newComment: newMessage,
         fileLength: filesUploaded.length ?? 0,
       })
@@ -231,13 +256,13 @@ const WorkSpace = (caseId) =>{
         refreshParent();
         setNewMessage('');
         setIsFileUpoading(false);
+        setShowProgress(false)
         setFilesUploaded([]);
-        setFileProgress({});
-        setUploadStatus({})
       })
       .catch(error => {
-        console.log('Could not create new client')
+        console.log(error)
       });
+    }
     };
 
   const [toggledTabs , setToggledTabs]  = useState('');
@@ -248,14 +273,18 @@ const WorkSpace = (caseId) =>{
     setToggledTabs(tabs);
   };
 
-  const CreateTask = (event) =>{
+  const CreateTask = (event,id = null ,dueDate) =>{
     event.preventDefault();
-    axios.post('/tasks/create-new-task/'+caseId.caseId,{
+    console.log(dueDate)
+    axios.post('/tasks/create-new-task/'+caseId.caseId.caseId,{
       title: newTask,
+      users: assignedUsers,
+      dueDate: dueDate,
     })
     .then(response => {
       getTasks();
       setNewTask('')
+      setAssignedUsers([])
     })
     .catch(error => {
       console.log(error.message)
@@ -275,51 +304,132 @@ const WorkSpace = (caseId) =>{
       console.log(error.message)
     });
   };
+  const addUsersToTask = (id) =>{
+    setAssignedUsers((currentUsers) => {
+      if (currentUsers.includes(id)) {
+        return currentUsers.filter((user) => user !== id);
+      } else {
+        return [...currentUsers, id];
+      }
+    });
+  }
   return (
-    <section className='flex'>
-      <section className=" w-[600px]">
+    <section className='flex flex-row gap-x-4 w-full'>
+      <section className=" w-[600px] ">
           <div>
-            <div className='py-1 px-2' id='workspace_message_box_wrapper'>
-              {messages.length ? (
-              messages.map((message) =>(
-                  <div className='flex  flex-row items-start flex-wrap gap-x-1'>
-                      <div className='w-[25px] h-[25px]'>
-                        <img src={message.avatar} alt="avatar"className=" object-fit-contain rounded-full" />
-                      </div>
-                     <div className='flex flex-col justify-center py-0.5'>
-                        <div>
-                          <h1 className='text-[#fff] text-[14px] capitalize'>{message.name}{`Posted ${relativeTime}`}</h1>
-                        </div>
-                        <div className='message_box'>
-                          <p className='text-[15px]  w-fit py-1 rounded-[4px] text-[#fff]'>{message.comment}</p>
-                          <div className='flex gap-x-2'>
-                            {message.files.map((file)=>(
-                              <div>
-                                <a className='w-[ h-[50px] p-2 bg-[#335b74] text-[#fff] text-[12px] upload_file_name rounded-[4px]' href={file.original_url} download={file.file_name}>{file.file_name}</a>
-                              </div>
-                          ))}
-                          </div>
-                        
-                        </div>
+               <Dialog open={toggleDocRenderer} ref={dialogRef}   modal={false}>
+               <DialogContent className='w-[1000px] border-none bg-[#313131] '>
+                 <section className='w-full h-full flex flex-row relative'>
+                     <ScrollArea className='w-[700px] h-[400px] '>
+                         <DocViewer documents={docToRender} pluginRenderers={DocViewerRenderers} style={{height:400,overflowY:"auto"}}/>
+                     </ScrollArea>
+                     <div className='w-[250px] h-full p-2 workspace_box_shadow'>
+                       <div className='w-full'>
+                           <div className='flex flex-row gap-x-2 items-center'>
+                               <div className='w-[25px] h-[25px]'>
+                                 <img src={docInfo.avatar} alt="avatar" className=" object-fit-contain rounded-full" />
+                               </div>
+                               <h1 className='text-[#fff] text-[14px] capitalize'>{docInfo.name}</h1>
+                           </div>
+                           <p className='pl-4 my-1 text-white w-full'>
+                               {docInfo.comment}
+                           </p>
+                       <div className={cn(" opacity-[0.5] text-[#ddd] text-[13px] w-fit ml-auto capitalize")}>{docInfo.length != 0 ?(format(new Date(docInfo.realDate), "dd MMMM yyyy HH:mm", { locale: fr })):(<h1>dd</h1>)}</div>
+                       </div>
                      </div>
-                </div>
-              ))):
-              (
-                <div>
-                  <div className='w-[250px] h-[250px] opacity-[0.15] mx-auto'>
-                      <img  className=" object-fit-contain  "  src="../../../icons/discussion.svg" alt="message" />
-                  </div>
-                </div>
-              )}
+                     <button className='absolute -top-6 -right-2' onClick={() => setToggleDocRedenrer(false)}>
+                         <i class='bx bx-x bx-md text-white'></i>
+                     </button>
+                 </section>
+                 
+               </DialogContent>
+             </Dialog>
+          <ScrollArea className="py-1 px-2 workspace_message_box_wrapper ">
+            <div className='w-full flex flex-col gap-y-4'>
+            {messages.length ? (
+                  messages.map((message) =>(
+                      <div className='flex  flex-row items-start flex-wrap gap-x-1'>
+                          <div className='w-[25px] h-[25px]'>
+                            <img src={message.avatar} alt="avatar" className=" object-fit-contain rounded-full" />
+                          </div>
+                        <div className='flex flex-col justify-center py-0.5 w-fit '>
+                            <div>
+                              <h1 className='text-[#fff] text-[14px] capitalize'>{message.name} <span className={cn("ml-1 opacity-[0.5] text-[#ddd] text-[13px]",isSingleWord(message.date) ? 'capitalize' : 'lowercase')}>{message.date}</span></h1>
+                            </div>
+                            <div className='message_box'>
+                              <p className='text-[15px]  w-fit py-1 rounded-[4px] text-[#fff]'>{message.comment}</p>
+                              <div className='flex flex-wrap gap-2 w-fit'>
+                                {message.files.map((file)=>(
+                                  <div>
+                                    <div className='w-[240px] h-[50px] relative flex fex-row gap-x-2 items-center p-2 bg-[#313131] text-[#fff] text-[12px]  rounded-[4px]'>
+                                      <div>
+                                          <i class='bx bxs-file text-[#fff] text-[18px]'></i>
+                                      </div>
+                                      <div>
+                                          <h1 className='upload_file_name'>{file.file_name}</h1> 
+                                          <p className='text-[10px]'>{formatFileSize(file.size)}</p>
+                                      </div>
+                                      <DropdownMenu>
+                                          <DropdownMenuTrigger className='h-full '>
+                                              <div className='hover:bg-[#d8d8d833] rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
+                                                  <i class='bx bx-chevron-down text-[#fff] bx-sm'></i>
+                                              </div>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent side='top' className='w-[180px] bg-[#313131] border-none flex flex-col'>
+                                              <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]' onClick={(e) => ViewDoc(file.original_url,message,null)}>
+                                                <i class='bx bx-file-find text-[#fff] text-[18px]'></i>Aperçu
+                                                </DropdownMenuItem>
+                                              <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]'>
+                                                 <a className='flex flex-row items-center gap-x-2 w-full h-full'  href={file.original_url} download={file.file_name}>
+                                                    <i class='bx bxs-download text-[#fff] text-[18px]'></i>Télécharger
+                                                 </a>
+                                              </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                  </div>
+                              ))}
+                              </div>
+                            
+                            </div>
+                        </div>
+                    </div>
+                  ))):
+                  (
+                    <div>
+                      <div className='w-[250px] h-[250px] opacity-[0.15] mx-auto'>
+                          <img  className=" object-fit-contain  "  src="../../../icons/discussion.svg" alt="message" />
+                      </div>
+                    </div>
+                  )}
             </div>
+          </ScrollArea>
             <div className='mt-2  bg-[#313131] rounded-[4px]'>
               {isFileUpoading && (
-                <div className='flex gap-x-2 items-center p-2  overflow-scroll  border-b'>
+                <div className='flex flex-row flex-wrap gap-x-1 items-center p-2  border-b'>
                     {filesUploaded.map((file,index) =>(
-                      <div className=' w-[140px] h-[50px] p-2 bg-[#335b74] rounded-[4px] relative'>
-                        <h1 className='text-[#fff] text-[12px] upload_file_name'>{file.name}</h1>
-                        <span className='text-[#fff] text-[11px]'>{formatFileSize(file.size)}</span>
-                        {/* <progress value={fileProgress[index] || 0} max="100">{fileProgress[index] || 0}%</progress> */}
+                      <div key={index} className={cn('relative flex flex-row items-center gap-2 h-[50px] p-1 workspace_box_shadow rounded-[4px] relative', filesUploaded.length > 2 ? "w-[190px]":"w-[200px]")}>
+                         <div>
+                              <i class='bx bxs-file text-[#fff] text-[18px]'></i>
+                          </div>
+                          <div>
+                              <h1 className='text-[#fff] text-[12px] upload_file_name'>{file.name}</h1> 
+                              <p className='text-[#fff] text-[10px]'>{formatFileSize(file.size)}</p>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className='h-full '>
+                                <div className='hover:bg-[#d8d8d833] rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
+                                    <i class='bx bx-chevron-down text-[#fff] bx-sm'></i>
+                                </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent side='top' className='w-[180px] bg-[#313131] border-none flex flex-col'>
+                                {/* <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]'><i class='bx bx-file-find text-[#fff] text-[18px]'></i>Aperçu</DropdownMenuItem> */}
+                                <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]' onClick={() => removeFile(index) }>
+                                    <i class='bx bx-x text-red-600 text-[20px]'></i>Supprimer
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                           {showProgress ? <Progress value={file.loading} className=" h-1 left-0 w-full absolute bottom-0" />:""}
                       </div>
                     ))}
                 </div>
@@ -332,7 +442,7 @@ const WorkSpace = (caseId) =>{
                         <TooltipTrigger asChild>
                           <div>
                             <label htmlFor='file' className='cursor-pointer'><i className="fa-solid fa-paperclip text-[#fff]"></i></label>
-                            <input type="file" accept=".pdf, .doc, .docx, .xls, .xlsx .txt .png .jpeg .jpg" name='file' id='file' multiple className='hidden' onChange={handleFileChange} />
+                            <input type="file" accept=".pdf, .doc, .docx, .xls, .odt, .xlsx, .txt, .png, .jpeg, .jpg" name='file' id='file' multiple className='hidden' onChange={handleFileChange} />
                           </div>
                         </TooltipTrigger>
                         <TooltipContent className='bg-[#313131] border-none text-[#fff]'>
@@ -353,7 +463,7 @@ const WorkSpace = (caseId) =>{
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className=' '>
-                            <button onClick={SendMessage} className='h-fit  mt-1 my-auto'><i class='bx bxs-send text-[#335b74] bx-sm'></i></button>
+                            <button onClick={SendMessage}  className='h-fit  mt-1 my-auto'><i class='bx bxs-send text-[#0f6cbd] tefxt-[#335b74] bx-sm'></i></button>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent className='bg-[#313131] border-none text-[#fff]'>
@@ -392,27 +502,13 @@ const WorkSpace = (caseId) =>{
                 <h1 className='text-center w-full'>Tâches</h1>
               </header>
               <section className='w-full'>
-                <Tabs defaultValue="my_task" className="w-full">
-                  <TabsList className='gap-x-2 items-center'>
-                    <TabsTrigger value="my_task"  onClick={()=> setActiveTab('my_task')} className={cn("rounded-full text-[#fff]",activeTab=="my_task"?"active_tab":"opacity-[0.50] ")}>Mes tâches</TabsTrigger>
-                    <TabsTrigger value="assigned_task" onClick={()=> setActiveTab('assigned_task')}  className={cn("rounded-full text-[#fff]",activeTab=="assigned_task"?"active_tab":"opacity-[0.50] ")}>Assignées</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="my_task" className=' w-full'>
                     <div className='workspace_tabs_content_wrapper w-full'>
                       <div className='todo_items  mt-1 w-full'>
+                      <ScrollArea className='h-full'>
                         <div className=''>
                         {tasks.length ? (
-                          tasks.map((task)=>(
-                            <div className="todo_item">
-                              <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                  <div {...task.status == "pending"? {className:'check_mark'}:{className:'check_mark checked'}}>
-                                      <img src="../../../icons/icon-check.svg"/>
-                                  </div>
-                              </div>
-                              <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                  {task.title}
-                              </div>
-                            </div>
+                          tasks.map((task,taskIndex)=>(
+                            <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task} users={users}/>
                           ))
                         ): (
                           <div className="flex flex-col  items-center h-fit my-auto  no-event mt-4">
@@ -421,103 +517,10 @@ const WorkSpace = (caseId) =>{
                           </div>
                         )}
                         </div>
+                      </ScrollArea>
                       </div>
-                      <div className="addTaskInput">
-                        <div className="check">
-                          <div className="">
-                            <i className="fas fa-plus text-[18px]  text-[#fff]"></i>
-                          </div>
-                        </div>
-                        <form className="todo_text" id="new_todo_form" onSubmit={CreateTask}>
-                          <input type="text" value={newTask}  onChange={(e)=> setNewTask(e.target.value)} placeholder="Ajouter une tâche" id="new_task" name="new_task"/>
-                        </form>
-                      </div>
+                      <TodoCreateInput newTask={newTask} setNewTask={setNewTask} CreateTask={CreateTask} users={users} assignedUsers={assignedUsers} isAssign={true} addUsersToTask={addUsersToTask} />
                     </div>
-                  </TabsContent>
-                  <TabsContent value="assigned_task">
-                  <div className='workspace_tabs_content_wrapper w-full'>
-                      <div className='todo_items  mt-1 w-full'>
-                        <div className=''>
-                        {assignedTasks.length ? (
-                          assignedTasks.map((task)=>(
-                            <div className="todo_item">
-                              <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                  <div {...task.status == "pending"? {className:'check_mark'}:{className:'check_mark checked'}}>
-                                      <img src="../../../icons/icon-check.svg"/>
-                                  </div>
-                              </div>
-                              <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                  {task.title}
-                              </div>
-                            </div>
-                          ))
-                        ): (
-                          <div className="flex flex-col  items-center h-fit my-auto  no-event mt-4">
-                          <img className="w-[60px] h-[60px]" src="../../../icons/no-task.png" alt="No task"/>
-                            <p className="text-[13px] text-center">Les tâches qui vous sont assignées apparaîtront ici.</p>
-                          </div>
-                        )}
-                        </div>
-                      </div>
-                      {userRole == 'Admin'?
-                       <div className="addTaskInput">
-                       <div className="check">
-                         <div className="">
-                           <i className="fas fa-plus text-[18px]  text-[#fff]"></i>
-                         </div>
-                       </div>
-                       <form className="todo_text" id="new_todo_form" onSubmit={CreateTask}>
-                        <div className='relative'>
-                            <input type="text" value={newTask}  onChange={(e)=> setNewTask(e.target.value)} placeholder="Ajouter une tâche" id="new_task" name="new_task"/>
-                             <div className='absolute right-0 top-1/2 flex items-center -translate-y-1/2 '>
-                               
-                                        <DropdownMenu>
-                                          <DropdownMenuTrigger>
-                                              <TooltipProvider >
-                                                <Tooltip >
-                                                  <TooltipTrigger asChild className='cursor-pointer'>
-                                                  <div>
-                                                      <span><i class='bx bxs-user text-[#fff] text-[18px]'></i></span>
-                                                  </div>
-                                                  </TooltipTrigger>
-                                                <TooltipContent className='bg-[#313131] border-none text-[#fff] z-10'>
-                                                  <p className='text-[12px]'>Asssigner une tâche</p>
-                                                </TooltipContent>
-                                              </Tooltip>
-                                            </TooltipProvider>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent className='bg-[#d8d8d833] border-none grid grid-cols-3'>
-                                            {users.map((user,index) =>(
-                                                <DropdownMenuItem key={index} className='w-[40px] h-[40px]'>
-                                                  <TooltipProvider >
-                                                    <Tooltip >
-                                                      <TooltipTrigger asChild className={cn('cursor-pointer',(assignedUsers.includes(user.id))?"opacity-[0.75]":"")} onClick={(e)=> setAssignedUsers(prevUsers => [...prevUsers,users.id])}>
-                                                          <img src={user.avatar} alt="avatar" className=" object-fit-contain rounded-full" />
-                                                      </TooltipTrigger>
-                                                    <TooltipContent className='bg-[#313131] border-none text-[#fff] z-10'>
-                                                      <p className='text-[12px] capitalize'>{user.name}</p>
-                                                    </TooltipContent>
-                                                  </Tooltip>
-                                                </TooltipProvider>
-                                                </DropdownMenuItem>
-                                            ))}
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
-                                        
-                                    
-                             </div>
-                        </div>
-                       </form>
-                     </div>
-                     :
-                     <div></div>
-                    }
-                    </div>
-                  </TabsContent>
-                </Tabs>
-
-                  
-                
               </section>
           </section>
           :
@@ -526,33 +529,50 @@ const WorkSpace = (caseId) =>{
                 <div className='w-fit cursor-pointer absolute' onClick={(e)=> setIsTabClick(false)}><i className='bx bx-chevrons-left text-[20px]'></i></div>
                 <h1 className='text-center w-full'>Documents</h1>
               </header>
-              <section className='mt-2 flex flex-col gap-y-1'>
+              <ScrollArea className='mt-2'>
+                  <div className='flex flex-col gap-y-1'>
                   {allFiles.length ? (
                     allFiles.map((file,index)=>(
                       <div key={index}>
-                         <div className='bg-[#313131]  relative p-2  h-[50px] rounded-[4px]'>
-                            <div className='w-[ text-[#fff] text-[12px] upload_file_name '>{file.file_name}</div>
-                            <span className='text-[#fff] text-[10px]'>{formatFileSize(file.size)}</span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild className='cursor-pointer'>
-                                  <a  href={file.original_url} download={file.file_name} className='absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-2'><i class='bx bxs-download text-[#fff] bx-sm'></i></a>
-                                </TooltipTrigger>
-                                <TooltipContent className='bg-[#313131] border-none text-[#fff]'>
-                                  <p className='text-[12px]'>Télécharger le document</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                         <div className='relative flex fex-row gap-x-2 items-center p-2 bg-[#313131] text-[#fff] text-[12px]  rounded-[4px]'>
+                            <div>
+                                <i class='bx bxs-file text-[#fff] text-[18px]'></i>
+                            </div>
+                            <div>
+                                <h1 className='upload_file_name'>{file.file_name}</h1> 
+                                <p className='text-[10px]'>{formatFileSize(file.size)}</p>
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger className='h-full p-1 absolute right-0 top-1/2 flex items-center -translate-y-1/2'>
+                                    <div className='hover:bg-[#d8d8d833] rounded-r-[4px] hover:cursor-pointer h-full flex items-center '>
+                                        <i class='bx bx-chevron-down text-[#fff] bx-sm'></i>
+                                    </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent side='top' className='w-[180px] bg-[#313131] border-none flex flex-col'>
+                                    <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]' onClick={() => ViewDoc(file.original_url,null,file.model_id)}>
+                                      <i class='bx bx-file-find text-[#fff] text-[18px]'></i>Aperçu
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]'>
+                                        <a className='flex flex-row items-center gap-x-2 w-full h-full'  href={file.original_url} download={file.file_name}>
+                                          <i class='bx bxs-download text-[#fff] text-[18px]'></i>Télécharger
+                                        </a>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                           </div>
                       </div>
                     ))
                   ):(
-                    <div>ss</div>
+                    <div>
+                       <div className="flex flex-col  items-center h-fit my-auto  no-event mt-4">
+                          <img className="w-[60px] h-[60px]" src="../../../icons/no-task.png" alt="No task"/>
+                            <p className="text-[13px] text-center">Les documents partagés apparaîtront ici.</p>
+                        </div>
+                    </div>
                   )}
-              
-              </section>
+                  </div>
+              </ScrollArea>
           </section>
-       
 }
           
       </section>

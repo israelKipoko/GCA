@@ -44,6 +44,11 @@ const ClientTable = () =>{
 
   return (
     <div className="container mx-auto py-10">
+       <div class="mt-6">
+                <div class="">
+                    <h1 class="text-white font-bold text-[30px] ml-9">Clients</h1>
+                </div>
+            </div>
       <DataTable columns={columns} data={data} dataRefresh={dataRefresh}/>
       {/* <Toaster /> */}
     </div>

@@ -19,7 +19,7 @@ class Message implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      */
-    public function __construct(public User $user)
+    public function __construct()
     {
         //
     }
@@ -32,11 +32,11 @@ class Message implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-           'user' => [
-            'id' => $this->user->id,
-            'name' => $this->user->name,
-            'firstname' => $this->user->firstname,
-           ]
+        //    'user' => [
+        //     'id' => $this->user->id,
+        //     'name' => $this->user->name,
+        //     'firstname' => $this->user->firstname,
+        //    ]
         ];
     }
     public function broadcastOn(): array

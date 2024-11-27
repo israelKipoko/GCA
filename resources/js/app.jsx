@@ -3,14 +3,14 @@ import 'preline';
 import 'datatables.net-dt/js/dataTables.dataTables.min.mjs';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import Table from './components/Table';
-import WorkSpace from './components/WorkSpace'
-import TodoList from './components/TodoList';
-import PendingCases from './components/main/PendingCases';
-import ClientTable from './components/main/clients/ClientsTable';
 import Echo from 'laravel-echo';
-
+import Layout from './components/Layout'
 import Pusher from 'pusher-js';
+import ForNow
+ from './components/ForNow';
+ import ClientLayout from './components/ClientLayout';
+ import CaseLayout from './components/CaseLayout';
+
 window.Pusher = Pusher;
 
 window.Echo = new Echo({
@@ -23,42 +23,27 @@ window.Echo = new Echo({
     enabledTransports: ['ws', 'wss'],
 });
 
-window.Echo.private('messages')
+
+window.Echo.channel('messages')
 .listen('Message', (event)=>{
-  console.log(event)
+  console.log("j")
 })
 // import DatePicker from './components/DatePicker';
 
 const rootElement = document.getElementById('table');
 if(rootElement){
     ReactDOM.createRoot(document.getElementById('table')).render(
-        <Table/>
+        <CaseLayout/>
     );
 }
 
-const rootElementOne = document.getElementById('workspace');
 
-if(rootElementOne){
-    const caseId = document.getElementById('workspace').getAttribute('data-case-id');
+const fornow = document.getElementById('fornow');
 
-    ReactDOM.createRoot(document.getElementById('workspace')).render(
-       <WorkSpace caseId={caseId}/>
-   );
-}
-
-const todoList = document.getElementById('todoList');
-
-if(todoList){
-    ReactDOM.createRoot(document.getElementById('todoList')).render(
-       <TodoList/>
-   );
-}
-
-const pendingCases = document.getElementById('pendindCases');
-
-if(todoList){
-    ReactDOM.createRoot(document.getElementById('pendindCases')).render(
-       <PendingCases/>
+if(fornow){
+    const caseId = document.getElementById('fornow').getAttribute('data-case-id');
+    ReactDOM.createRoot(document.getElementById('fornow')).render(
+       <ForNow caseId={caseId}/>
    );
 }
 
@@ -66,6 +51,14 @@ const clientsTable = document.getElementById('clientsTable');
 
 if(clientsTable){
     ReactDOM.createRoot(document.getElementById('clientsTable')).render(
-       <ClientTable/>
+       <ClientLayout/>
+   );
+}
+
+const layout = document.getElementById('layout');
+
+if(layout){
+    ReactDOM.createRoot(document.getElementById('layout')).render(
+       <Layout/>
    );
 }

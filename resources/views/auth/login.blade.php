@@ -5,7 +5,9 @@
     <section id="login_page" class="py-12 px-6">
         <section id="login_content" class="flex lg:flex-basis flex-wrap lg:gap-y-4 gap-y-9  justify-around md:w-[75%] w-full">
             <div class=" md:w-[450px] px-4 text-center flex flex-col justify-around text-[#fff] font-bold">
-                <div class="login_logo text-white w-fit mx-auto text-[24px]">logo</div>
+                <div class="w-[100px] h-[40px] text-white w-fit mx-auto text-[24px]">
+                    <img src="{{asset('icons/Mobeko_logo1.png')}}" class="w-full h-full object-fit-contain" alt="logo">
+                </div>
                 <div class="overlay"></div>
                 <div class="mb-[24px]">
                     <h1 class="text-[25px] text-left mb-5">Bienvenue!</h1>

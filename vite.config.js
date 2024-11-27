@@ -12,4 +12,12 @@ export default defineConfig({
         }),
         react(),
     ],
+    resolve: {
+        alias: {
+          '@': '/resources/js',
+        },
+      },
+    build: {
+        sourcemap: true,  // Enable source maps in Vite
+      }
 });

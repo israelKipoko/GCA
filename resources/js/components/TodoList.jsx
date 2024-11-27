@@ -3,13 +3,23 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
 import { cn } from "../../../lib/utils";
+import { ScrollArea } from "../../../components/ui/scroll-area";
+import TodoCreateInput from './utils/TodoCreateInput';
+import TodoItem from './utils/TodoItem';
+import Lottie from 'lottie-react';
+import live from '../../../public/animation/live-animation.json';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "../../../components/ui/accordion";
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../../components/ui/tooltip";
 
 const TodoList = () =>{
   const [refreshKey, setRefreshKey] = useState(0);
@@ -17,13 +27,14 @@ const TodoList = () =>{
   const [tasks, setTasks] = useState([]);
   const [myDayTasks, setMyDayTasks] = useState([]);
   const [plannedTasks, setPlannedTasks] = useState([]);
-  const [affectedTasks, setAffectedTasks] = useState([]);
   const [casesTasks, setCasesTasks] = useState([]);
   const [newTask , setNewTask]  = useState('');
+  const [overDueTasks , setOverDueTasks]  = useState([]);
   const [completedTasks , setCompletedTasks]  = useState([]);
   const [myDayCompletedTasks, setMyDayCompletedTasks]  = useState([]);
   const [completedPlannedTasks, setCompletedPlannedTasks]  = useState([]);
-  const [completedAffectedTasks, setCompletedAffectedTasks]  = useState([]);
+  const [userRole, setUserRole] = useState('');
+  const [users, setUsers] = useState([]);
 
   const audio = new Audio('../../../sounds/completed_2.mp3');
     const date = new Date();
@@ -33,6 +44,8 @@ const TodoList = () =>{
     setRefreshKey((oldKey) => oldKey + 1);
   };
   var transformedDataTasks;
+  var transformedUserData;
+
   function getTasks(){
     axios.get('/tasks/get-all-tasks')
     .then(response => {
@@ -49,14 +62,14 @@ const TodoList = () =>{
         caseTitle: element?.case?.title ?? null,
       }));
       let userId = response.data[1];
+      setUserRole(response.data[2]);
       setTasks([]);
       setMyDayTasks([]);
-      setAffectedTasks([]);
       setPlannedTasks([]);
+      setOverDueTasks([]);
       setCompletedTasks([]);
       setMyDayCompletedTasks([]);
       setCompletedPlannedTasks([]);
-      setCompletedAffectedTasks([]);
       setCasesTasks([]);
       transformedDataTasks.forEach((task) => {
         if(task.caseId == null){
@@ -66,8 +79,18 @@ const TodoList = () =>{
             setCompletedTasks(prevTasks => [...prevTasks,task]);
           }
         }else if(task.caseId != null){
-          setCasesTasks(prevCasesTasks => [...prevCasesTasks,task]);
+          if(response.data[2] == "Admin"){
+              setCasesTasks(prevCasesTasks => [...prevCasesTasks,task]);
+          }else if( task.assigned != null && task.assigned.includes(userId)){
+              setCasesTasks(prevCasesTasks => [...prevCasesTasks,task]);
+          }
         }
+        transformedUserData = response.data[3].map(element => ({
+          id:element.id,
+          name: element.firstname +" "+ element.name,
+          avatar: element.avatar_link,
+        }));
+        setUsers(transformedUserData);
 
         if(task.dueDate != null){
           if(task.dueDate == todayDate){
@@ -77,26 +100,20 @@ const TodoList = () =>{
               setMyDayCompletedTasks(prevMyDayTasks => [...prevMyDayTasks,task]);
             }
           }
-            if(task.dueDate != todayDate){
+            if(task.dueDate > todayDate){
               if(task.status == "pending")
                 setPlannedTasks(prevPlannedTasks => [...prevPlannedTasks,task]);
               else
                 setCompletedPlannedTasks(prevPlannedTasks => [...prevPlannedTasks,task]);
             }
+            if(task.dueDate < todayDate && task.status == "pending"){
+              setOverDueTasks(prevOverDueTasks => [...prevOverDueTasks,task]);
+            }
         }
-        // if(task.assigned != null){
-        //   if(task.assigned.includes(userId)){
-        //     if(task.status == "pending")
-        //       setAffectedTasks(prevAffectedTasks => [...prevAffectedTasks,task]);
-        //     else
-        //       setCompletedAffectedTasks(prevAffectedTasks => [...prevAffectedTasks,task]);
-        //   }
-        // }
       });
     })
     .catch(error => {
       console.log(error.message)
-
     });
   }
   const groupedCasesTasks = Object.values(
@@ -121,12 +138,13 @@ const TodoList = () =>{
       getTasks();
     });
   };
-  function CreateTask(e,caseId = null){
+  function CreateTask(e,caseId = null,dueDate){
     e.preventDefault();
     axios.post('/tasks/create-new-task',{
       title: newTask,
       category: activeTab,
       caseId: caseId,
+      dueDate: dueDate,
     })
     .then(response => {
       getTasks();
@@ -144,8 +162,10 @@ const TodoList = () =>{
         <div id="todo_wrapper" className="flex h-full">
         <Tabs defaultValue="my_day" className="flex  w-full">
             <TabsList className="flex flex-col w-[300px] justify-start items-start pt-2 todo_wrapper_tabs_list h-full">
+                {overDueTasks.length == 0 ? "": 
+                  <TabsTrigger onClick={()=> setActiveTab('overDue')} value="overDue" className={cn("todo_wrapper_tabs",activeTab=="overDue"?"active_tab":"")}> <div className='flex items-center'><Lottie animationData={live}  autoplay={true} style={{ width: 18, height: 18 }} loop={true} />Rappel </div> <span>{(overDueTasks.length) == 0?"":(overDueTasks.length)}</span></TabsTrigger>
+                }
                 <TabsTrigger onClick={()=> setActiveTab('my_day')} value="my_day" className={cn("todo_wrapper_tabs",activeTab=="my_day"?"active_tab":"")}> <div><i class='bx bx-sun text-[#eeee22]'></i>Ma Journée</div> <span>{(myDayTasks.length + myDayCompletedTasks.length) == 0?"":(myDayTasks.length + myDayCompletedTasks.length)}</span></TabsTrigger>
-                {/* <TabsTrigger onClick={()=> setActiveTab('assigned_to_me')} value="assigned_to_me" className={cn("todo_wrapper_tabs ",activeTab=="assigned_to_me"?"active_tab":"")}> <div><i class='bx bx-user text-[#0f6cbd]'></i>Affectées à moi</div><span>{(affectedTasks.length + completedAffectedTasks.length) == 0?"":(affectedTasks.length + completedAffectedTasks.length)}</span></TabsTrigger> */}
                 <TabsTrigger onClick={()=> setActiveTab('planned')} value="planned" className={cn("todo_wrapper_tabs ",activeTab=="planned"?"active_tab":"")}><div><i class='bx bx-calendar-event text-[#0f6cbd]'></i>Planifiées</div><span>{(plannedTasks.length + completedPlannedTasks.length) == 0?"":(plannedTasks.length + completedPlannedTasks.length)}</span></TabsTrigger>
                 <TabsTrigger onClick={()=> setActiveTab('my_tasks')} value="my_tasks" className={cn("todo_wrapper_tabs ",activeTab=="my_tasks"?"active_tab":"")}> <div><i class='bx bx-home-alt text-[#0f6cbd]'></i>Mes Tâches </div><span>{(tasks.length + completedTasks.length) == 0?"":(tasks.length + completedTasks.length)}</span></TabsTrigger>
                 {casesTasks.length ? (
@@ -166,6 +186,33 @@ const TodoList = () =>{
                 ):(<div></div>)}
                
             </TabsList>
+            {overDueTasks.length == 0 ? "": 
+            <TabsContent value="overDue" className=' w-full'>
+                <div class="h-full py-1 px-3 w-full">
+                    <div className="r w-fit ">
+                        <h1 className="flex items-center gap-x-2  text-md font-bold text-[#fff]">Rappel</h1>
+                        <span className=" capitalize text-[#d8d8d8]  text-[14px] text-center w-fit">Vous êtes en retard sur {overDueTasks.length > 1?"ces":"cette"} tâches!!</span>  
+                    </div>
+                    <div className='todolist_tabs_content_wrapper  w-full'>
+                        <div className="todo_items ">
+                          <ScrollArea className='h-full'>
+                          {overDueTasks.length ? (
+                          overDueTasks.map((task,taskIndex)=>(
+                              <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task} isCaseTitle={true}/>
+                             ))
+                            ): (
+                              <div className="flex flex-col items-center h-fit my-auto  no-event">
+                                <img src="../../../icons/my_day.webp" alt="No task"/>
+                                <p className="text-[13px] text-center">Vous n'avez aucune tâche aujourd'hui.<br/>Profitez de votre journée!!!</p>
+                              </div>
+                          )}
+                          </ScrollArea>
+                        </div>
+                    </div>
+                </div>
+
+            </TabsContent>
+            }
             <TabsContent value="my_day" className=' w-full'>
                 <div class="h-full py-1 px-3 w-full">
                     <div className="r w-fit ">
@@ -174,18 +221,10 @@ const TodoList = () =>{
                     </div>
                     <div className='todolist_tabs_content_wrapper  w-full'>
                         <div className="todo_items ">
-                        {myDayTasks.length || myDayCompletedTasks.length ? (
-                          myDayTasks.map((task)=>(
-                                <div className="todo_item">
-                                    <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                        <div className={cn("check_mark border ",task.status=="pending"?"":"checked")}>
-                                            <img src="../../../icons/icon-check.svg"/>
-                                        </div>
-                                    </div>
-                                    <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                        {task.title}
-                                    </div>
-                                </div>
+                          <ScrollArea className='h-full'>
+                          {myDayTasks.length || myDayCompletedTasks.length ? (
+                          myDayTasks.map((task,taskIndex)=>(
+                              <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task} isCaseTitle={true}/>
                              ))
                             ): (
                               <div className="flex flex-col items-center h-fit my-auto  no-event">
@@ -199,17 +238,8 @@ const TodoList = () =>{
                               <AccordionTrigger className='w-[150px] py-1 todolist_accordion_trigger'>Complétées</AccordionTrigger>
                               <AccordionContent className='mt-2'>
                               {myDayCompletedTasks.length ? (
-                                  myDayCompletedTasks.map((task)=>(
-                                        <div className="todo_item">
-                                            <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                                <div className={cn("check_mark border ",task.status=="pending"?"":"checked")}>
-                                                    <img src="../../../icons/icon-check.svg"/>
-                                                </div>
-                                            </div>
-                                            <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                                {task.title}
-                                            </div>
-                                        </div>
+                                  myDayCompletedTasks.map((task,taskIndex)=>(
+                                      <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task} isCaseTitle={true}/>
                                     ))
                                     ): (
                                       <div className="flex flex-col items-center h-fit my-auto  no-event">
@@ -224,84 +254,13 @@ const TodoList = () =>{
 
                           </div>
                               }
+                          </ScrollArea>
                         </div>
-                        <div className="addTaskInput">
-                          <div className="check">
-                            <div className="">
-                              <i className="fas fa-plus text-[18px]  text-[#fff]"></i>
-                            </div>
-                          </div>
-                          <form className="todo_text" id="new_todo_form" onSubmit={(e) => CreateTask(e)}>
-                            <input type="text" value={newTask}  onChange={(e)=> setNewTask(e.target.value)} placeholder="Ajouter une tâche" id="new_task" name="new_task"/>
-                          </form>
-                        </div>
+                        <TodoCreateInput newTask={newTask} setNewTask={setNewTask} CreateTask={CreateTask}/>
                     </div>
                 </div>
 
             </TabsContent>
-            {/* <TabsContent value="assigned_to_me" className=' w-full'>
-                <div class="h-full py-1 px-3 w-full">
-                    <div className="r w-fit mb-1">
-                        <h1 className="flex items-center gap-x-2  text-md font-bold text-[#fff]">Affectées</h1>
-                    </div>
-                    <div className='todolist_tabs_content_wrapper  w-full'>
-                        <div className="todo_items ">
-                        {affectedTasks.length || completedAffectedTasks.length ? (
-                          affectedTasks.map((task)=>(
-                              <div className="todo_item">
-                                    <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                        <div className={cn("check_mark border ",task.status=="pending"?"":"checked")}>
-                                            <img src="../../../icons/icon-check.svg"/>
-                                        </div>
-                                    </div>
-                                    <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                        {task.title}
-                                    </div>
-                              </div>
-                             ))
-                            ): (
-                              <div className="flex flex-col items-center h-fit my-auto  no-event">
-                                <img src="../../../icons/assigned_to_me.webp" alt="assigned to me"/>
-                                
-                                <p className="text-[13px] text-center">Les tâches qui vous sont assignées apparaîtront ici!!</p>
-                              </div>
-                          )}
-                           {completedAffectedTasks.length > 0?
-                          <Accordion type="single" collapsible>
-                            <AccordionItem value="item-1">
-                              <AccordionTrigger className='w-[150px] py-1 todolist_accordion_trigger'>Complétées</AccordionTrigger>
-                              <AccordionContent className='mt-2'>
-                              {completedAffectedTasks.length ? (
-                                  completedAffectedTasks.map((task)=>(
-                                        <div className="todo_item">
-                                            <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                                <div className={cn("check_mark border ",task.status=="pending"?"":"checked")}>
-                                                    <img src="../../../icons/icon-check.svg"/>
-                                                </div>
-                                            </div>
-                                            <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                                {task.title}
-                                            </div>
-                                        </div>
-                                    ))
-                                    ): (
-                                      <div className="flex flex-col items-center h-fit my-auto  no-event">
-                                        
-                                      </div>
-                                  )}
-                              </AccordionContent>
-                            </AccordionItem>
-                          </Accordion>
-                          :
-                          <div>
-
-                          </div>
-                              }
-                        </div>
-                    </div>
-                </div>
-
-            </TabsContent> */}
             <TabsContent value="planned" className=' w-full'>
                 <div class="h-full py-1 px-3 w-full">
                     <div className="r w-fit mb-1">
@@ -309,61 +268,36 @@ const TodoList = () =>{
                     </div>
                     <div className='todolist_tabs_content_wrapper  w-full'>
                         <div className="todo_items ">
-                        {plannedTasks.length || completedPlannedTasks.length ? (
-                          plannedTasks.map((task)=>(
-                                <div className="todo_item">
-                                    <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                        <div className={cn("check_mark border ",task.status=="pending"?"":"checked")}>
-                                            <img src="../../../icons/icon-check.svg"/>
-                                        </div>
-                                    </div>
-                                    <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                        {task.title}
-                                    </div>
+                           <ScrollArea className='h-full'>
+                              {plannedTasks.length || completedPlannedTasks.length ? (
+                              plannedTasks.map((task,taskIndex)=>(
+                                  <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task}/>
+                                ))
+                                ): (
+                                  <div className="flex flex-col items-center h-fit my-auto  no-event">
+                                  <img src="../../../icons/planned_task.webp" alt="planned tasks"/>
+                                  <p className="text-[13px] text-center">Les tâches avec une date d'échéance et un rappel apparaîtront ici!!</p>
                                 </div>
-                             ))
-                            ): (
-                               <div class="flex flex-col items-center h-fit my-auto  no-event">
-                               <img src="../../../icons/planned_task.webp" alt="planned tasks"/>
-                               <p class="text-[13px] text-center">Les tâches avec une date d'échéance et un rappel apparaîtront ici!!</p>
-                             </div>
-                          )}
-                          {completedPlannedTasks.length > 0?
-                          <Accordion type="single" collapsible>
-                            <AccordionItem value="item-1">
-                              <AccordionTrigger className='w-[150px] todolist_accordion_trigger'>Complétées</AccordionTrigger>
-                              <AccordionContent className='mt-2'>
-                                  {completedPlannedTasks.map((task)=>(
-                                        <div className="todo_item">
-                                            <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                                <div className={cn("check_mark border ",task.status=="pending"?"":"checked")}>
-                                                    <img src="../../../icons/icon-check.svg"/>
-                                                </div>
-                                            </div>
-                                            <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                                {task.title}
-                                            </div>
-                                        </div>
-                                    ))}
-                              </AccordionContent>
-                            </AccordionItem>
-                          </Accordion>
-                          :
-                          <div>
+                              )}
+                              {completedPlannedTasks.length > 0?
+                              <Accordion type="single" collapsible>
+                                <AccordionItem value="item-1">
+                                  <AccordionTrigger className='w-[150px] todolist_accordion_trigger'>Complétées</AccordionTrigger>
+                                  <AccordionContent className='mt-2'>
+                                      {completedPlannedTasks.map((task,taskIndex)=>(
+                                            <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task}/>
+                                        ))}
+                                  </AccordionContent>
+                                </AccordionItem>
+                              </Accordion>
+                              :
+                              <div>
 
-                          </div>
-                              }
+                              </div>
+                                  }
+                           </ScrollArea>
                         </div>
-                        <div className="addTaskInput">
-                          <div className="check">
-                            <div className="">
-                              <i className="fas fa-plus text-[18px]  text-[#fff]"></i>
-                            </div>
-                          </div>
-                          <form className="todo_text" id="new_todo_form" onSubmit={(e) => CreateTask(e)}>
-                            <input type="text" value={newTask}  onChange={(e)=> setNewTask(e.target.value)} placeholder="Ajouter une tâche" id="new_task" name="new_task"/>
-                          </form>
-                        </div>
+                        <TodoCreateInput newTask={newTask} setNewTask={setNewTask} CreateTask={CreateTask}/>
                     </div>
                 </div>
             </TabsContent>
@@ -374,67 +308,41 @@ const TodoList = () =>{
                     </div>
                     <div className='todolist_tabs_content_wrapper  w-full'>
                         <div className="todo_items ">
-                        {tasks.length || completedTasks.length ? (
-                          tasks.map((task)=>(
-                                <div className="todo_item">
-                                    <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                        <div className={cn("check_mark border ",task.status=="pending"?"":"checked")}>
-                                            <img src="../../../icons/icon-check.svg"/>
+                          <ScrollArea>
+                              {tasks.length || completedTasks.length ? (
+                              tasks.map((task,taskIndex)=>(
+                                    <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task}/>
+                                ))
+                                ): (
+                                  <div className="flex flex-col items-center h-fit my-auto  no-event">
+                                    <img src="../../../icons/my_day.webp" alt="No task"/>
+                                    <p className="text-[13px] text-center">Votre liste des tâches est vide!!</p>
+                                  </div>
+                              )}
+                              {completedTasks.length > 0? 
+                              <Accordion type="single" collapsible>
+                              <AccordionItem value="item-1">
+                                <AccordionTrigger className='w-[150px] todolist_accordion_trigger'>Complétées</AccordionTrigger>
+                                <AccordionContent className='mt-2'>
+                                {completedTasks.length ? (
+                                    completedTasks.map((task,taskIndex)=>(
+                                        <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task}/>
+                                      ))
+                                      ): (
+                                        <div className="flex flex-col items-center h-fit my-auto  no-event">
+                                          
                                         </div>
-                                    </div>
-                                    <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                        {task.title}
-                                    </div>
-                                </div>
-                             ))
-                            ): (
-                              <div className="flex flex-col items-center h-fit my-auto  no-event">
-                                <img src="../../../icons/my_day.webp" alt="No task"/>
-                                <p className="text-[13px] text-center">Votre liste des tâches est vide!!</p>
-                              </div>
-                          )}
-                          {completedTasks.length > 0? 
-                          <Accordion type="single" collapsible>
-                          <AccordionItem value="item-1">
-                            <AccordionTrigger className='w-[150px] todolist_accordion_trigger'>Complétées</AccordionTrigger>
-                            <AccordionContent className='mt-2'>
-                            {completedTasks.length ? (
-                                completedTasks.map((task)=>(
-                                      <div className="todo_item">
-                                          <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                              <div className={cn("check_mark border ",task.status=="pending"?"":"checked")}>
-                                                  <img src="../../../icons/icon-check.svg"/>
-                                              </div>
-                                          </div>
-                                          <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                              {task.title}
-                                          </div>
-                                      </div>
-                                  ))
-                                  ): (
-                                    <div className="flex flex-col items-center h-fit my-auto  no-event">
-                                      
-                                    </div>
-                                )}
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>:
-                            <div>
+                                    )}
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>:
+                                <div>
 
-                            </div>
-                          }
-                          
+                                </div>
+                              }
+                          </ScrollArea>
                         </div>
-                        <div className="addTaskInput">
-                          <div className="check">
-                            <div className="">
-                              <i className="fas fa-plus text-[18px]  text-[#fff]"></i>
-                            </div>
-                          </div>
-                          <form className="todo_text" id="new_todo_form" onSubmit={(e) => CreateTask(e)}>
-                            <input type="text" value={newTask}  onChange={(e)=> setNewTask(e.target.value)} placeholder="Ajouter une tâche" id="new_task" name="new_task"/>
-                          </form>
-                        </div>
+                        <TodoCreateInput newTask={newTask} setNewTask={setNewTask} CreateTask={CreateTask}/>
                     </div>
                 </div>
             </TabsContent>
@@ -447,29 +355,19 @@ const TodoList = () =>{
                     </div>
                     <div className='todolist_tabs_content_wrapper  w-full'>
                         <div className="todo_items ">
-                        {group.map((task, taskIndex) => (
-                                <div key={taskIndex} className="todo_item">
-                                    <div className="check rounded-full" onClick={()=> ChangeStatus(task.id)}>
-                                        <div className={cn("check_mark border ",task.status=="pending"?"":"checked")}>
-                                            <img src="../../../icons/icon-check.svg"/>
-                                        </div>
-                                    </div>
-                                    <div className={cn("todo_text checked",task.status=="completed"?"completed":"")}>
-                                        {task.title}
-                                    </div>
-                                </div>
-                             ))}
+                          <ScrollArea>
+                              {group.map((task, taskIndex) => (
+                                    <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task} users={users}/>
+                                ))}
+                          </ScrollArea>
+                        
                         </div>
-                        <div className="addTaskInput">
-                          <div className="check">
-                            <div className="">
-                              <i className="fas fa-plus text-[18px]  text-[#fff]"></i>
-                            </div>
-                          </div>
-                          <form className="todo_text" id="new_todo_form" onSubmit={(e) => CreateTask(e, group[0].caseId)}>
-                            <input type="text" value={newTask}  onChange={(e)=> setNewTask(e.target.value)} placeholder="Ajouter une tâche" id="new_task" name="new_task"/>
-                          </form>
-                        </div>
+                        <TodoCreateInput
+                            newTask={newTask}
+                            setNewTask={setNewTask}
+                            CreateTask={CreateTask}
+                            caseId={group[0].caseId} // Pass caseId from the group array
+                        />
                     </div>
                 </div>
               </TabsContent>

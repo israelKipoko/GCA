@@ -13,6 +13,8 @@
       "paths": {
         "@/*": ["./*"],
       },
+      "sourceMap": true,  // Enable source maps
+      "inlineSources": true // Optional but helpful for debugging
     },
     "include": ["resources/js/**/*"],
     "exclude": ["node_modules", "public", "storage"]

@@ -26,7 +26,7 @@ Route::get('/', function(){
 });
 
 Route::get('/foot', function(){
-    broadcast(new Message(User::find(Auth::id())));
+    broadcast(new Message());
 });
 Route::get('/GCA/welcome', [UserController::class, "index"])->name('route_login');
 Route::post('/authenticate/user', [UserController::class, "authenticate"]);
@@ -58,9 +58,18 @@ Route::post('/cases/upload-file/{case}',[ActivityController::class,"uploadFile"]
 
 Route::get('/folders/show-pending-folders',[ActivityController::class,"showPendingCases"])->middleware('auth');
 
+Route::get('/users/get-information',[ActivityController::class,"AuthUser"])->middleware('auth');
 /* TASKS */
 Route::get('/tasks/get-all-case-tasks/{case}',[ActivityController::class,"getAllTasks"])->middleware('auth');
 Route::post('/tasks/create-new-task/{case}',[ActivityController::class,"createCaseTask"])->middleware('auth');
+
+/* EVENTS */
+Route::get('/event/get-user-events',[ActivityController::class,"getAllEvents"]);
+Route::post('/event/create-new-event',[ActivityController::class,"createEvent"]);
+Route::post('/home/event/check-availability',[ActivityController::class,"checkAvailability"]);
+
+
+// <!-- Route::get('/news/{news}',[ActivityController::class,"showNewsDetails"]); -->
 
 Route::group(['middleware' => ['auth','role:Admin|User']], function () { 
     Route::post('/home/pending-cases/{case}/update-case/file',[ActivityController::class,"updateCase"]);
@@ -75,12 +84,6 @@ Route::group(['middleware' => ['auth','role:Admin|User']], function () {
     Route::put('/home/tasks/update-task-status/{task}',[ActivityController::class,"updateTaskStatus"]);
     
     Route::post('pending-cases/{case}/submit-case',[ActivityController::class,"submitCase"]);
-
-    Route::get('/news/{news}',[ActivityController::class,"showNewsDetails"]);
-
-    Route::post('/home/event/create',[ActivityController::class,"createEvent"]);
-
-    Route::post('/home/event/check-availability',[ActivityController::class,"checkAvailability"]);
 });
 
 Route::group(['middleware' => ['auth','role:Super-Admin|Admin']], function () { 
