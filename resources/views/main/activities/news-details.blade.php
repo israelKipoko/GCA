@@ -3,9 +3,6 @@
 @section('content')
     <section>
         <div id="home_wrapper">
-            <section class="lg:block hidden">
-                <x-sidebar :profiles="$profiles"/>
-            </section>
             <section id="main" class="activities_wrapper flex  px-4 h- py-4">
                 <div class="text-center w-full h-fit my-auto">
                     <div class=" mx-auto w-fit gap-x-2 text-[18px] mb-1 text-white">

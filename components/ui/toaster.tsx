@@ -1,5 +1,6 @@
 import React from 'react';
-import { useToast } from "../../hooks/use-toast"
+import { useToast } from "../../hooks/use-toast";
+import {CircleCheck, CircleX} from 'lucide-react';
 import {
   Toast,
   ToastClose,
@@ -16,22 +17,24 @@ export function Toaster() {
   };
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {toasts.map(function ({ id, title, description, action, variant, ...props }) {
         return (
-          <Toast  swipeDirection="bottom" key={id} {...props} style={shadow} className="bg-[#d8d8d833] rounded-[4px] border-none text-white font-bold">
-            <div className="grid gap-1">
-            {title && <ToastTitle>{title}</ToastTitle>}
+          <Toast  swipeDirection="bottom" key={id} {...props} style={shadow} className="rounded-[8px] border-none  text-white font-bold">
+            <div className="flex flex-col gap-x-4 items-center w-full h-full">
+            {title && <ToastTitle className='flex flex-row items-center justify-center gap-x-2 text-center font-bold'>
+              {variant == "default"?  <CircleCheck  color={"#fff"} />: <CircleX color={"#fff"} />}
+             
+              {title}
+              </ToastTitle>
+            }
               {description && (
-                <ToastDescription className='flex items-center gap-1'>
-                  <svg className="shrink-0 size-5 text-teal-500 mt-0.5" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"></path>
-                  </svg>
+                <ToastDescription className='flex items-center text-center gap-1 text-[12px] font-light'>
                    {description}
                 </ToastDescription>
               )}
             </div>
-            {action}
-            <ToastClose />
+            {/* {action && <div></div> } */}
+            {/* <ToastClose /> */}
           </Toast>
         )
       })}

@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use DateTime;
+use Carbon\Carbon;
 use App\Models\News;
 use App\Models\Task;
 use App\Models\User;
+use Inertia\Inertia;
 use App\Models\Cases;
 use App\Models\Event;
 use App\Models\Client;
+use App\Models\Groups;
 use App\Events\Message;
 use App\Models\Profiles;
 use Spatie\PdfToImage\Pdf;
@@ -19,7 +22,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\Support\PathGenerator\PathGenerator;
-use Carbon\Carbon;
 
 class ActivityController extends Controller
 {
@@ -29,7 +31,7 @@ class ActivityController extends Controller
                 ->orWhere('created_by', Auth::id());
         })->latest('updated_at')->get();
         foreach ($folders as $folder){
-            if($folder->user->hasMedia("profile")){
+            if($folder->user->hasMedia("profile_pictures")){
                 $folder->user['avatar_link'] = $folder->user->getFirstMediaUrl();
             }else{
                 $folder->user['avatar_link'] = asset('storage'.$folder->user->avatar);
@@ -38,7 +40,7 @@ class ActivityController extends Controller
          foreach ($folders as $folder){
             foreach($folder->assigned_to as $index=>$user){
                 $assignedUser = User::find($user);
-                if($assignedUser->hasMedia("profile")){
+                if($assignedUser->hasMedia("profile_pictures")){
                     $folder->assigned_to[$index] = [
                         "avatar_link" => $assignedUser->getFirstMediaUrl(),
                         "name" => $assignedUser->firstname. " ".$assignedUser->name,
@@ -56,31 +58,73 @@ class ActivityController extends Controller
         return response()->json([$folders]);
     }
     function showPendingCases(){
-        $folders= Cases::with('user')->with('client')->withCount('task')->where('status','pending')->where(function($query) {
+        $folders = Cases::with('user','client')
+        ->withCount(['task as completed_tasks_count' => function($query) {
+            $query->where('status', 'completed');
+        }])->where('status','pending')->where(function($query) {
             $query->whereJsonContains('assigned_to', Auth::id())
                 ->orWhere('created_by', Auth::id());
         })->latest('updated_at')->get();
 
-        foreach($folders as $folder){
-            $assignedTo = [];
-            foreach ($folder->assigned_to as $id){
-                $user = User::find($id);
-                if($user->hasMedia("profile")){
-                    $user['avatar_link'] = $user->getFirstMediaUrl();
-                }else{
-                    $user['avatar_link'] = asset('storage'.$user->avatar);
-                }
-                    $assignedTo[] = $user;
-             }
-             $folder->assigned_to = $assignedTo;
+        if($folders[0]->user->hasMedia("profile_pictures")){
+            $folders[0]->user['avatar_link'] = $folders[0]->user->getFirstMediaUrl("profile_pictures");
+        }else{
+            $folders[0]->user['avatar_link'] = asset('storage'. $folders[0]->user->avatar);
+        }
+        if($folders[0]->client != null){
+            if($folders[0]->client->hasMedia("logo")){
+                $folders[0]->client['logo'] = $folders[0]->client->getFirstMediaUrl("logos");
+            }else{
+                $folders[0]->client['logo'] = null;
+            }
+        }
+        if(empty($folder->assigned_to)){
+            foreach($folders as $folder){
+                $assignedTo = [];
+                foreach ($folder->assigned_to as $id){
+                    $user = User::find($id);
+                    if($user->hasMedia("profile_pictures")){
+                        $user['avatar_link'] = $user->getFirstMediaUrl();
+                    }else{
+                        $user['avatar_link'] = asset('storage'.$user->avatar);
+                    }
+                        $assignedTo[] = $user;
+                 }
+                 $folder->assigned_to = $assignedTo;
+            }
         }
         return response()->json([$folders]);
     }
     public function getUsers(){
-        $users = User::whereNot('id',Auth::id())->get();
+        $users = User::get();
+
+        $groups= Groups::get();
+
         foreach ($users as $user){
-            if($user->hasMedia("profile")){
-                $user['avatar_link'] = $user->getFirstMediaUrl();
+
+            //Groups
+            $userGroups = [];
+
+             foreach($groups as $group){
+                if(in_array($user->id, $group->users)){
+                    $userGroups [] = $group->name;
+                }
+             }
+
+             $user["groups"] = $userGroups;
+
+            //Roles
+            if($user->hasRole('Super-Admin')){
+                $user['role'] = "Administrateur";
+            }else if($user->hasRole('Admin')){
+                $user['role'] = "Gestionnaire";
+            }else {
+                $user['role'] = "utilisateur";
+            }
+
+            // Avatars
+            if($user->hasMedia("profile_pictures")){
+                $user['avatar_link'] = $user->getFirstMediaUrl("profile_pictures");
             }else{
                 $user['avatar_link'] = asset('storage'.$user->avatar);
             }
@@ -100,17 +144,26 @@ class ActivityController extends Controller
     }
     public function newClient(Request $request){
         $client = Client::create([
-            'name' => $request->input('createNewClient'),
-            'sector' => 'undetermined',
-            'location' => [
-                'city' => "undetermined",
-                'district' => "undetermined",
+            'name' => $request->newClient['newClientName'],
+            'sector' => $request->newClient['sector'] ?? "",
+            'contacts' => [
+                "email" => $request->newClient['email'] ?? "",
+                "phone" => $request->newClient['phone'] ?? "",
             ],
+            'location' => $request->newClient['address'] ?? null,
             'company_id' => 1,
         ]);
+        if(isset($request->newClient['logo']) && $request->newClient['logo'] !== ""){
+            $logo = TemporaryFile::where('name',$request->newClient['logo'])->where("user_id",Auth::id())->latest('created_at')->first();
+
+            $client->addMedia(public_path('/storage/'.$logo->path))
+            ->toMediaCollection("logos", 'logos');
+            Storage::delete('/temporary'.$logo->path);
+            $logo->delete();
+        }
         $newClientId = $client->id;
 
-        return response()->json(['id' => $newClientId]);
+        return response()->json(['id' => $newClientId,201]);
     }
 
     public function deleteCase(Request $request){
@@ -120,41 +173,56 @@ class ActivityController extends Controller
         return response()->json([201]);
     }
     public function showCaseDetails(Cases $case){
-
-        $assigned_to;
-        $hasMedia = false;
-        foreach($case->assigned_to as $user){
-            $assigned_to[] = User::with('profiles')->find($user);
-        }
-        $pendingCase = PendingCases::with("media")->where("id",$case->id)->get();
-        foreach ($pendingCase as $item){
-            if($item->hasMedia($case->number)){
-                $hasMedia = true;
+        $assigned_to = [];
+        $users = [];
+        if(!empty($case->assigned_to)){
+            foreach($case->assigned_to as $user){
+                $assigned_to[] = User::find($user);
             }
-         }
-     return view("main.activities.case-details",[
-        'case' => $case,
-        'assigned_to' => $assigned_to,
-        'pendingCase' => $pendingCase,
-        'hasMedia' => $hasMedia,
-     ]);
+            foreach($assigned_to as $user){
+                if($user->hasMedia("profile_pictures")){
+                    $user['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
+                }else{
+                    $user['avatar_link'] = asset('storage'.$user->avatar);
+                }
+                $users[] = $user;
+            }
+        }
+       
+        if($case->hasMedia("CaseFolders")){
+            $media = $case->getMedia("CaseFolders"); 
+            foreach ($media as $item) {
+                $folder =  [
+                    'name' => $item->file_name,  
+                    'size' => $item->size,       
+                    'url'  => $item->getUrl()
+                ];
+                $allFolders[] = $folder;
+            }
+            $case['folders'] = $allFolders;
+        }else{
+            $case['folders'] =  [];
+        }
+         return Inertia::render('ForNow',['caseInfo'=>$case,'users'=>$users]);
     }
     public function getAllCaseMessages(Cases $case){
         $messages = PendingCases::with('media')->with('user')->where('case_id',$case->id)->latest('created_at')->get();
-        $users;
-        foreach($case->assigned_to as $item){
-            $user = User::find($item);
-            if($user->hasMedia("profile")){
-                $user['avatar_link'] = $user->getFirstMediaUrl('profile');
-            }else{
-                $user['avatar_link'] = asset('storage'.$user->avatar);
+        $users = null;
+        if(!empty($case->assigned_to)){
+            foreach($case->assigned_to as $item){
+                $user = User::find($item);
+                if($user->hasMedia("profile_pictures")){
+                    $user['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
+                }else{
+                    $user['avatar_link'] = asset('storage'.$user->avatar);
+                }
+                $users[] = $user;
             }
-            $users[] = $user;
         }
         if($messages != null){
             foreach ($messages as $message){
-                if($message->user->hasMedia("profile")){
-                    $message->user['avatar_link'] = $message->getFirstMediaUrl('profile');
+                if($message->user->hasMedia("profile_pictures")){
+                    $message->user['avatar_link'] = $message->getFirstMediaUrl('profile_pictures');
                 }else{
                     $message->user['avatar_link'] = asset('storage'.$message->user->avatar);
                 }
@@ -189,7 +257,7 @@ class ActivityController extends Controller
                 $file->delete();
             }
         }
-        broadcast(new Message());
+        // broadcast(new Message());
         return response()->json([201]);
     }
 
@@ -267,8 +335,8 @@ class ActivityController extends Controller
         }
         $users = User::get();
         foreach($users as $user){
-            if($user->hasMedia("profile")){
-                $user['avatar_link'] = $user->getFirstMediaUrl('profile');
+            if($user->hasMedia("profile_pictures")){
+                $user['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
             }else{
                 $user['avatar_link'] = asset('storage'.$user->avatar);
             }
@@ -337,9 +405,17 @@ class ActivityController extends Controller
         $formFields['created_by'] = Auth::id();
         $formFields['type'] = "CJ";
         $formFields['due_date'] = $request->newFolder['formattedDate'];
+        $folder = Cases::create($formFields);
 
-
-         $folder = Cases::create($formFields);
+        if(sizeof($request->newFolder['files']) != 0){
+            $files = TemporaryFile::take($request->newFolder['fileLength'])->latest('created_at')->get();
+            foreach($files as $file){
+                $folder->addMedia(public_path('/storage/'.$file->path))
+                ->toMediaCollection('CaseFolders', 'CaseFolders');
+                Storage::delete('/temporary'.$file->path);
+                $file->delete();
+            }
+        }
          return response()->json(['folder' => $folder]);
     }
 
@@ -359,39 +435,18 @@ class ActivityController extends Controller
     /* CLIENTS */
 
     public function showClients(){
-        $clients = Client::with('case')->withCount('case')->where('company_id',1)->get();
+        $clients = Client::withCount('case')->where('company_id',1)->orderBy('created_at', 'desc')->get();
+
+        foreach($clients as $client){
+            if($client->hasMedia("logos")){
+                $client['logo'] = $client->getFirstMediaUrl('logos');
+            }else{
+                $client['logo'] = "";
+            }
+        }
         return response()->json([$clients]);
     }
-    public function storeNewClient(Request $request){
-        $request->validate([
-            'name' => 'required|string',
-            'sector' => 'required|string',
-            'city' => 'required|string',
-            'district' => 'required|string',
-        ]);
-
-        $formFields['name'] = $request->name;
-        $formFields['company_id'] = 1;
-        $formFields['sector'] = $request->sector;
-        $formFields['location'] = [
-            'city' => $request->city,
-            'district' => $request->district,
-        ];
-        $formFields['contacts'] = [
-            'phone' => $request->phone,
-            'email' => $request->email,
-        ];
-        $temporaryFile = TemporaryFile::where('name',$request->logo)->get();
-
-        $client = client::create($formFields);
-        $client->addMedia(public_path('/storage/'.$temporaryFile[0]->path))
-                    ->toMediaCollection('client-logo', 'logos');
-        Storage::delete('/temporary'.$temporaryFile[0]->path);
-        $temporaryFile[0]->delete();
-         notify()->success('Client created succesfully!');
-
-         return redirect()->back();
-    }
+  
     public function storeClientLogo(Request $request){
         if($request->hasFile('logo')){
             $file = $request->file('logo');
@@ -400,36 +455,53 @@ class ActivityController extends Controller
 
                 $filePath= $file->storeAs('temporary'.'/'.$fileName);
                 TemporaryFile::create([
+                    'user_id' => Auth::id(),
                     'name' => $fileName,
                     'path' => $filePath,
                     'size' => $fileSize,
                 ]);
-                return $fileName;
+                return response()->json($fileName);
             };
 
         }
-    public function deleteClientLogo(){
+    public function deleteClientLogo(Request $request, $logoName){
+        if($logoName != ""){
+            $logo = TemporaryFile::where("user_id",Auth::id())->where("name",$logoName)->latest("created_at")->first();
+            Storage::delete('/temporary'.$logo->path);
+            $logo->delete();
+        }
+        return response()->json(201);
+    }
 
+    public function getClientCases($clientId){
+        $clientCases = Cases::where('client_id', $clientId)->orderBy('created_at','desc')->get();
+
+        return response()->json([$clientCases]);
     }
 
     public function getAllEvents(){
+        $users = null;
         $events = Event::with('user')->where(function($query) {
             $query->whereJsonContains('participants', Auth::id())
                 ->orWhere('created_by', Auth::id());
         })->get();
-        $users;
-        if($events[0]->participants != null){
-            foreach($events[0]->participants as $id){
-                $user = User::find($id);
-                if($user->hasMedia("profile")){
-                    $user['avatar_link'] = $user->getFirstMediaUrl('profile');
-                }else{
-                    $user['avatar_link'] = asset('storage'.$user->avatar);
+        foreach($events as $event){
+            if(!empty($event->participants)){
+                foreach($event->participants as $id){
+                    $user = User::find($id);
+                    if($user->hasMedia("profile_pictures")){
+                        $user['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
+                    }else{
+                        $user['avatar_link'] = asset('storage'.$user->avatar);
+                    }
+                    $users[] = $user;
                 }
-                $users[] = $user;
+                $event['event_users'] = $users;
             }
+            $users = [];
         }
-        return response()->json([$events,$users]);
+      
+        return response()->json([$events]);
     }
     public function createEvent(Request $request){
       Event::create([
@@ -438,7 +510,8 @@ class ActivityController extends Controller
         'date' => $request->data['dataDate'],
         'meeting_link' => $request->data['eventLink'],
         'time' => [
-            'start_time' => $request->data['hour'].":".$request->data['minute'],
+            'start_time' => $request->data['startTime'],
+            'end_time' => $request->data['endTime'],
         ],
         'created_by' => Auth::id(),
       ]);
@@ -492,8 +565,8 @@ class ActivityController extends Controller
         if($user->hasRole('Super-Admin') || $user->hasRole('Admin')){
             $user['role'] = "Admin";
         }
-        if($user->hasMedia("profile")){
-            $user['avatar_link'] = $user->getFirstMediaUrl('profile');
+        if($user->hasMedia("profile_pictures")){
+            $user['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
         }else{
             $user['avatar_link'] = asset('storage'.$user->avatar);
         }
@@ -507,13 +580,75 @@ class ActivityController extends Controller
             if($user->hasRole('Super-Admin') || $user->hasRole('Admin')){
                 $user['role'] = "Admin";
             }
-            if($user->hasMedia("profile")){
-                $user['avatar_link'] = $user->getFirstMediaUrl('profile');
+            if($user->hasMedia("profile_pictures")){
+                $user['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
             }else{
                 $user['avatar_link'] = asset('storage'.$user->avatar);
             }
         }
         return response()->json([$users]);
+    }
+
+    /* Get all groups */
+    public function getGroups(){
+        $user = Auth::user();
+
+        if($user->hasRole('Super-Admin') || $user->hasRole('Admin')){
+            $groups = Groups::get();
+            $members = [];
+
+            foreach($groups as $group){
+                if(!empty($group->users)){
+                    $members = [];
+                    foreach($group->users as $member){
+                        $groupUser = User::find($member);
+                        if($groupUser->hasMedia("profile_pictures")){
+                            $groupUser['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
+                        }else{
+                            $groupUser['avatar_link'] = asset('storage'.$groupUser->avatar);
+                        }
+
+                        $members [] = $groupUser;
+                    }
+
+                    $group['members'] = $members;
+                    $group['membersCount'] = sizeof($members);
+                }
+            }
+            return response()->json($groups,201);
+        }
+
+        $groups = Groups::where(function($query) {
+            $query->whereJsonContains('users', $user->id);
+        })->get();
+
+        foreach($groups as $group){
+            if(!empty($group->users)){
+                $members = [];
+                foreach($group->users as $member){
+                    $groupUser = User::find($member);
+                    if($groupUser->hasMedia("profile_pictures")){
+                        $groupUser['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
+                    }else{
+                        $groupUser['avatar_link'] = asset('storage'.$groupUser->avatar);
+                    }
+
+                    $members [] = $groupUser;
+                }
+                $group['members'] = $members;
+                $group['membersCount'] = sizeof($members);
+            }
+        }
+
+        return response()->json($groups,201);
+    }
+
+    public function createGroup(Request $request){
+        Groups::create([
+            'name' => $request->name,
+            'users' => json_decode($request->input('members'), true),
+        ]);
+        return response()->json([],201);
     }
 }
 

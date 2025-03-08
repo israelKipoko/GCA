@@ -16,9 +16,9 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3 text-[12px]", className)}
+      className={cn("p-3 text-[12px] dark:bg-dark-secondary bg-light-secondary dark:text-white text-dark-secondary", className)}
       classNames={{
-        months: "flex flex-col capitalize sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+        months: "flex flex-row capitalize sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm font-medium",
@@ -37,7 +37,7 @@ function Calendar({
         cell: "h-9 w-9 text-center text-[12px] p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 hover:bg-[#f0f0f022] aria-selected:hover:bg-[#356B8C] font-normal aria-selected:opacity-100"
+          "h-9 w-9 p-0 dark:hover:bg-[#f0f0f022] hover:bg-light-hover aria-selected:bg-[#356B8C]  font-normal aria-selected:opacity-100"
         ),
         day_range_end: "day-range-end",
         day_selected:
@@ -52,8 +52,8 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4 dark:text-white text-dark-secondary" />,
+        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4 dark:text-white text-dark-secondary" />,
       }}
       {...props}
     />

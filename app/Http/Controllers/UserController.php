@@ -3,9 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Laravolt\Avatar\Facade as Avatar;
+use Inertia\Inertia;
+use Inertia\Response;
+use App\Mail\AddMember;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Laravolt\Avatar\Facade as Avatar;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 
 
@@ -43,9 +49,10 @@ class UserController extends Controller
     }
     /* AUTHENTICATION */
 
-    public function index(){
-        return view('auth.login');
+    public function index():Response{
+        return Inertia::render('Login');
     }
+
     public function authenticate(Request $request){
         $formFiels = $request->validate([
             'email' => ['required','email'],
@@ -56,11 +63,110 @@ class UserController extends Controller
             $request->session()->regenerate();
 
             // notify()->success('Vous êtes maintenant connecté!!');
-            return redirect('/home');
+            return  to_route('app.home');
         }
         return back()->withErrors(['email'=>'Invalid credentials'])->onlyInput('email');
     }
     /* AUTHENTICATION */
+
+    /* UPDATE USER NAME */
+    public function updateName(Request $request){
+        $user = Auth::user();
+
+        if(sizeof($request->names) > 0){
+            $user->firstname =  $request->names[0];
+            $user->name = $request->names[1] ?? "";
+            $user->lastname = $request->names[2] ?? "";
+
+            $user->save();
+
+            return response()->json([],201);
+        }
+        
+        return response()->json(500);
+    }
+
+    public function updateProfilePicture(Request $request){
+        $user = Auth::user();
+
+        if($request->file('avatar')){
+            if($user->hasMedia("profile_pictures")){
+                $media = $user->getFirstMedia("profile_pictures");
+                $media->delete(); 
+            }
+
+            $media = $user->addMedia($request->file('avatar'))
+            ->toMediaCollection('profile_pictures');
+
+            return response()->json(201);
+        }
+
+        return response()->json(500);
+    }
+
+    public function updateRememberSession(Request $request){
+        $user = Auth::user();
+        $credentials = $request->only('email','password');
+        $remember = $request->input('remember');
+
+        if(Auth::attempt($credentials,true)){
+            $request->session()->regenerate();
+
+            $user->remember = (!$user->remember);
+            $user->save();
+
+            return response()->json([],201); 
+        }
+
+        return response()->json(500);
+    }
+
+    public function addMember(Request $request){
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:' . User::class],
+        ], [
+            'email.unique' => 'Cet email existe déjà!',
+            'email.email' => "Ceci n'est pas un email!",
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+        function generateSecurePassword($length = 12){
+                $upper = Str::random(2, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'); // At least 2 uppercase letters
+                $lower = Str::random(4, 'abcdefghijklmnopqrstuvwxyz'); // At least 4 lowercase letters
+                $numbers = Str::random(2, '0123456789'); // At least 2 numbers
+                $symbols = substr(str_shuffle('!@#$%^&*()-_=+[]{};:,.<>?'), 0, 2); 
+
+                // Merge all characters and shuffle
+                $password = str_shuffle($upper . $lower . $numbers . $symbols);
+
+                return $password;
+            }
+
+        $filename = 'avatars/' . $request->name . '.png';
+        $avatar = Avatar::create($request->name)->save(storage_path('app/public/' . $filename));
+
+        $password = generateSecurePassword();
+
+        $formFields = [
+            "firstname" => "",
+            "name" => $request->name,
+            "avatar" => "/$filename",
+            "email" => $request->email,
+            "password" => bcrypt($password),
+        ];
+
+        $user = User::create($formFields);
+ 
+         if($request->role === "Admin" || $request->role === "Super Admin"){
+             $user->assignRole($request->role);
+         }
+
+        Mail::to($request->email)->send(new AddMember($password, $request->email, $request->name, $request->sender, route('route_login')));
+
+        return response()->json([],201); 
+    }
 
     /* LOGOUT */
     public function logout(Request $request){

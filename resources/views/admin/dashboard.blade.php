@@ -3,9 +3,6 @@
 @section('content')
     <section class="container mx-auto">
         <div id="home_wrapper">
-            <section class="lg:block hidden">
-                <x-sidebar :profiles="$profiles"/>
-            </section>
             <section id="main" class="py-4 activities_wrapper px-1">
                 {{-- <div class=" text-center w-full flex justify-evenly">
                     @livewire(\App\Livewire\CasesOverview::class)

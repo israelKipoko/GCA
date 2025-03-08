@@ -50,6 +50,12 @@ return [
             'url' => env('APP_URL').'/storage/files/cases/messages',
             'visibility' => 'public',
         ],
+        'CaseFolders' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/files/cases/cases-folders'),
+            'url' => env('APP_URL').'/storage/files/cases/cases-folders',
+            'visibility' => 'public',
+        ],
 
         'closeCases' => [
             'driver' => 'local',
@@ -62,6 +68,12 @@ return [
             'driver' => 'local',
             'root' => storage_path('app/public/logos/clients'),
             'url' => env('APP_URL').'/storage/logos/clients',
+            'visibility' => 'public',
+        ],
+        'profile_pictures' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/users/profile_pictures'),
+            'url' => env('APP_URL').'/storage/users/profile_pictures',
             'visibility' => 'public',
         ],
 

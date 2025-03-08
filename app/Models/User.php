@@ -38,6 +38,8 @@ class User extends Authenticatable implements HasMedia
         'address',
         'events',
         'gender',
+        'verification_code',
+        'avatar',
     ];
     protected $guard_name = 'web';
     /**

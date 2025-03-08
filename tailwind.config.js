@@ -2,15 +2,17 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 
 export default {
-    darkMode: ['class'],
+	darkMode: 'class',
     content: [
     './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
     './vendor/laravel/jetstream/**/*.blade.php',
     './storage/framework/views/*.php',
     './resources/views/**/*.blade.php',
     './resources/**/*.jsx',
+    './resources/**/*.tsx',
     './resources/views/**/**/*.blade.php',
     './resources/**/**/*.jsx',
+	'./components/ui/**/**/*.tsx',
     './app/Filament/**/*.php',
     './resources/views/filament/**/*.blade.php',
     './vendor/filament/**/*.blade.php',
@@ -21,43 +23,35 @@ export default {
 theme: {
 	extend: {
 		boxShadow: {
-			custom: 'rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px'
+			custom: 'rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px',
+			white: 'rgba(255, 255, 255, 0.25) 0px 14px 28px, rgba(255, 255, 255, 0.22) 0px 10px 10px',
 		},
 		scale: {
 			'105': '1.05'
 		},
 		colors: {
-			background: '#000',
-			foreground: '#000',
 			card: {
 				DEFAULT: 'hsl(var(--card))',
 				foreground: 'hsl(var(--card-foreground))'
 			},
-			popover: {
-				DEFAULT: '#000',
-				foreground: '#000'
+			dark: {
+				primary: '#262626',
+				secondary: '#313131',
+				hover: '#d8d8d833',
 			},
-			primary: {
-				DEFAULT: 'hsl(var(--primary))',
-				foreground: 'hsl(var(--primary-foreground))'
-			},
-			secondary: {
-				DEFAULT: 'hsl(var(--secondary))',
-				foreground: 'hsl(var(--secondary-foreground))'
+			light: {
+				primary: '#F4F4F4',
+				secondary: '#CFCFCF',
+				hover: '#29292933'
 			},
 			muted: {
 				DEFAULT: 'hsl(var(--muted))',
 				foreground: 'hsl(var(--muted-foreground))'
 			},
-			accent: {
-				DEFAULT: 'hsl(var(--accent))',
-				foreground: 'hsl(var(--accent-foreground))'
-			},
 			destructive: {
 				DEFAULT: 'hsl(var(--destructive))',
 				foreground: 'hsl(var(--destructive-foreground))'
 			},
-			border: 'hsl(var(--border))',
 			input: 'hsl(var(--input))',
 			ring: 'hsl(var(--ring))',
 			chart: {
@@ -77,11 +71,6 @@ theme: {
 				border: 'hsl(var(--sidebar-border))',
 				ring: 'hsl(var(--sidebar-ring))'
 			}
-		},
-		borderRadius: {
-			lg: 'var(--radius)',
-			md: 'calc(var(--radius) - 2px)',
-			sm: 'calc(var(--radius) - 4px)'
 		},
 		keyframes: {
 			'accordion-down': {

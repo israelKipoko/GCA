@@ -1,23 +1,16 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
     plugins: [
         laravel({
             input: ['resources/css/app.css', 
-                    'resources/js/app.jsx',
-                    'resources/css/filament/admin/theme.css'],
+                    'resources/js/app.jsx'],
             refresh: true,
         }),
         react(),
+        tsconfigPaths()
     ],
-    resolve: {
-        alias: {
-          '@': '/resources/js',
-        },
-      },
-    build: {
-        sourcemap: true,  // Enable source maps in Vite
-      }
 });

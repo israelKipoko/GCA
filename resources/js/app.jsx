@@ -1,64 +1,25 @@
-import './bootstrap';
-import 'preline';
-import 'datatables.net-dt/js/dataTables.dataTables.min.mjs';
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import Echo from 'laravel-echo';
-import Layout from './components/Layout'
-import Pusher from 'pusher-js';
-import ForNow
- from './components/ForNow';
- import ClientLayout from './components/ClientLayout';
- import CaseLayout from './components/CaseLayout';
+// import './bootstrap';
 
-window.Pusher = Pusher;
+import { createInertiaApp } from '@inertiajs/react'
+import { createRoot } from 'react-dom/client';
+import { ThemeProvider } from './ThemeProvider';
+import { I18nextProvider } from "react-i18next";
+import i18n from "./i18next";
 
-window.Echo = new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST,
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
-    enabledTransports: ['ws', 'wss'],
-});
-
-
-window.Echo.channel('messages')
-.listen('Message', (event)=>{
-  console.log("j")
-})
-// import DatePicker from './components/DatePicker';
-
-const rootElement = document.getElementById('table');
-if(rootElement){
-    ReactDOM.createRoot(document.getElementById('table')).render(
-        <CaseLayout/>
-    );
-}
+ createInertiaApp({
+   resolve: name => {
+     const pages = import.meta.glob('./Pages/**/*.jsx', { eager: true })
+     return pages[`./Pages/${name}.jsx`]
+   },
+   setup({ el, App, props }) {
+     createRoot(el).render(
+      <I18nextProvider i18n={i18n}>
+        <ThemeProvider>  {/* Wrap everything in ThemeProvider */}
+            <App {...props} />
+        </ThemeProvider>
+      </I18nextProvider>
+    )
+   },
+ })
 
 
-const fornow = document.getElementById('fornow');
-
-if(fornow){
-    const caseId = document.getElementById('fornow').getAttribute('data-case-id');
-    ReactDOM.createRoot(document.getElementById('fornow')).render(
-       <ForNow caseId={caseId}/>
-   );
-}
-
-const clientsTable = document.getElementById('clientsTable');
-
-if(clientsTable){
-    ReactDOM.createRoot(document.getElementById('clientsTable')).render(
-       <ClientLayout/>
-   );
-}
-
-const layout = document.getElementById('layout');
-
-if(layout){
-    ReactDOM.createRoot(document.getElementById('layout')).render(
-       <Layout/>
-   );
-}
