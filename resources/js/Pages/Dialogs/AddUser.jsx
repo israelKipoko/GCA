@@ -16,15 +16,16 @@ import {
     SelectTrigger,
     SelectValue,
   } from "../../../../components/ui/select";
-  import { cn } from "../../../../lib/utils";
+import { useToast } from "../../../../hooks/use-toast";
 
-const AddUser = ({ openAddUserDialog, setOpenAddUserDialog, refreshLayout, dataRefresh }) =>{
+const AddUser = ({ openAddUserDialog, setOpenAddUserDialog, dataRefresh }) =>{
    const [loading, setLoading] = useState(false);
 
    const [name, setName] = useState("");
    const [email, setEmail] = useState("");
    const [role, setRole] = useState("Admin");
 
+  const { toast } = useToast();
    const addUser = (e) =>{
         e.preventDefault();
 
@@ -37,13 +38,22 @@ const AddUser = ({ openAddUserDialog, setOpenAddUserDialog, refreshLayout, dataR
 
     axios.post("/members/add-new-member", formData)
     .then(response => {
-        refreshLayout();
+        // refreshLayout();
         dataRefresh();
         setOpenAddUserDialog(false);
+        setLoading(false);
+        toast({
+          variant: "default",
+           title: `${name} est maintenant un membre!!`,
+          });
     })
     .catch(error => {
-        console.error("Upload failed:", error.message);
+      console.log(error)
         setLoading(false);
+        toast({
+           variant: "destructive",
+            title: `${error.status == 422? "Cette adresse e-mail est déjà utilisée!":"Ooups! Une erreur est survenue!"}`,
+           });
     })
     .finally(() => {
         setLoading(false);
@@ -66,7 +76,7 @@ return (
                         <label htmlFor="name" className='dark:text-white text-dark-secondary  opacity-[0.8] text-[14px] mb-1'>Nom:</label>
                         <input
                             type="text"
-                            className="custome_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
+                            className="capitalize custome_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
                             name="name"
                             value={name}
                             onChange={(e)=> setName(e.target.value)}

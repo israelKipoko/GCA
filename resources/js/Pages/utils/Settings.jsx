@@ -8,6 +8,10 @@ import ChangeEmailDialog from '../Dialogs/ChangeEmail';
 import { ThemeContext } from '../../ThemeProvider';
 import logo2 from '../../../../public/icons/mobeko_logo2.png';
 import Members from "./members";
+import Connections from './Connections';
+import ChangePassword from '../Dialogs/ChangePassword';
+import usFlag from "../../../../public/images/icons/us.png";
+import frenchFlag from "../../../../public/images/icons/fr.webp";
   import {
     Dialog,
     DialogContent,
@@ -25,7 +29,7 @@ import Members from "./members";
   } from "../../../../components/ui/select";
 
   import { cn } from "../../../../lib/utils";
-import DeleteAccountDialog from '../Dialogs/DeleteAcount';
+import DeleteAccountDialog from '../Dialogs/DeleteAccount';
 import { useTranslation } from "react-i18next";
 
 const SettingsDialog = ({ user, allUsers, refreshParent, refreshLayout, openedTab, openSettingsDialog, setOpenSettingsDialog }) =>{
@@ -34,7 +38,7 @@ const SettingsDialog = ({ user, allUsers, refreshParent, refreshLayout, openedTa
     const { t, i18n } = useTranslation();
 
     const changeLanguage = (lang) => {
-        i18n.changeLanguage(lang);
+        let hello = i18n.changeLanguage(lang);
         localStorage.setItem("lang", lang);
     };
 
@@ -48,6 +52,7 @@ const SettingsDialog = ({ user, allUsers, refreshParent, refreshLayout, openedTa
     const [openRememberDialog, setOpenRememberDialog] = useState(false);
     const [openEmailDialod, setOpenEmailDialog] = useState(false);
     const [openDeleteAccountDialog, setOpenDeleteAccountDialog] = useState(false);
+    const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
 
     const [loading, setLoading] = useState(false);
 
@@ -69,11 +74,11 @@ const SettingsDialog = ({ user, allUsers, refreshParent, refreshLayout, openedTa
             value: "members",
             icon: Users
         },
-        // { 
-        //     name: "Connexion",
-        //     value: "connections",
-        //     icon: SquareArrowUpRight
-        // },
+        //   { 
+        //       name: "Connexions",
+        //       value: "connections",
+        //       icon: SquareArrowUpRight
+        //   },
     ]
 
     const updateName = (e) => {
@@ -177,11 +182,10 @@ return (
                         </TabsTrigger>
                     ))}
                 </TabsList>
-                
                 <TabsContent value="profile" className=' w-full h-[450px] m-0 p-3 rounded-md'>
                     <section className='h-full'>
                         <ScrollArea className='h-full'>
-                            <h1 className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">Mon Profil</h1>
+                            <h1 className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">{t("Profil")}</h1>
                             <div className='w-full h-full'>
                                 <div className='flex flex-col items-center  gap-y-3 w-fit mx-auto my-6'>
                                     <div className='w-[80px] h-[80px] relative rounded-full'>
@@ -244,6 +248,19 @@ return (
                                         </div>
                                         <div className='flex flex-row justify-between items-start py-2'>
                                             <div className='flex flex-col'>
+                                                <h1 className='dark:text-white text-dark-secondary capitalize text-[15px]'>Mot de passe</h1>
+                                                <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] w-[400px] leading-tight'>
+                                                    Changez votre mot de passe
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <button onClick={setOpenPasswordDialog} type="submit" className=' w-full py-1.5 px-2 dark:bg-[#d8d8d811] bg-[#29292922] transition-all hover:dark:bg-[#d8d8d833] hover:bg-[#29292933] opacity-[0.8] rounded-[4px] flex justify-center dark:text-white text-dark-secondary text-[14px] font-bold'>
+                                                    Changer de mot de passe
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className='flex flex-row justify-between items-start py-2'>
+                                            <div className='flex flex-col'>
                                                 <h1 className='dark:text-white text-dark-secondary capitalize text-[15px]'>Se souvenir de vous</h1>
                                                 <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] w-[400px] leading-tight'>
                                                     Restez connecté à l’application sans avoir à saisir votre mot de passe à chaque connexion
@@ -268,7 +285,7 @@ return (
                                                     Supprimer
                                                 </button>
                                             </div>
-                                            <DeleteAccountDialog userId={user.length!=0?user[0].id:""} openDeleteAccountDialog={openDeleteAccountDialog} setOpenDeleteAccountDialog={setOpenDeleteAccountDialog}/>
+                                            <DeleteAccountDialog userId={user[0]?.id}  userName={user[0]?.name} openDeleteAccountDialog={openDeleteAccountDialog} setOpenDeleteAccountDialog={setOpenDeleteAccountDialog} dataRefresh={refreshParent}/>
                                         </div>
                                     </div>
                                 </div>
@@ -276,25 +293,39 @@ return (
                         </ScrollArea>
                     </section>
                 </TabsContent>
-                <TabsContent value="settings" className=' w-full  h-[450px] m-0 p-3'>
+                <TabsContent value="settings" className=' w-full  h-[450px] m-0 p-3 rounded-md'>
                     <section className='h-full'>
                         <ScrollArea className='h-full'>
                         <h1 className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">Paramètres</h1>
                             <div className='flex flex-row justify-between items-start py-2 my-4 mb-4'>
                                 <div className='flex flex-col'>
-                                    <h1 className='dark:text-white text-dark-secondary capitalize text-[15px]'>Langage</h1>
+                                    <h1 className='dark:text-white text-dark-secondary capitalize text-[15px]'>{t("Profil")}</h1>
                                     <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] w-[400px] leading-tight'>
                                         Changer la langue utilisée sur votre interface utilisateur.
                                     </p>
                                 </div>
                                 <div>
                                 <Select value={i18n.language}  onValueChange={changeLanguage} >
-                                    <SelectTrigger className="w-[120px] dark:bg-[#d8d8d811] bg-[#29292922] transition-all hover:dark:bg-[#d8d8d833] opacity-[0.8] rounded-md outline-none focus:outline-none dark:text-white text-dark-secondary">
+                                    <SelectTrigger className="w-[150px] dark:bg-[#d8d8d811] bg-[#29292922] transition-all hover:dark:bg-[#d8d8d833] opacity-[0.8] rounded-md outline-none focus:outline-none dark:text-white text-dark-secondary">
                                         <SelectValue  placeholder="Langage" />
                                     </SelectTrigger>
                                     <SelectContent className=''>
-                                        <SelectItem value="en-US" className='cursor-pointer  '>Anglais</SelectItem>
-                                        <SelectItem value="fr"  className='cursor-pointer'>Français</SelectItem>
+                                        <SelectItem value="fr"  className='cursor-pointer'>
+                                            <div className='flex flex-row items-center gap-x-2'>
+                                                <div className='w-[20px] h-[20px]'>
+                                                    <img src={frenchFlag} alt='flag' className='w-full h-full object-contain'/>
+                                                </div>
+                                                Français
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="en-US" className='cursor-pointer  flex flex-row gap-x-4'>
+                                            <div className='flex flex-row items-center gap-x-2'>
+                                                <div className='w-[20px] h-[20px]'>
+                                                    <img src={usFlag} alt='flag' className='w-full h-full object-contain'/>
+                                                </div>
+                                                Anglais
+                                            </div>
+                                            </SelectItem>
                                     </SelectContent>
                                 </Select>
                                 </div>
@@ -372,11 +403,10 @@ return (
                         </ScrollArea>
                     </section>
                 </TabsContent>
-                <TabsContent value="connections" className=' w-full h-full m-0'>
-                    <h1>connection</h1>
-
+                <TabsContent value="connections" className=' w-full h-full  m-0 p-3 rounded-md'>
+                    <Connections user={user} refreshParent={refreshParent}/>
                 </TabsContent>
-                <TabsContent value="members" className=' w-full h-[450px] m-0 p-3'>
+                <TabsContent value="members" className=' w-full h-[450px] m-0 p-3 rounded-md'>
                     <section className='h-full'>
                         <ScrollArea className='h-full'>
                             <h1 className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">Membres</h1>
@@ -437,6 +467,7 @@ return (
             </DialogContent>
         </Dialog>
         <ChangeEmailDialog userEmail={user.length!=0?user[0].email:""} openEmailDialod={openEmailDialod} setOpenEmailDialog={setOpenEmailDialog}/>
+        <ChangePassword openPasswordDialog={openPasswordDialog} setOpenPasswordDialog={setOpenPasswordDialog}/>
   </Dialog>
 )
 }

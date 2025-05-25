@@ -422,7 +422,7 @@ const handleSubmit = (e:FormEvent) => {
                               </div>
                             );
                           })}
-                          {selectedGroups.map(value => {
+                          {/* {selectedGroups.map(value => {
                             const text = groups.find(group => group.id === value)?.groupName || value;
                             return (
                               <div key={value} data-value={value} className="participants border border-[#356B8C]">
@@ -432,7 +432,7 @@ const handleSubmit = (e:FormEvent) => {
                                 </span>
                               </div>
                             );
-                          })}
+                          })} */}
                     </div>
                     <input
                         ref={triggerRef}
@@ -466,7 +466,7 @@ const handleSubmit = (e:FormEvent) => {
                                 </div>
                               ))}
                           </div>
-                          {groups.length && (
+                          {/* {groups.length && (
                             <div>
                               <p className='text-[14px] dark:text-white text-dark-secondary border-b border-[#ffffff66] font-bold border-light-secondary'>Groupes</p>
                               <div className=" p-1 open">
@@ -504,7 +504,7 @@ const handleSubmit = (e:FormEvent) => {
                                   ))}
                               </div>
                             </div>
-                          )}
+                          )} */}
                           </ScrollArea>
                       </section>
                     )}
@@ -520,7 +520,7 @@ const handleSubmit = (e:FormEvent) => {
                               className={(
                                 "w-[280px] border border-[#ffffff66] border-light-secondary dark:border dark:bg-dark-primary bg-light-primary rounded-md opacity-[0.8] p-2 capitalize justify-between text-left font-normal")}
                             >
-                              {date ? format(date, "PPP", { locale: fr }) : <span className='dark:text-white text-dark-secondary  opacity-[0.5]'>Chossissez une date</span>}
+                              {date ? <span className='dark:text-white text-dark-secondary'>{format(date, "PPP", { locale: fr })}</span> : <span className='dark:text-white text-dark-secondary  opacity-[0.5]'>Chossissez une date</span>}
                               <CalendarIcon   size={13} className='mr-2 dark:text-white text-dark-secondary'/>
                           </Button>
                       </DropdownMenuTrigger>
@@ -576,9 +576,9 @@ const handleSubmit = (e:FormEvent) => {
                     process: {
                         url: '/cases/upload-file',
                         method: 'POST',
-                        withCredentials: false,
                         headers: {
                           'X-CSRF-TOKEN': csrfToken || '',
+                            'Accept': 'application/json'
                       },
                     }
                 }}

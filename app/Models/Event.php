@@ -22,6 +22,7 @@ class Event extends Model
         'created_by',
         'participants',
         'meeting_link',
+        'group_participants'
     ];
 
     protected function participants(): Attribute{
@@ -37,6 +38,12 @@ class Event extends Model
         );
     }
     protected function reminder(): Attribute{
+        return Attribute::make(
+            get: fn($value) => json_decode($value,true),
+            set: fn($value) => json_encode($value),
+        );
+    }
+    protected function groupParticipants(): Attribute{
         return Attribute::make(
             get: fn($value) => json_decode($value,true),
             set: fn($value) => json_encode($value),

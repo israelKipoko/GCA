@@ -179,9 +179,10 @@ const handleSubmit = (e:FormEvent) => {
                     process: {
                         url: '/home/client/upload-logo',
                         method: 'POST',
-                        withCredentials: false,
+                        // withCredentials: false,
                         headers: {
                           'X-CSRF-TOKEN': csrfToken || '',
+                            'Accept': 'application/json'
                       },
                       onload: (response) => {
                         try {

@@ -22,6 +22,11 @@ return new class extends Migration
             $table->string('position')->nullable();
             $table->json('address')->nullable();
             $table->string('gender')->nullable();
+            $table->string('google_refresh_token')->nullable();
+            $table->string('google_calendar')->nullable();
+            $table->string('microsoft_todo')->nullable();
+            $table->string('google_drive')->nullable();
+            $table->string('microsoft_calendar')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

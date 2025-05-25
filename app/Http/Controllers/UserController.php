@@ -4,15 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Inertia\Inertia;
+use App\Models\Cases;
 use Inertia\Response;
+use App\Models\Groups;
 use App\Mail\AddMember;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Laravolt\Avatar\Facade as Avatar;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 
 
 class UserController extends Controller
@@ -159,7 +163,7 @@ class UserController extends Controller
 
         $user = User::create($formFields);
  
-         if($request->role === "Admin" || $request->role === "Super Admin"){
+         if($request->role === "Admin" || $request->role === "Super-Admin"){
              $user->assignRole($request->role);
          }
 
@@ -168,12 +172,78 @@ class UserController extends Controller
         return response()->json([],201); 
     }
 
+    public function deleteMember(Request $request){
+        //Remove user from all groups
+        $userGroups = Groups::select('id','users')->whereJsonContains('users', (int) $request->userID)->get();
+
+        foreach ($userGroups as $group) {
+            $users = array_filter($group->users, fn($member)=> $member != $request->userID);
+            $group->users = array_values($users);
+
+            $group->save();
+        }
+
+        // Remove user from all folders
+         $usersCases = Cases::select('id','assigned_to')->whereJsonContains('assigned_to', (int) $request->userID)->get();
+
+         foreach ($usersCases as $case) {
+             $cases = array_filter($case->assigned_to, fn($case)=> $case != $request->userID);
+             $case->assigned_to = array_values($cases);
+
+             $case->save();
+         }
+
+         if(Auth::id() == (int) $request->userID){
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+         }
+
+         //Delete the user Account
+         $user = User::find((int) $request->userID);
+         $user->delete();
+
+        return response()->json([],201); 
+    }
+
+    /* Change user's role */ 
+    public function editUserRole(Request $request){
+        $user = User::find($request->userID);
+        $user->syncRoles($request->role);
+
+        return response()->json([],201); 
+    }
+
+    public function updatePassword(Request $request){
+        $user = Auth::user();
+
+        $request->validate([
+            'new_password' => ['required',Password::min(8)->letters()->numbers()->mixedCase()->symbols()],
+            'current_password' => 'required',
+        ],[
+           'password.min' => 'Le mot de passe doit contenir au moins 8 caractères!',
+            'password.letters' => 'Le mot de passe doit contenir au moins un lettre!',
+            'password.numbers' => 'Le mot de passe doit contenir au moins un chiffre!',
+            'password.mixedCase' => 'Le mot de passe doit contenir au moins une lettre minuscule et une lettre majuscule!',
+            'password.symbols' => 'Le mot de passe doit contenir au moins un symbole!',
+        ]);
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages(['current_password' => 'Current password is incorrect']);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+    
+        return response()->json(['message' => 'Password changed successfully']);
+    }
     /* LOGOUT */
     public function logout(Request $request){
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/GCA/welcome');
+
+        return Inertia::location('/GCA/welcome');
     }
     /* LOGOUT */
 }

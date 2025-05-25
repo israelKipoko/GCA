@@ -13,12 +13,16 @@ use App\Models\Event;
 use App\Models\Client;
 use App\Models\Groups;
 use App\Events\Message;
+use App\Models\Library;
 use App\Models\Profiles;
 use Spatie\PdfToImage\Pdf;
 use App\Models\PendingCases;
+use Google\Service\Calendar;
 use Illuminate\Http\Request;
 use App\Models\TemporaryFile;
+use Google\Client as GoogleClient;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\Support\PathGenerator\PathGenerator;
@@ -37,62 +41,68 @@ class ActivityController extends Controller
                 $folder->user['avatar_link'] = asset('storage'.$folder->user->avatar);
             }
          }
-         foreach ($folders as $folder){
-            foreach($folder->assigned_to as $index=>$user){
-                $assignedUser = User::find($user);
+        foreach ($folders as $folder){
+            $assignedArray = [];
+        
+            foreach($folder->assigned_to as $userId){
+                $assignedUser = User::find($userId);
+        
+                if (!$assignedUser) continue;
+        
                 if($assignedUser->hasMedia("profile_pictures")){
-                    $folder->assigned_to[$index] = [
+                    $assignedArray[] = [
                         "avatar_link" => $assignedUser->getFirstMediaUrl(),
                         "name" => $assignedUser->firstname. " ".$assignedUser->name,
                     ];
-                }else{
-                    $t= $folder->assigned_to;
-                    $t[$index] = [
+                } else {
+                    $assignedArray[] = [
                         "avatar_link" => asset('storage'.$assignedUser->avatar),
                         "name" => $assignedUser->firstname. " ".$assignedUser->name,
                     ];
-                    $folder->assigned_to = $t;
                 }
             }
-         }
+        
+            $folder->assigned_to = $assignedArray;
+        }
+        
         return response()->json([$folders]);
     }
     function showPendingCases(){
-        $folders = Cases::with('user','client')
-        ->withCount(['task as completed_tasks_count' => function($query) {
+        $folders = Cases::withCount(['task as completed_tasks_count' => function($query) {
             $query->where('status', 'completed');
+        }])->withCount(['task as uncompleted_tasks_count' => function($query) {
+            $query->where('status', 'pending');
         }])->where('status','pending')->where(function($query) {
             $query->whereJsonContains('assigned_to', Auth::id())
                 ->orWhere('created_by', Auth::id());
         })->latest('updated_at')->get();
-
-        if($folders[0]->user->hasMedia("profile_pictures")){
-            $folders[0]->user['avatar_link'] = $folders[0]->user->getFirstMediaUrl("profile_pictures");
-        }else{
-            $folders[0]->user['avatar_link'] = asset('storage'. $folders[0]->user->avatar);
-        }
-        if($folders[0]->client != null){
-            if($folders[0]->client->hasMedia("logo")){
-                $folders[0]->client['logo'] = $folders[0]->client->getFirstMediaUrl("logos");
-            }else{
-                $folders[0]->client['logo'] = null;
-            }
-        }
-        if(empty($folder->assigned_to)){
-            foreach($folders as $folder){
-                $assignedTo = [];
-                foreach ($folder->assigned_to as $id){
-                    $user = User::find($id);
-                    if($user->hasMedia("profile_pictures")){
-                        $user['avatar_link'] = $user->getFirstMediaUrl();
-                    }else{
-                        $user['avatar_link'] = asset('storage'.$user->avatar);
-                    }
-                        $assignedTo[] = $user;
-                 }
-                 $folder->assigned_to = $assignedTo;
-            }
-        }
+        // if($folders[0]->user->hasMedia("profile_pictures")){
+        //     $folders[0]->user['avatar_link'] = $folders[0]->user->getFirstMediaUrl("profile_pictures");
+        // }else{
+        //     $folders[0]->user['avatar_link'] = asset('storage'. $folders[0]->user->avatar);
+        // }
+        // if($folders[0]->client != null){
+        //     if($folders[0]->client->hasMedia("logo")){
+        //         $folders[0]->client['logo'] = $folders[0]->client->getFirstMediaUrl("logos");
+        //     }else{
+        //         $folders[0]->client['logo'] = null;
+        //     }
+        // }
+        // if(empty($folder->assigned_to)){
+        //     foreach($folders as $folder){
+        //         $assignedTo = [];
+        //         foreach ($folder->assigned_to as $id){
+        //             $user = User::find($id);
+        //             if($user->hasMedia("profile_pictures")){
+        //                 $user['avatar_link'] = $user->getFirstMediaUrl();
+        //             }else{
+        //                 $user['avatar_link'] = asset('storage'.$user->avatar);
+        //             }
+        //                 $assignedTo[] = $user;
+        //          }
+        //          $folder->assigned_to = $assignedTo;
+        //     }
+        // }
         return response()->json([$folders]);
     }
     public function getUsers(){
@@ -114,13 +124,7 @@ class ActivityController extends Controller
              $user["groups"] = $userGroups;
 
             //Roles
-            if($user->hasRole('Super-Admin')){
-                $user['role'] = "Administrateur";
-            }else if($user->hasRole('Admin')){
-                $user['role'] = "Gestionnaire";
-            }else {
-                $user['role'] = "utilisateur";
-            }
+                $user['role'] = $user->getRoleNames()->first();
 
             // Avatars
             if($user->hasMedia("profile_pictures")){
@@ -188,7 +192,14 @@ class ActivityController extends Controller
                 $users[] = $user;
             }
         }
-       
+        $owner = User::find($case->created_by); 
+        if($owner->hasMedia("profile_pictures")){
+            $owner['avatar_link'] = $owner->getFirstMediaUrl('profile_pictures');
+        }else{
+            $owner['avatar_link'] = asset('storage'.$owner->avatar);
+        }
+        $users[] = $owner;
+        
         if($case->hasMedia("CaseFolders")){
             $media = $case->getMedia("CaseFolders"); 
             foreach ($media as $item) {
@@ -208,6 +219,7 @@ class ActivityController extends Controller
     public function getAllCaseMessages(Cases $case){
         $messages = PendingCases::with('media')->with('user')->where('case_id',$case->id)->latest('created_at')->get();
         $users = null;
+
         if(!empty($case->assigned_to)){
             foreach($case->assigned_to as $item){
                 $user = User::find($item);
@@ -221,10 +233,11 @@ class ActivityController extends Controller
         }
         if($messages != null){
             foreach ($messages as $message){
-                if($message->user->hasMedia("profile_pictures")){
-                    $message->user['avatar_link'] = $message->getFirstMediaUrl('profile_pictures');
+                $user = User::find($message->user_id);
+                if($user->hasMedia("profile_pictures")){
+                    $message->user['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
                 }else{
-                    $message->user['avatar_link'] = asset('storage'.$message->user->avatar);
+                    $message->user['avatar_link'] = asset('storage'.$user->avatar);
                 }
                 Carbon::setLocale('fr');
                 $date = Carbon::createFromFormat('Y-m-d H:i:s', $message->created_at);
@@ -416,6 +429,17 @@ class ActivityController extends Controller
                 $file->delete();
             }
         }
+
+        Event::create([
+            'title' => $request->newFolder['title'],
+            'participants' => $request->newFolder['selectedOptions'],
+            'date' => $request->newFolder['formattedDate'],
+            'time' => [
+            'start_time' =>null,
+            'end_time' => null,
+        ],
+            'created_by' => Auth::id(),
+          ]);
          return response()->json(['folder' => $folder]);
     }
 
@@ -481,10 +505,14 @@ class ActivityController extends Controller
 
     public function getAllEvents(){
         $users = null;
-        $events = Event::with('user')->where(function($query) {
+        $events = Event::with('user')
+        ->where(function($query) {
             $query->whereJsonContains('participants', Auth::id())
-                ->orWhere('created_by', Auth::id());
-        })->get();
+                  ->orWhere('created_by', Auth::id());
+        })
+        ->orderBy('date', 'asc')
+        ->orderBy('time->start_time', 'asc')
+        ->get();
         foreach($events as $event){
             if(!empty($event->participants)){
                 foreach($event->participants as $id){
@@ -518,6 +546,12 @@ class ActivityController extends Controller
       return response()->json([201]);
     }
 
+    public function deleteEvent(Request $request){
+        $event = Event::find($request->id);
+        $event->delete();
+
+        return response()->json([200]);
+    }
     public function checkAvailability(Request $request){
         $months = [
             'janvier' => '01',
@@ -561,16 +595,64 @@ class ActivityController extends Controller
     public function AuthUser(){
         $user = Auth::user();
 
-        $user['role'] = "User";
-        if($user->hasRole('Super-Admin') || $user->hasRole('Admin')){
-            $user['role'] = "Admin";
-        }
-        if($user->hasMedia("profile_pictures")){
-            $user['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
-        }else{
-            $user['avatar_link'] = asset('storage'.$user->avatar);
-        }
+           $user['role'] = "User";
+           if($user->hasRole('Super-Admin') || $user->hasRole('Admin')){
+               $user['role'] = "Admin";
+           }
+           if($user->hasMedia("profile_pictures")){
+               $user['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
+           }else{
+               $user['avatar_link'] = asset('storage'.$user->avatar);
+           }
 
+        //  $client = new GoogleClient();
+        //  $client->setClientId(env('VITE_GOOGLE_CLIENT_ID'));
+        //  $client->setClientSecret(env('VITE_GOOGLE_CLIENT_SECRET'));
+        //  $client->setRedirectUri(env('VITE_GOOGLE_REDIRECT_URI'));
+        //  $client->addScope('https://www.googleapis.com/auth/calendar'); // Ensure you have the right scope
+        
+        //  // Set the access token
+        //  $client->setAccessToken($user->google_access_token);
+        
+        //  // Check if the access token is expired
+        //  if ($client->isAccessTokenExpired()) {
+        //      try {
+        //          // Attempt to refresh the access token
+        //          $client->fetchAccessTokenWithRefreshToken($user->google_refresh_token);
+        //          $newToken = $client->getAccessToken();
+        
+        //          // Update the user's access token and expiration time in the database
+        //    $user->update([
+        //              'google_access_token' => $newToken['access_token'],
+        //              // 'google_token_expires_at' => now()->addSeconds($newToken['expires_in']),
+        //          ]);
+        //      } catch (Exception $e) {
+        //          // Log the error for debugging
+        //          \Log::error('Google API Token Refresh Error: ' . $e->getMessage());
+        //          return response()->json(['error' => 'Unable to refresh token'], 500);
+        //      }
+        //  }
+        
+        // // // Initialize the Google Calendar service
+        //  $service = new Calendar($client);
+        
+        //  try {
+        //      // Fetch the events from the primary calendar
+        //      $events = $service->events->listEvents('primary');
+        //      dd($events);
+        
+        //      // Check if events are retrieved
+        //      if (count($events->getItems()) > 0) {
+        //          // Return the events
+        //          return response()->json($events->getItems());
+        //      } else {
+        //          return response()->json(['message' => 'No events found.']);
+        //      }
+        //  } catch (Exception $e) {
+        //      // Log the error and return a response
+        //      \Log::error('Google Calendar API Error: ' . $e->getMessage());
+        //      return response()->json(['error' => 'Failed to fetch events'], 500);
+        //  }
         return response()->json([$user]);
     }
     public function getAllUsers(){
@@ -618,9 +700,7 @@ class ActivityController extends Controller
             return response()->json($groups,201);
         }
 
-        $groups = Groups::where(function($query) {
-            $query->whereJsonContains('users', $user->id);
-        })->get();
+        $groups = Groups::whereJsonContains('users', (int) $user->id)->get();
 
         foreach($groups as $group){
             if(!empty($group->users)){
@@ -649,6 +729,179 @@ class ActivityController extends Controller
             'users' => json_decode($request->input('members'), true),
         ]);
         return response()->json([],201);
+    }
+    public function deleteGroup(Request $request){
+        $group = Groups::find($request->groupId);
+
+        //Remove a group from events
+        $events = Event::select("id","group_participants")->whereJsonContains("group_participants",$group->id)->get();
+
+        foreach ($events as $event) {
+             $modifiedEvents = array_filter($event->group_participants, fn($eventGroupID)=> (int) $eventGroupID != (int) $group->id);
+             $event->group_participants = array_values($modifiedEvents);
+
+             $event->save();
+         }
+        // Remove a group from Case
+        $cases = Cases::select("id","assigned_group")->whereJsonContains("assigned_group",$group->id)->get();
+        foreach ($cases as $case) {
+            $modifiedCases = array_filter($case->assigned_group, fn($casesGroupID)=> (int) $casesGroupID != (int) $group->id);
+            $case->assigned_group = array_values($modifiedCases);
+
+            $case->save();
+        }
+        // Remove a group from events
+        $tasks = Task::select("id","assigned_group")->whereJsonContains("assigned_group",$group->id)->get();
+        foreach ($tasks as $task) {
+            $modifiedTasks = array_filter($task->assigned_group, fn($tasksGroupID)=> (int) $tasksGroupID != (int) $group->id);
+            $task->assigned_group = array_values($modifiedTasks);
+
+            $task->save();
+        }
+        
+
+        $group->delete();
+
+        return response()->json([],201);
+    }
+
+    public function addMember(Request $request){
+        $group = Groups::find($request->groupId);
+ 
+        $newMembers = json_decode($request->newMembers, true);
+
+        $oldMembers = $group->users;
+        $members = array_merge($oldMembers, $newMembers);
+        $group->users = $members;
+
+        $group->save();
+
+        return response()->json([],201);
+    }
+
+    public function googleCalendar(Request $request){
+        $code = $request->token;
+        $user = Auth::user();
+
+        $response = Http::asForm()->post('https://oauth2.googleapis.com/token',[
+            'code'    => $code,
+            'client_id'    => env('VITE_GOOGLE_CLIENT_ID'),
+            'client_secret'    => env('VITE_GOOGLE_CLIENT_SECRET'),
+            'redirect_uri'    => env('VITE_GOOGLE_REDIRECT_URI'),
+            'grant_type'   => 'authorization_code',
+        ]);
+
+        $tokens = $response->json();
+        $user->google_access_token = $tokens['access_token'];
+        // $user->google_token_expires_at = $tokens['expires_in'];
+        $user->google_calendar = true;
+        if(isset($tokens['refresh_token'])){
+            $user->google_refresh_token = $tokens['refresh_token'];
+            $user->save();
+        }
+        return response()->json([],201);
+    }
+
+    public function microsoftIntegration(){
+        $user = Auth::user();
+
+        $user->microsoft_todo = true;
+        $user->save();
+
+        return response()->json([],201); 
+    }
+
+    /* Library */
+    public function getCategories(){
+        $libraries = Library::select("id","category_name")->orderBy("category_name","asc")->paginate(9);
+        foreach ($libraries as $library) {
+            $count = $library->getMedia($library->category_name)->count();
+            $library["total_docs"] = $count;
+        }
+        return response()->json($libraries,201);
+    }
+
+    public function createLibraryCategory(Request $request){
+        $request->validate([
+            'name' => 'required|string|unique:libraries,category_name',
+        ],[
+            'name.unique' => 'Cette catégorie existe déjà.', // custom message
+        ]);
+
+        Library::create([
+            "category_name" => $request->name,
+        ]);
+        return response()->json([],201);
+    }
+
+    public function showCategoryDocuments(Library $library){
+
+        return Inertia::render('main/library/Category',[
+            'library' => $library,
+        ]);
+    }
+
+    public function getCategoryDocuments(Request $request,Library $library){
+
+        $query = $library->media()
+            ->where('collection_name', $library->category_name)
+            ->orderBy('file_name', 'asc');
+        // 🔍 Search by file name
+        if ($request->filled('search')) {
+            $query->where('file_name', 'like', '%' . $request->search . '%');
+        }
+
+        // 🧾 Filter by MIME type
+        if ($request->filled('mime_type')) {
+            $mimeTypes = is_array($request->mime_type) ? $request->mime_type : [$request->mime_type];
+        
+            $query->whereIn('mime_type', $mimeTypes);
+        }
+        
+        // To be added later
+        
+          // 🔁 Sort by created_at or file_name
+        // $sortField = $request->get('sort_by', 'file_name'); // default: file_name
+        // $sortOrder = $request->get('sort_order', 'asc');    // default: asc
+
+        // if (in_array($sortField, ['file_name', 'created_at']) && in_array($sortOrder, ['asc', 'desc'])) {
+        //     $query->orderBy($sortField, $sortOrder);
+        // }
+        $files = $query->paginate(10);
+
+        $files->getCollection()->transform(function ($media) {
+            $media->thumb_url = $media->hasGeneratedConversion('thumb')
+                ? $media->getUrl('thumb')
+                : null;
+            return $media;
+        });
+        
+        return response()->json($files,200);
+    }
+
+    public function createDocuments(Request $request, Library $library){
+
+        if($request->filesLength == 0){
+            return response()->json([],400);
+        }
+
+        $files = TemporaryFile::take($request->filesLength)->latest('created_at')->get();
+        foreach($files as $file){
+            $library->addMedia(public_path('/storage/'.$file->path))
+            ->toMediaCollection($library->category_name, 'library');
+            Storage::delete('/temporary'.$file->path);
+            $file->delete();
+        }
+
+        return response()->json([],201);
+    }
+
+    public function deleteDocuments(Request $request, Library $library){
+        $media = $library->media()->findOrFail($request->media_id);
+
+        $media->delete();
+
+        return response()->json([],200);
     }
 }
 

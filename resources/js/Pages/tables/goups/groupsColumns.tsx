@@ -1,12 +1,24 @@
 "use client"
-
+import React, { useState } from 'react'
 import { ColumnDef } from "@tanstack/react-table"
+import { Button } from "../../../../../components/ui/button";
+import { User, MoreHorizontal, Eye, Trash2,UserPlus, BookUser } from "lucide-react";
+import DeleteGroup from "../../Dialogs/DeleteGroup";
+import NewGroupMember from "../../Dialogs/NewGroupMember";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "../../../../../components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../../../../../components/ui/dropdown-menu";
 
 export type Member = {
   id: number;
@@ -22,23 +34,23 @@ export type Groups = {
   membersCount: string
 }
 
-export const columns: ColumnDef<Groups>[] = [
+export const columns = (dataRefresh:()=> void,allUsers: number[]): ColumnDef<Groups>[] => [
   {
     accessorKey: "id",
   },
   {
     accessorKey: "groupName",
-    header: () => <div className="text-left flex items-center gap-x-1">Groupes</div>,
+    header: () => <div className="text-left flex items-center gap-x-1">Nom</div>,
     cell: ({ row }) => {
       return <div className="text-left w-fit">{row.getValue("groupName")}</div>
     },
   },
   {
     accessorKey: "membersCount",
-    header: () => <div className="text-center flex items-center gap-x-1 w-fit mx-auto">Membres</div>,
+    header: () => <div className="text-center flex items-center gap-x-1 w-fit mx-auto">Nbr. des membres</div>,
     cell: ({ row }) => {
       let countMember:number = row.getValue("membersCount");
-      return <div className="text-center mx-auto w-fit">{row.getValue("membersCount")} Membre{(countMember > 1)? "s":""}</div>
+      return <div className="text-center mx-auto w-fit">{row.getValue("membersCount")} {row.getValue("membersCount")!=0? ((countMember > 1)? "Membres":"Membre"):"0"}</div>
     },
   },
 
@@ -66,4 +78,41 @@ export const columns: ColumnDef<Groups>[] = [
       </div>
     },
   },
+   {
+      id: "actions",
+      cell: ({ row }) => {
+        const [openDeleteAccountDialog, setOpenDeleteAccountDialog] = useState(false);
+        const [openNewGroupMemberDialog, setOpenNewGroupMemberDialog] = useState(false);
+        let groupsUsers:Array<Member> = row.getValue("members");
+
+        const filteredUsers = allUsers.filter((user:any) =>
+          !groupsUsers.some((groupUser) => groupUser.id === user.id)
+        );
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
+              <DropdownMenuItem className="font-bold">
+                <BookUser /> Gestion du groupe
+              </DropdownMenuItem>
+              <DropdownMenuItem className="font-bold" onClick={()=>setOpenNewGroupMemberDialog(true)}>
+                <UserPlus /> Nouveau membre
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="dark:text-[#D84444] text-red-600 font-bold" onClick={()=>setOpenDeleteAccountDialog(true)}>
+                <Trash2/> Supprimer ce groupe</DropdownMenuItem>
+              {/* <DropdownMenuItem>View payment details</DropdownMenuItem> */}
+            </DropdownMenuContent>
+            <DeleteGroup groupId={row.getValue("id")} groupName={row.getValue("groupName")} openDeleteAccountDialog={openDeleteAccountDialog} setOpenDeleteAccountDialog={setOpenDeleteAccountDialog} dataRefresh={dataRefresh}/>
+            <NewGroupMember groupId={row.getValue("id")} groupName={row.getValue("groupName")}  allMembers={filteredUsers} openNewGroupMemberDialog={openNewGroupMemberDialog} setOpenNewGroupMemberDialog={setOpenNewGroupMemberDialog} dataRefresh={dataRefresh}/>
+          </DropdownMenu>
+        )
+      },
+    },
 ]

@@ -4,18 +4,6 @@ import { SlidersHorizontal, UserRoundCog, Users, SquareArrowUpRight, Camera } fr
 import axios from 'axios';
 import { Switch } from "../../../../components/ui/switch"
 import { ScrollArea } from "../../../../components/ui/scroll-area";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-  } from "../../../../components/ui/tooltip";
-  import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-  } from "../../../../components/ui/dropdown-menu";
   import {
     Dialog,
     DialogContent,
@@ -112,7 +100,7 @@ return (
                     </h1>
                     { canEnterCodeVerification && 
                      <div className='flex flex-col input_div mx-auto  w-full h-fit '>
-                        <label htmlFor="password" className='dark:text-white text-dark-secondary  opacity-[0.8] text-[14px] mb-1'>Entrez le code vérification:</label>
+                        <label htmlFor="password" className='dark:text-white text-dark-secondary  opacity-[0.8] text-[14px] mb-1'>Entrez le code de vérification:</label>
                          <div className="w-fit mx-auto">
                             <InputOTP 
                               maxLength={6}

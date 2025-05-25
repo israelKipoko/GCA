@@ -21,9 +21,16 @@ class Task extends Model
         'assigned_to',
         'case_id',
         'category',
+        'assigned_group'
     ];
 
     protected function assignedTo(): Attribute{
+        return Attribute::make(
+            get: fn($value) => json_decode($value,true),
+            set: fn($value) => json_encode($value),
+        );
+    }
+    protected function assignedGroup(): Attribute{
         return Attribute::make(
             get: fn($value) => json_decode($value,true),
             set: fn($value) => json_encode($value),

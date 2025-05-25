@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../../../.
 import { cn } from "../../../../lib/utils";
 import { ScrollArea } from "../../../../components/ui/scroll-area";
 import { useSidebar } from "../../../../components/ui/sidebar"
-// import hammer from "../../../../public/images/hammmer.png"
 import hammer from '../../../../public/icons/hammer.png';
-
+import { CheckCircle, Circle } from 'lucide-react';
+import CountUp from "../utils/CounterUp";
+import { useTranslation } from "react-i18next";
+import { Link } from '@inertiajs/react';
 import {
     Carousel,
     CarouselContent,
@@ -14,13 +16,6 @@ import {
     CarouselNext,
     CarouselPrevious,
   } from "../../../../components/ui/carousel"
-  import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-  } from "../../../../components/ui/tooltip";
-  
 
 const PendingCases = () =>{
   const [refreshKey, setRefreshKey] = useState(0);
@@ -28,6 +23,7 @@ const PendingCases = () =>{
   const dataRefresh = () => {
     setRefreshKey((oldKey) => oldKey + 1);
   };
+    const { t, i18n } = useTranslation();
   const [data, setData] = useState([]);
 
   var transformedData;
@@ -38,15 +34,16 @@ const PendingCases = () =>{
             id:element.id,
             title: element.title,
             dead_line: element.due_date,
-            created_by: element.user.firstname +" "+ element.user.name,
-            avatar_link: element.user.avatar_link,
-            assignedTo: [...element.assigned_to],
+            // created_by: element.user.firstname +" "+ element.user.name,
+            // avatar_link: element.user.avatar_link,
+            // assignedTo: [...element.assigned_to],
             completed_tasks_count: element.completed_tasks_count,
+            uncompleted_tasks_count: element.uncompleted_tasks_count,
           }));
          setData(transformedData);
         })
         .catch(error => {
-          console.log('no')
+          console.log(error)
 
         });
 
@@ -100,50 +97,65 @@ const PendingCases = () =>{
       <ScrollArea>
         <CarouselContent className='  '>
            {data.length ? (
-                data.map((item,index) => (
-                    <CarouselItem key={index} className={cn(open?"basis-1/3 ":"md:basis-1/2 lg:basis-1/4")}>
-                        <a href={`/home/pending-cases/`+ item.id}>
-                            <Card className=' dark:bg-[#313131] bg-light-secondary border-none py-2 relative overflow-hidden'>
-                                <CardHeader className='px-2 '>
-                                    <CardTitle className='h-[30px] text-[14px] capitalize opacity-[0.8] text-[#fff]  '>
-                                    {item.completed_tasks_count !=0?
-                                        <div className=' top-2 right-3'>
-                                            <h1 className='text-[#fff] opacity-[0.5] font-bold text-[13px] text-center'>{item.completed_tasks_count} <br /> Tâche{(item.completed_tasks_count>1)?"s":""}</h1>
+              data.map((item,index) => (
+                  <CarouselItem key={index} className={cn(open?"basis-1/3 ":"md:basis-1/2 lg:basis-1/4")}>
+                      <Link href={`/home/pending-cases/`+ item.id}>
+                          <Card className=' dark:bg-[#313131] bg-light-thirdly border-none py-2 relative overflow-hidden'>
+                              <CardHeader className='px-2 '>
+                                  <CardTitle className='h-[30px] text-[14px] capitalize opacity-[0.8] text-[#fff]  '>
+                                  {/* {item.completed_tasks_count !=0?
+                                      <div className=' top-2 right-3'>
+                                          <h1 className='text-[#fff] opacity-[0.5] font-bold text-[13px] text-center'>{item.completed_tasks_count} <br /> Tâche{(item.completed_tasks_count>1)?"s":""}</h1>
+                                      </div>
+                                      :
+                                      <div></div>
+                                  } */}
+                                    <h1 className={cn('font-bold text-[16px] capitalize dark:opacity-[0.8] dark:text-[#fff] text-dark-secondary')}>
+                                        {item.title}
+                                    </h1>
+                                  </CardTitle>
+                              </CardHeader>
+                              <CardContent className=" flex flex-col h-[60px] justify-end ">
+                              {item.completed_tasks_count + item.uncompleted_tasks_count !=0 &&
+                                  <div className='ml-2'>
+                                    {/* <h1 className='flex items-center text-[14px] dark:text-[#fff] text-dark-secondary'><ListCheck color='#0f6cbd' size={15}/>Tasks:</h1> */}
+                                    <div className='flex flex-row gap-x-2 text-[14px]'>
+                                      {/* <div className='flex flex-col items-start justify-center gap-x-2'>
+                                          <CountUp
+                                            from={0}
+                                            to={item.completed_tasks_count}
+                                            separator=","
+                                            direction="up"
+                                            duration={1}
+                                            className="count-up-text font-bold text-[14px]  dark:opacity-[0.8] dark:text-[#fff] text-dark-secondary"/>
+                                            <p className='text-[12px] dark:text-[#fff] text-dark-secondary opacity-[0.6]'>{t("task")}{item.completed_tasks_count>1?"s":""}</p>
                                         </div>
-                                        :
-                                        <div></div>
-                                    }
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className=" flex flex-col h-[60px]  px-2 gap-y-2 justify-center  ">
-                                    <div className='flex flex-row  justify-start h-full '>
-                                        {item.assignedTo && (
-                                        item.assignedTo.map((user,index) => (
-                                            <TooltipProvider key={index} className="border">
-                                                <Tooltip className="">
-                                                    <TooltipTrigger className={cn("border-none w-fit  ",(index!=0)?"-ml-2":"")}>
-                                                        <img src={user.avatar_link}  className="w-[25px] h-[25px] rounded-full" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="bg-[#d8d8d877] border-none">
-                                                        <p className='capitalize'>{user.name}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        )))}
+                                        <p className='text-[12px] dark:text-[#fff] text-dark-secondary'>{t("completed")}</p>
+                                      </div> */}
+                                      <div className='flex flex-col items-start gap-x-2'>
+                                        {/* <Circle  color='#0f6cbd' size={15}/> */}
+                                        <div className='flex flex-row items-start gap-x-1'>
+                                         <CountUp
+                                            from={0}
+                                            to={item.uncompleted_tasks_count}
+                                            separator=","
+                                            direction="up"
+                                            duration={1}
+                                            className="count-up-text font-bold text-[14px]  dark:opacity-[0.8] dark:text-[#fff] text-dark-secondary"/>
+                                            <p className='text-[12px] dark:text-[#fff] text-dark-secondary opacity-[0.6]'>{t("task")}{item.uncompleted_tasks_count>1?"s":""}</p>
+                                        </div>
+                                        <p className='text-[12px] dark:text-[#fff] text-dark-secondary'>{t("uncompleted")}</p>
+                                      </div>
                                     </div>
-                                </CardContent>
-                                <CardFooter className=" px-2 flex flex-col items-start  opacity-[0.75]">
-                                  <h1 className={cn('font-bold text-[14px] capitalize dark:opacity-[0.8] dark:text-[#fff] text-dark-secondary')}>
-                                      {item.title}
-                                  </h1>
-                                </CardFooter>
-                                <div className='h-[120px] absolute top-6 -right-28 z-10'>
-                                  <img src={hammer} alt='hammer' className='w-full h-full object-fit-fill '/>
-                                </div>
-                            </Card>
-                        </a>
-                    </CarouselItem>
-                ))
+                                  </div>}
+                              </CardContent>
+                              <div className='h-[120px] absolute top-2 -right-28 z-10'>
+                                <img src={hammer} alt='hammer' className='w-full h-full object-fit-fill '/>
+                              </div>
+                          </Card>
+                      </Link>
+                  </CarouselItem>
+              ))
             ):(<div></div>)}
         </CarouselContent>
         </ScrollArea>

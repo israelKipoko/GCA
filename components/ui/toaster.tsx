@@ -19,10 +19,10 @@ export function Toaster() {
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, variant, ...props }) {
         return (
-          <Toast  swipeDirection="bottom" key={id} {...props} style={shadow} className="rounded-[8px] border-none  text-white font-bold">
-            <div className="flex flex-col gap-x-4 items-center w-full h-full">
-            {title && <ToastTitle className='flex flex-row items-center justify-center gap-x-2 text-center font-bold'>
-              {variant == "default"?  <CircleCheck  color={"#fff"} />: <CircleX color={"#fff"} />}
+          <Toast  swipeDirection="bottom" variant={variant} key={id} {...props} style={shadow} className="rounded-[8px] border-none  text-white font-bold">
+            <div className="flex flex-col items-center w-full h-full">
+            {title && <ToastTitle className={`flex flex-row items-center gap-x-2 justify-center text-center font-bold`}>
+              {variant == "default"?  <CircleCheck  color={"#fff"} size={18} />: <CircleX color={"#fff"} size={18}/>}
              
               {title}
               </ToastTitle>

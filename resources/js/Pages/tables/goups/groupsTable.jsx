@@ -5,7 +5,7 @@ import axios from 'axios';
 import { Toaster } from "../../../../../components/ui/toaster";
 import CreateGroup from "../../Dialogs/CreateGroup";
 
-const GroupsTable = ({allUsers, openCreateGroup, setOpenCreateGroup, refreshLayout}) =>{
+const GroupsTable = ({setTotalGroups, allUsers, openCreateGroup, setOpenCreateGroup, refreshLayout}) =>{
   const [refreshKey, setRefreshKey] = useState(0);
 
   const dataRefresh = () => {
@@ -14,18 +14,19 @@ const GroupsTable = ({allUsers, openCreateGroup, setOpenCreateGroup, refreshLayo
   const [data, setData] = useState([]);
   var transformedData;
   async function  getData() {
-        await axios.get('/groups/get-all-groups')
-            .then((response)=>{
-                transformedData = response.data.map(element => ({
-                    id:element.id,
-                    groupName: element.name,
-                    members: element.members || [],
-                    membersCount: element.membersCount || "",
-                  }));
-            }).catch((error)=>{
-                console.log(error);
-            })
-         setData(transformedData);
+    await axios.get('/groups/get-all-groups')
+        .then((response)=>{
+            transformedData = response.data.map(element => ({
+                id:element.id,
+                groupName: element.name,
+                members: element.members || [],
+                membersCount: element.membersCount || "",
+              }));
+        setData(transformedData);
+        setTotalGroups(transformedData.length)
+        }).catch((error)=>{
+            console.log(error);
+        })
        
    return transformedData
   }
@@ -38,7 +39,7 @@ const GroupsTable = ({allUsers, openCreateGroup, setOpenCreateGroup, refreshLayo
   return (
     <div className="w-full mx-auto py-10 ">
         <CreateGroup allUsers={allUsers} openCreateGroup={openCreateGroup} setOpenCreateGroup={setOpenCreateGroup} refreshLayout={refreshLayout} dataRefresh={dataRefresh}/>
-      <DataTable columns={columns} data={data} dataRefresh={dataRefresh}/>
+        <DataTable columns={columns(dataRefresh, allUsers)} data={data} dataRefresh={dataRefresh}/>
     </div>
   )
 }

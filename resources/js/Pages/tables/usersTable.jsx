@@ -4,40 +4,68 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Toaster } from "../../../../components/ui/toaster"
 import AddUser from "../Dialogs/AddUser";
+import { useToast } from "../../../../hooks/use-toast";
 
-const UsersTable = ({allUsers, openAddUserDialog, setOpenAddUserDialog, refreshLayout}) =>{
+const UsersTable = ({setTotalUsers,openAddUserDialog, setOpenAddUserDialog, refreshLayout}) =>{
   const [refreshKey, setRefreshKey] = useState(0);
+  const { toast } = useToast();
 
   const dataRefresh = () => {
     setRefreshKey((oldKey) => oldKey + 1);
   };
   const [data, setData] = useState([]);
   var transformedData;
+
    function getData() {
-          transformedData = allUsers.map(element => ({
+    axios.get('/users/get-all-users')
+        .then(response => {
+          transformedData = response.data[0].map(element => ({
             id:element.id,
-            name: element.name,
+            name: element.firstname + element.name,
             email: element.email || "...",
             role: element.role || "...",
-            avatar: element.avatar || "...",
+            avatar: element.avatar_link || "...",
             groups: element.groups || "...",
           }));
-
          setData(transformedData);
+         setTotalUsers(transformedData.length);
+        })
+        .catch(error => {
+            console.log(error.message)
+          });
+
        
    return transformedData
   }
 
-
+  const changeUserRole = (name, id, role) => {
+    const formData = new FormData();
+      formData.append("role", role);
+      formData.append("userID", id);
+    axios.post('/users/change-user-role', formData)
+    .then(response => {
+      dataRefresh();
+       toast({
+         variant: "default",
+         title: `${name}" est maintenant un ${role}!!`,
+       })
+    })
+    .catch(error => {
+          toast({
+            variant: "destructive",
+             title: `Vous n'êtes pas autorisé à effectuer ce changement.`,
+        });
+    });
+  }
   useEffect(() => {
       getData();
   }, [refreshKey]);
 
   return (
     <div className="w-full mx-auto py-10 ">
-        <AddUser openAddUserDialog={openAddUserDialog} setOpenAddUserDialog={setOpenAddUserDialog} refreshLayout={refreshLayout} dataRefresh={dataRefresh}/>
+        <AddUser openAddUserDialog={openAddUserDialog} setOpenAddUserDialog={setOpenAddUserDialog} dataRefresh={dataRefresh}/>
    
-      <DataTable columns={columns} data={data} dataRefresh={dataRefresh}/>
+      <DataTable columns={columns(changeUserRole,dataRefresh)} data={data} dataRefresh={dataRefresh}/>
     </div>
   )
 }

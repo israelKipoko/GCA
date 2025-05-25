@@ -49,7 +49,7 @@ const TodoCreateInput = ({ newTask, setNewTask, CreateTask, isAssign, users, ass
                     setDueDate(null)
                 }}>
             <div className='relative'>
-                <input type="text" value={newTask}  onChange={(e)=> setNewTask(e.target.value)} className='dark:text-[#878895] text-dark-secondary dark:bg-[#414040] bg-[#CFCFCF]' placeholder="Ajouter une tâche" id="new_task" name="new_task" autoComplete='off'/>
+                <input type="text" value={newTask}  onChange={(e)=> setNewTask(e.target.value)} className='dark:text-white text-dark-secondary dark:bg-[#414040] bg-[#CFCFCF]' placeholder="Ajouter une tâche" id="new_task" name="new_task" autoComplete='off'/>
                   <div className='flex flex-row items-center gap-x-2 mt-1'>
                         {isAssign ?
                            assignedUsers.length != 0?

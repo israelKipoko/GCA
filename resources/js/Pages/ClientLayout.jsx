@@ -5,16 +5,18 @@ import SideBar  from "./main/SideBar"
 import ClientTable from './main/clients/ClientsTable';
 import { cn } from "../../../lib/utils";
 import { Toaster } from '../../../components/ui/toaster';
+import { Link ,usePage} from '@inertiajs/react';
 
 const ClientLayout = () =>{
+    const { tab } = usePage().props;
 return (
     <section className=" py-10 w-full">
-        <SidebarProvider  className='container w-full '>
-            <SideBar/> 
+        <SidebarProvider  className=' w-full '>
+            <SideBar activeTab={tab}/> 
             <aside>
                 <SidebarTrigger className=' fixed z-10 top-2 dark:text-white text-dark-secondary'/>
             </aside>
-            <main className="flex flex-col pl-3  mx-auto  gap-y-1 w-full  float-right">
+            <main className="flex flex-col pl-3   gap-y-1 w-full  float-right">
                 <div class="my-2">
                     <div class="">
                         <h1 class="dark:text-white text-dark-secondary font-bold text-[30px] ml-9">Clients</h1>

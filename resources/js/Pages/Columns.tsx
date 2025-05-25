@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { AlignJustify, UsersIcon, User, CalendarClock, Tags, ListTodo} from "lucide-react";
-
+import { useTranslation } from "react-i18next";
 export type User = {
   avatar_link: string;
   name: string;
@@ -20,6 +20,7 @@ export type Payment = {
   description: string
   users: User[]
 }
+
 
 export const columns: ColumnDef<Payment>[] = [
   {
@@ -40,7 +41,7 @@ export const columns: ColumnDef<Payment>[] = [
   },
   {
     accessorKey: "client",
-    header:  () =>  <div  className="text-center flex items-center gap-x-1"><UsersIcon size={20}/>Client</div>,
+    header:  () =>  <div  className="text-center flex items-center justify-center gap-x-1"><UsersIcon size={20}/>Client</div>,
     cell: ({ row }) => {
       const client = row.getValue("client")
  
@@ -49,11 +50,14 @@ export const columns: ColumnDef<Payment>[] = [
   },
   {
     accessorKey: "created_by",
-    header: () =>  <div  className="text-center flex items-center gap-x-1"><User size={20}/>Créateur</div>,
+    header: () =>  <div  className="text-center flex items-center justify-center gap-x-1"><User size={20}/>Créateur</div>,
   },
   {
     accessorKey: "dead_line",
-    header:  () =>  <div  className="text-center flex items-center gap-x-1"><CalendarClock size={20}/>Date Limite</div>,
+    header:  () => {
+      const { t, i18n } = useTranslation();
+      return <div  className="text-center flex items-center justify-center gap-x-1"><CalendarClock size={20}/>{t("Date limite")}</div>
+    },
     cell: ({row}) => {
       const months = [
         'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -84,30 +88,50 @@ export const columns: ColumnDef<Payment>[] = [
   },
   {
     accessorKey: "priority",
-    header:  () =>  <div  className="text-center flex items-center gap-x-1"><Tags  size={20}/>Date Limite</div>,
+    header:  () => {
+      const { t, i18n } = useTranslation();
+      return <div  className="text-center flex items-center justify-center gap-x-1"><Tags size={20}/>{t("Priority")}</div>
+    },
     cell: ({ row }) => {
       const priority = row.getValue("priority")
+      const { t, i18n } = useTranslation();
  
       if (priority == "medium") {
-        return <div className=" w-fit mx-auto px-3 py-1 rounded-[4px] text-[#ffde4d] capitalize bg-[#ffde4d44]  flex items-center gap-x-1">{row.getValue("priority")}</div>
+        return (<span className="inline-flex items-center text-left gap-1 rounded-full bg-yellow-200 px-3 py-1 text-xs font-medium text-yellow-700">
+          <span className="h-2 w-2 rounded-full bg-yellow-700"></span>
+          {t("medium")}
+        </span>)
       } else if(priority == "low") {
-        return <div className=" w-fit mx-auto px-3 py-1 rounded-[4px]  text-[#387f39]  capitalize bg-[#387f3944] flex items-center gap-x-1">{row.getValue("priority")}</div>
+        return (<span className="inline-flex items-center gap-1 rounded-full bg-green-300 px-3 py-1 text-xs font-medium text-green-700">
+          <span className="h-2 w-2 rounded-full bg-green-700"></span>
+          {t("low")}
+        </span>)
       } else if(priority == "high"){
-        return <div className=" w-fit mx-auto px-3 py-1 rounded-[4px]  text-[#c40c0c]  capitalize bg-[#c40c0c44] flex items-center gap-x-1">{row.getValue("priority")}</div>
+        return (<span className="inline-flex items-center gap-1 rounded-full bg-red-200 px-3 py-1 text-xs font-medium text-red-700">
+          <span className="h-2 w-2 rounded-full bg-red-700"></span>
+          {t("high")}
+        </span>)
       }
     },
   },
   {
     accessorKey: "statut",
-    header: () =>  <div  className="text-center flex items-center gap-x-1"><ListTodo  size={20}/>Statut</div>,
+    header: () =>  <div  className="text-center flex items-center justify-center gap-x-1"><ListTodo  size={20}/>Statut</div>,
     cell: ({ row }) => {
       const statut = row.getValue("statut")
- 
+      const { t, i18n } = useTranslation();
       if (statut == "pending") {
-        return <div className=" w-fit mx-auto px-3 py-1 rounded-[16px]  capitalize bg-[#ffde4db3]  flex items-center gap-x-1"><span className="w-[8px] h-[8px] rounded-full bg-[#ffde4d]"> </span>{row.getValue("statut")}</div>
-        
+        // return <div className=" w-fit mx-auto px-3 py-1 rounded-[16px]  capitalize bg-[#ffde4db3]  flex items-center gap-x-1"><span className="w-[8px] h-[8px] rounded-full bg-[#ffde4d]"> </span>{row.getValue("statut")}</div>
+        return(<span className="inline-flex items-center gap-1 rounded-full bg-yellow-200 px-3 py-1 text-xs font-medium text-yellow-700">
+          <span className="h-2 w-2 rounded-full bg-yellow-500"></span>
+          {t("pending")}
+        </span>)
       } else {
-        return <div className=" w-fit mx-auto px-3 py-1 rounded-[16px]  capitalize bg-[#387f39b3] flex items-center gap-x-1"><span className="w-[8px] h-[8px] rounded-full bg-[#387f39]"> </span>{row.getValue("statut")}</div>
+        // return <div className=" w-fit mx-auto px-3 py-1 rounded-[16px]  capitalize bg-[#387f39b3] flex items-center gap-x-1"><span className="w-[8px] h-[8px] rounded-full bg-[#387f39]"> </span>{row.getValue("statut")}</div>
+        return(<span className="inline-flex items-center gap-1 rounded-full bg-green-200 px-3 py-1 text-xs font-medium text-green-700">
+          <span className="h-2 w-2 rounded-full bg-green-500"></span>
+          {t("completed")}
+        </span>)
       }
     },
   },

@@ -1,12 +1,13 @@
 import React, { useEffect, useState,useRef } from 'react'
 import { Calendar } from '../../../../components/ui/calendar';
-import { fr } from 'date-fns/locale';
-import { format } from "date-fns"
-import { Video, Plus,CalendarIcon, Scroll } from 'lucide-react';
+import { fr, enUS } from 'date-fns/locale';
+import { format,parseISO, isAfter, isEqual } from "date-fns"
+import { Video, Plus,CalendarIcon, CircleCheck,BriefcaseBusiness,Trash2,MoreVertical,PencilLine } from 'lucide-react';
 import { Button } from "../../../../components/ui/button";
 import { useToast } from "../../../../hooks/use-toast";
 import axios from 'axios';
 import { ScrollArea } from '../../../../components/ui/scroll-area';
+import { useTranslation } from "react-i18next";
   import { cn } from "../../../../lib/utils";
   import { TimePicker, Space,ConfigProvider } from "antd";
   import dayjs from 'dayjs';
@@ -54,7 +55,8 @@ const EventManager = ({allUsers}) =>{
     const triggerRef = useRef(null);
     const optionsRef = useRef(null);
     const [openDialog, setOpenDialog] = useState(false);
-    const [openCalendarDialog, setOpenCalendarDialog] = React.useState(false);
+    const [openCalendarDialog, setOpenCalendarDialog] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     
     const [isDarkMode, setIsDarkMode] = useState(
       localStorage.getItem("theme") === "dark"
@@ -62,11 +64,13 @@ const EventManager = ({allUsers}) =>{
 
     const { toast } = useToast();
 
+    const { t, i18n } = useTranslation();
+    
     function GetEvents() {
         axios.get('/event/get-user-events')
         .then(response => {
           var transformedData = response.data[0].map(element => ({
-            id:element.id,
+            id: element.id,
             title: element.title,
             note: element.note,
             date: element.date,
@@ -75,10 +79,34 @@ const EventManager = ({allUsers}) =>{
             participants: element.event_users || [],
             createdby: element.user.name + " " + element.user.firstname,
           }));
+        
           setEvents(transformedData);
         })
         .catch(error => {
             console.log(error.message)
+          });
+    }
+    function DeleteEvent(eventId,name){
+      setIsDeleting(true);
+
+      const formData = new FormData();
+      formData.append("id",eventId);
+
+      axios.post('/event/delete-event',formData)
+        .then(response => {
+          setIsDeleting(false);
+          GetEvents();
+          toast({
+            variant: "default",
+            title: `L'événement "${name}" a été supprimé!!`,
+          })
+        })
+        .catch(error => {
+          setIsDeleting(false);
+          toast({
+            variant: "destructive",
+            title: `Ooups! Une erreur est survenue!`,
+          })
           });
     }
     const [refreshKey, setRefreshKey] = useState(0);
@@ -90,10 +118,28 @@ const EventManager = ({allUsers}) =>{
         const year = formattedDate.getFullYear();
         const month = String(formattedDate.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
         const day = String(formattedDate.getDate()).padStart(2, '0');
+
         return `${year}-${month}-${day}`;
       };
-      const formattedSelectedDates = calendarDate ? formatDate(calendarDate) : [];
-      const filteredEvents = events.filter(event => formattedSelectedDates.includes(event.date));
+      const formattedSelectedDate = formatDate(calendarDate); // 'YYYY-MM-DD'
+
+      // Step 2: Filter events that are on or after the selected date
+      const filteredEvents = events.filter(event => {
+        const eventDate = parseISO(event.date);
+        const selectedDate = parseISO(formattedSelectedDate);
+
+        return isEqual(eventDate, selectedDate) || isAfter(eventDate, selectedDate);
+      });
+
+      // Step 3: Group the filtered events by date
+      const groupedEvents = filteredEvents.reduce((groups, event) => {
+        const date = event.date; // assuming this is in 'YYYY-MM-DD' format
+        if (!groups[date]) {
+          groups[date] = [];
+        }
+        groups[date].push(event);
+        return groups;
+      }, {});
       
       const handleRemoveOption = (id) => {
         const removedUser = allUsers.find(user => user.id === id);
@@ -124,7 +170,7 @@ const EventManager = ({allUsers}) =>{
           })
           .then(response => {
             toast({
-               description: "L'événement a été créé avec succès!!",
+               title: `L'événement "${title}" a été créé!!`,
              })
              setTitle('');
              setOpenDialog(false)
@@ -132,7 +178,10 @@ const EventManager = ({allUsers}) =>{
              refreshParent();
            })
            .catch(error => {
-             console.log('Could not create new client')
+            toast({
+              variant: "destructive",
+              title: `Ooups! Une erreur est survenue!`,
+            })
            });
     }
     function pickedDate(date){
@@ -161,13 +210,14 @@ return (
     <section className='flex flex-row gap-x-2  justify-between'>
        <div className=''>
            <Calendar
-            locale={fr}
+            locale={i18n.language== "en-US"? enUS: fr}
             weekStartsOn={0}
            className='  rounded-[4px]'
            mode="single"
            numberOfMonths={1}
            selected={calendarDate}
            onSelect={setCalendarDate}
+           required
            footer={
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
               <DialogTrigger>
@@ -176,13 +226,13 @@ return (
               <DialogContent className="sm:max-w-[600px]  border-none">
                 <DialogHeader>
                   <DialogTitle className="dark:text-white text-dark-secondary font-bold">
-                      Nouvel Evénement
+                      {t("Nouvel Evénement")}
                   </DialogTitle>
                 </DialogHeader>
                 <form  onSubmit={handleSubmit} className="flex gap-x-9 py-4">
-                    <div className="flex flex-col mx-auto gap-y-9">
+                    <div className="flex flex-col mx-auto gap-y-6">
                         <div className="input_div">
-                          <label htmlFor="title" className='dark:text-white text-dark-secondary  opacity-[0.8]'>Titre :</label>
+                          <label htmlFor="title" className='dark:text-white text-dark-secondary  opacity-[0.8]'>{t("Titre")}:</label>
                             <input
                                 type="text"
                                 className="event_title_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
@@ -190,13 +240,13 @@ return (
                                 id="title"
                                 value={title}
                                 onChange={(e)=> setTitle(e.target.value)}
-                                placeholder="Ajouter un titre"
+                                placeholder={t("Ajouter un titre")}
                                 required
                                 autoComplete='off'/>
                         </div>
                         <div className='custom-select w-fit mx-auto'>
                   <div className="multiple-select input_div ">
-                    <label htmlFor="title" className='dark:text-white text-dark-secondary  opacity-[0.8]'>Participants :</label>
+                    <label htmlFor="title" className='dark:text-white text-dark-secondary  opacity-[0.8]'>{t("Participants")} :</label>
                   <div className=" realtive event_title_input dark:bg-dark-primary bg-light-primary  dark:text-white text-dark-secondary  w-fit mx-auto">
                     <div id='participants_badges_wrapper'>
                       <input
@@ -222,7 +272,7 @@ return (
                         className="dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[14px] select-placeholder"
                         onFocus={() => setIsUsersOptionsOpen(true)}
                         onInput={(e) => setFilter((e.target).value.toLowerCase())}
-                        placeholder="Choisissez les participants" autoComplete='off'/>
+                        placeholder={t("Choisissez les participants")} autoComplete='off'/>
                   </div>
                     {isUsersOptionsOpen && (
                       <section className='options dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary'>
@@ -253,17 +303,18 @@ return (
                   </div>
                 </div>
                 </div>
-                <div className="flex flex-col gap-y-9 justify-between items-center">
-                    <div>
+                <div className="flex flex-row gap-y-9 justify-between items-center">
+                    <div className='flex flex-col input_div'>
+                      <label  className='dark:text-white text-dark-secondary opacity-[0.8]'>{("Date")}:</label>
                         <DropdownMenu  open={openCalendarDialog} onOpenChange={setOpenCalendarDialog}>
                           <DropdownMenuTrigger>
                               <Button
                                   type='button'
                                   className={cn(
-                                    "w-[280px] border-light-secondary dark:border dark:bg-dark-primary bg-light-primary p-2 dark:text-white text-dark-secondary capitalize justify-between text-left font-normal",
+                                    "w-[230px] border-light-secondary dark:border dark:bg-dark-primary bg-light-primary p-2 dark:text-white text-dark-secondary capitalize justify-between text-left font-normal",
                                     !eventDate && "text-muted-foreground"
                                   )}>
-                                  {eventDate ? format(eventDate, "PPP", { locale: fr }) : <span>Pick a date</span>}
+                                  {eventDate ? format(eventDate, "PPP", { locale: fr }) : <span>{t("Pick a date")}</span>}
                                   <CalendarIcon   size={13} className='mr-2'/>
                               </Button>
                           </DropdownMenuTrigger>
@@ -278,7 +329,7 @@ return (
                         </DropdownMenu>
                     </div>
                     <div className='flex flex-col input_div items- dark:text-white text-dark-secondary' >
-                      <label htmlFor="eventLink" className='dark:text-white text-dark-secondary opacity-[0.8]'>Lien:</label>
+                      <label htmlFor="eventLink" className='dark:text-white text-dark-secondary opacity-[0.8]'>{t("Heures")}:</label>
                         <Space direction="vertical" className='dark:text-white text-dark-secondary' size={18}>
                         <ConfigProvider
                             theme={{
@@ -295,13 +346,13 @@ return (
                               },
                             }}
                           >
-                          <TimePicker.RangePicker defaultValue={[dayjs('12:08', 'HH:mm'), dayjs('12:30', 'HH:mm')]} className="w-[280px] border-light-secondary dark:border  dark:text-white text-dark-secondary  dark:bg-dark-primary bg-light-primary hover:dark:bg-dark-primary hover:bg-light-primary"  placeholder={["Heure de début","Heure de fin"]}  format={"HH:mm"} onChange={pickedTime}  />
+                          <TimePicker.RangePicker defaultValue={[dayjs('12:08', 'HH:mm'), dayjs('12:30', 'HH:mm')]} className="w-[230px] h-10 border-none dark:border  dark:text-white text-dark-secondary  dark:bg-dark-primary bg-light-primary hover:dark:bg-dark-primary hover:bg-light-primary"  placeholder={[t("Heure de début"),t("Heure de fin")]}  format={"HH:mm"} onChange={pickedTime}  />
                           </ConfigProvider>
                         </Space>
                     </div>
                         </div>
                   <div class="input_div">
-                    <label htmlFor="eventLink" className='dark:text-white text-dark-secondary opacity-[0.8]'>Lien:</label>
+                    <label htmlFor="eventLink" className='dark:text-white text-dark-secondary opacity-[0.8]'>{t("Lien")}:</label>
                       <input
                           type="text"
                           value={eventLink}
@@ -310,11 +361,10 @@ return (
                             popupClassName="dark:bg-dark-secondary bg-white dark:text-white text-black"
                           name="eventLink"
                           id="eventLink"
-                          placeholder="Ajouter le lien pour une réunion en ligne"/>
+                          placeholder={t("Ajouter le lien pour une réunion en ligne")}/>
                   </div>
-                  
                     <div className='w-fit mt-2 ml-auto'>
-                      <button className='action_button rounded-md px-4 py-2 font-bold text-white text-[14px]' type="submit">Enregistrer</button>
+                      <button className='action_button flex flex-row items-center gap-x-2 rounded-[4px] px-4 py-2 font-bold text-white text-[14px]' type="submit">{("Enregistrer")} <CircleCheck size={18}/></button>
                     </div>
               </div>
                 </form>
@@ -323,64 +373,81 @@ return (
           }
            />
         </div>
-        <div className={cn('w-full max-h-[350px] dark:bg-dark-primary bg-light-secondary rounded-[4px] py-2')}>
+        <div className={cn('w-full max-h-[350px] dark:bg-dark-primary bg-light-thirdly rounded-[4px] py-2')}>
             <ScrollArea className={cn('h-full w-full ')}>
-             <section className={cn('flex flex-col gap-y-1 ',!filteredEvents.length?"h-[350px] flex items-center justify-center":"")}>
-             {filteredEvents.length ? (
-                filteredEvents
-                .map((event,index) => (
-                    <div key={index} className='relative flex flex-row justify-between gap-x-2 rounded-[4px] w-[95%] mx-auto p-2 dark:bg-[#313131] bg-light-hover events_container' >
-                      <div className='px-2'>
-                        <div >
-                          <h1 className="font-bold capitalize opacity-[0.8] text-[15px] dark:text-white text-dark-secondary">{event.title}</h1>
-                          <span className='absolute right-2 top-2'>
-                            {/* {event.link != null?
-                              <TooltipProvider className="">
-                                  <Tooltip className="">
-                                      <TooltipTrigger className={cn("border-none w-fit  ")}>
-                                          <a href={event.link} target='__blank' class="badge_grey"><Video color="#fff" /></a>
-                                      </TooltipTrigger>
-                                      <TooltipContent className="bg-[#313131] text-white capitalize border-none">
-                                          <p>Lien de la réunion</p>
-                                      </TooltipContent>
-                                  </Tooltip>
-                              </TooltipProvider>
-                             :""} */}
-                          </span>
-                        </div>
-                          <div className="flex items-center mt-2 px-4">
-                              {
-                                 event.participants.length? (
-                                  event.participants.map((user,index) => (
-                                     <TooltipProvider key={index} className="">
-                                         <Tooltip className="">
-                                             <TooltipTrigger className={cn("border-none w-fit  ",(index!=0)?"-ml-2":"")}>
-                                                 <img src={user.avatar_link}  className="w-[25px] h-[25px] rounded-full" />
-                                             </TooltipTrigger>
-                                             <TooltipContent className="dark:bg-[#313131] bg-light-secondary dark:text-white text-dark-secondary capitalize border-none">
-                                                 <p className='capitalize text-[13px]'>{user.name}</p>
-                                             </TooltipContent>
-                                         </Tooltip>
-                                     </TooltipProvider>
-                                   ))
-                                 ):
-                                 ("")
-                              }
-                          </div>
+             <section className={cn('flex flex-col p-2 ',!Object.entries(groupedEvents).length?"h-[350px] flex items-center justify-center":"")}>
+             {
+             Object.entries(groupedEvents).length ? (
+              Object.entries(groupedEvents).map(([date, event],index) => (
+              <div key={date}>
+                <div className=' flex flex-row items-start gap-x-4 '>
+                  <p className='w-[70px] text-center dark:text-[#fff] text-dark-secondary opacity-[0.7]'>{format(parseISO(date), 'dd MMMM', { locale: fr })}</p>
+                  <div className='flex flex-row flex-wrap gap-x-6 gap-y-4'>
+                  {event.map((event) => (
+                    <div className='flex flex-row gap-x-1 items-start'>
+                      <div className='bg-[#007bff66] rounded-full w-8 h-8 flex items-center justify-center'>
+                        <BriefcaseBusiness className=' text-[#fff] ' size={18}/>
                       </div>
-                      <div className='flex flex-col'>
-                         <span className='dark:text-white text-dark-secondary text-[14px]'>{event.time.start_time}</span>
-                         <span className='dark:text-white text-dark-secondary text-[14px] opacity-[0.5]'>{event.time.end_time}</span>
+                      <div className=''>
+                        <div className='flex justify-between items-center gap-x-3'>
+                        <h1 className='font-bold capitalize text-[16px]  dark:opacity-[0.8] dark:text-[#fff] text-dark-secondary'>{event.title}</h1> 
+                          <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">{t("Open menu")}</span>
+                                  <MoreVertical className="h-4 w-4 dark:text-[#fff] text-dark-secondary" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                              {event.link != null?
+                                  <a href={event.link} target='__blank'>
+                                    <DropdownMenuItem className="font-bold" >
+                                      <Video color="#fff" size={18}/>{t("Participer")} 
+                                    </DropdownMenuItem>
+                                  </a>
+                             :""}
+                                <DropdownMenuItem className="font-bold" >
+                                  <PencilLine /> {t("Modifier")}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={()=>DeleteEvent(event.id,event.title)} className="dark:text-[#D84444] text-red-600 font-bold" >
+                                  <Trash2/> {t("Supprimer")}</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div> 
+                          {event.time.start_time && <span className='flex flex-row text-[14px] font-bold dark:text-[#fff] text-dark-secondary opacity-[0.6]'>{event.time.start_time} - {event.time.end_time}</span>}
+                          {event.participants.length ?
+                          <div className="flex gap-x-2 assigned_to_profile ">
+                            {event.participants.map((user,index) => (
+                              <div key={index} className="user_picture element_tooltip_container w-[25px] h-[25px]">
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild className='cursor-pointer'>
+                                            <div>
+                                                <img src={user.avatar_link} alt="user-profile" className='rounded-full w-full h-full object-contain'/>
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent className='dark:bg-dark-secondary bg-light-thirdly border-none dark:text-white text-dark-secondary'>
+                                            <p className='text-[12px]'>{user.firstname} {user.name}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                              </div>
+                            ))}
+                          </div>:""
+                          }
                       </div>
-                    </div>
-                ))
-             ):
-             (
-              <div class="  w-fit h-fit">
-                    <h1 class="text-[14px] font-bold text-center opacity-[0.7] mb-4 w-[200px] mx-auto dark:text-white text-dark-secondary">Aucun événement!</h1>
+                    </div>  ))}
+                  </div>
                 </div>
-             )}
-             
+                {!(Object.entries(groupedEvents).length == (index+1)) &&<div className=' w-1 h-12 bg-white ml-[100px] opacity-[0.5] rounded-full my-2'></div>}
+              </div>
+               ))):
+               (
+                <div class="  w-fit h-fit">
+                      <h1 class="text-[14px] font-bold text-center opacity-[0.7] mb-4 w-[200px] mx-auto dark:text-white text-dark-secondary">{t("Aucun événement")}!</h1>
+                  </div>
+            )}
              </section>
            </ScrollArea> 
         </div> 

@@ -76,6 +76,12 @@ return [
             'url' => env('APP_URL').'/storage/users/profile_pictures',
             'visibility' => 'public',
         ],
+        'library' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/library'),
+            'url' => env('APP_URL').'/storage/library',
+            'visibility' => 'public',
+        ],
 
         's3' => [
             'driver' => 's3',

@@ -8,6 +8,7 @@ import TodoCreateInput from './utils/TodoCreateInput';
 import TodoItem from './utils/TodoItem';
 import Lottie from 'lottie-react';
 import live from '../../../public/animation/live-animation.json';
+import { useTranslation } from "react-i18next";
 import {
   Accordion,
   AccordionContent,
@@ -36,6 +37,13 @@ const TodoList = () =>{
   const [userRole, setUserRole] = useState('');
   const [users, setUsers] = useState([]);
 
+  const { t, i18n } = useTranslation();
+  
+      const changeLanguage = (lang) => {
+          i18n.changeLanguage(lang);
+          localStorage.setItem("lang", lang);
+      };
+  
   const audio = new Audio('../../../sounds/completed_2.mp3');
     const date = new Date();
     const todayDate = format(date, 'yyyy-MM-dd');
@@ -163,17 +171,17 @@ const TodoList = () =>{
         <Tabs defaultValue="my_day" className="flex  w-full">
             <TabsList className="flex flex-col  gap-y-0.5 w-[300px] justify-start items-start pt-2 todo_wrapper_tabs_list h-full">
                 {overDueTasks.length == 0 ? "": 
-                  <TabsTrigger onClick={()=> setActiveTab('overDue')} value="overDue" className={cn("todo_wrapper_tabs",activeTab=="overDue"?"dark:active_tab active_tab_dark":"")}> <div className='flex items-center'><Lottie animationData={live}  autoplay={true} style={{ width: 18, height: 18 }} loop={true} />Rappel </div> <span>{(overDueTasks.length) == 0?"":(overDueTasks.length)}</span></TabsTrigger>
+                  <TabsTrigger onClick={()=> setActiveTab('overDue')} value="overDue" className={cn("todo_wrapper_tabs",activeTab=="overDue"?"dark:active_tab active_tab_dark":"")}> <div className='flex items-center'><Lottie animationData={live}  autoplay={true} style={{ width: 18, height: 18 }} loop={true} />{t("rappel")}</div> <span>{(overDueTasks.length) == 0?"":(overDueTasks.length)}</span></TabsTrigger>
                 }
-                <TabsTrigger onClick={()=> setActiveTab('my_day')} value="my_day" className={cn("todo_wrapper_tabs dark:text-white text-dark-secondary",activeTab=="my_day"?"dark:active_tab active_tab_dark":"")}> <div><i class='bx bx-sun dark:text-[#eeee22] text-[#FFA500]'></i>Ma Journée</div> <span className='dark:text-white text-dark-secondary'>{(myDayTasks.length + myDayCompletedTasks.length) == 0?"":(myDayTasks.length + myDayCompletedTasks.length)}</span></TabsTrigger>
-                <TabsTrigger onClick={()=> setActiveTab('planned')} value="planned" className={cn("todo_wrapper_tabs ",activeTab=="planned"?"dark:active_tab active_tab_dark":"")}><div><i class='bx bx-calendar-event text-[#0f6cbd]'></i>Planifiées</div><span className='dark:text-white text-dark-secondary'>{(plannedTasks.length + completedPlannedTasks.length) == 0?"":(plannedTasks.length + completedPlannedTasks.length)}</span></TabsTrigger>
-                <TabsTrigger onClick={()=> setActiveTab('my_tasks')} value="my_tasks" className={cn("todo_wrapper_tabs ",activeTab=="my_tasks"?"dark:active_tab active_tab_dark":"")}> <div><i class='bx bx-home-alt text-[#0f6cbd]'></i>Mes Tâches </div><span className='dark:text-white text-dark-secondary'>{(tasks.length + completedTasks.length) == 0?"":(tasks.length + completedTasks.length)}</span></TabsTrigger>
+                <TabsTrigger onClick={()=> setActiveTab('my_day')} value="my_day" className={cn("todo_wrapper_tabs dark:text-white text-dark-secondary",activeTab=="my_day"?"dark:active_tab active_tab_dark":"")}> <div><i class='bx bx-sun dark:text-[#eeee22] text-[#FFA500]'></i>{t("Ma Journée")}</div> <span className='dark:text-white text-dark-secondary'>{(myDayTasks.length + myDayCompletedTasks.length) == 0?"":(myDayTasks.length + myDayCompletedTasks.length)}</span></TabsTrigger>
+                <TabsTrigger onClick={()=> setActiveTab('planned')} value="planned" className={cn("todo_wrapper_tabs ",activeTab=="planned"?"dark:active_tab active_tab_dark":"")}><div><i class='bx bx-calendar-event text-[#0f6cbd]'></i>{t("Planifiées")} </div><span className='dark:text-white text-dark-secondary'>{(plannedTasks.length + completedPlannedTasks.length) == 0?"":(plannedTasks.length + completedPlannedTasks.length)}</span></TabsTrigger>
+                <TabsTrigger onClick={()=> setActiveTab('my_tasks')} value="my_tasks" className={cn("todo_wrapper_tabs ",activeTab=="my_tasks"?"dark:active_tab active_tab_dark":"")}> <div><i class='bx bx-home-alt text-[#0f6cbd]'></i>{t("Mes Tâches")} </div><span className='dark:text-white text-dark-secondary'>{(tasks.length + completedTasks.length) == 0?"":(tasks.length + completedTasks.length)}</span></TabsTrigger>
                 {casesTasks.length ? (
                   <section className='w-full'>
                       <div className='border opacity-[0.5] my-2 rounded-full w-[100%] mx-auto'></div>
                       <Accordion type="single" collapsible className='w-full'>
                           <AccordionItem value="item-1">
-                            <AccordionTrigger className='dark:text-white text-dark-secondary text-sm w-full todo_wrapper_tabs'><div><i class='bx my-auto bx-dock-left'></i>Dossiers</div></AccordionTrigger>
+                            <AccordionTrigger className='dark:text-white text-dark-secondary text-sm w-full todo_wrapper_tabs'><div><i class='bx my-auto bx-dock-left'></i>{t("Mes Dossiers")}</div></AccordionTrigger>
                             <AccordionContent className='mt-1'>
                                 {groupedCasesTasks.map((group, groupIndex) => (
                                     <TabsTrigger key={groupIndex} onClick={()=> setActiveTab(`${group[0].caseId}`)} value={group[0].caseId} className={cn("todo_wrapper_tabs ml-1",activeTab==`${group[0].caseId}`?"dark:active_tab active_tab_dark":"")}> <div className='capitalize'><i class='bx bx-list-ul my-auto text-[#0f6cbd]'></i>{group[0].caseTitle}</div><span>{group.length == 0?"":(group.length)}</span></TabsTrigger>
@@ -190,7 +198,7 @@ const TodoList = () =>{
             <TabsContent value="overDue" className=' w-full'>
                 <div class="h-full py-1 px-3 w-full">
                     <div className="r w-fit ">
-                        <h1 className="flex items-center gap-x-2  text-md font-bold dark:text-white text-dark-secondary">Rappel</h1>
+                        <h1 className="flex items-center gap-x-2  text-md font-bold dark:text-white text-dark-secondary">{t("rappel")}</h1>
                         <span className=" capitalize dark:text-[#d8d8d8] text-[#292929]  text-[14px] text-center w-fit">Vous êtes en retard sur {overDueTasks.length > 1?"ces":"cette"} tâches!!</span>  
                     </div>
                     <div className='todolist_tabs_content_wrapper  w-full'>
@@ -216,7 +224,7 @@ const TodoList = () =>{
             <TabsContent value="my_day" className=' w-full'>
                 <div class="h-full py-1 px-3 w-full">
                     <div className="r w-fit ">
-                        <h1 className="flex items-center gap-x-2  text-md font-bold dark:text-white text-dark-secondary">Ma journée</h1>
+                        <h1 className="flex items-center gap-x-2  text-md font-bold dark:text-white text-dark-secondary">{t("Ma Journée")}</h1>
                         <span className=" capitalize dark:text-[#d8d8d8] text-[#292929] text-[14px] text-center w-fit">{formattedDate}</span>  
                     </div>
                     <div className='todolist_tabs_content_wrapper  w-full'>

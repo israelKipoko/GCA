@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\News;
 use App\Models\Cases;
+use App\Models\Library;
 use App\Models\Profiles;
 use Spatie\Image\Enums\Fit;
 use App\Models\PendingCases;
@@ -39,6 +40,11 @@ class User extends Authenticatable implements HasMedia
         'events',
         'gender',
         'verification_code',
+        'google_refresh_token',
+        'google_calendar',
+        'microsoft_todo',
+        'google_drive',
+        'microsoft_calendar',
         'avatar',
     ];
     protected $guard_name = 'web';
@@ -85,6 +91,9 @@ class User extends Authenticatable implements HasMedia
     }
     public function pendingCases(){
         return $this->hasMany(PendingCases::class,'user_id');
+    }
+    public function library(){
+        return $this->hasMany(Library::class);
     }
     public function temporaryFile(){
         return $this->hasMany(TemporaryFile::class);

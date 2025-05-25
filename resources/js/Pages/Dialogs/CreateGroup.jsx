@@ -2,7 +2,7 @@ import React, { useEffect, useState,useRef } from 'react'
 import { TriangleAlert } from "lucide-react"
 import axios from 'axios';
 import { ScrollArea } from "../../../../components/ui/scroll-area";
-import { cn } from "../../../../lib/utils";
+import { useToast } from "../../../../hooks/use-toast";
 import {
     Dialog,
     DialogContent,
@@ -19,7 +19,7 @@ const CreateGroup = ({allUsers, openCreateGroup, setOpenCreateGroup, refreshLayo
    const [members, setMembers] = useState([]);
 
    const [usersList, setUsersList] = useState(allUsers);
-
+   const { toast } = useToast();
    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
    const triggerRef = useRef(null);
    const optionsRef = useRef(null);
@@ -59,9 +59,16 @@ const handleOptionClick = (id) => {
         refreshLayout();
         dataRefresh();
         setOpenCreateGroup(false);
+        toast({
+          variant: "default",
+          title: `Le groupe "${name}" a été créé!!`,
+      });
     })
     .catch(error => {
-        console.error("Upload failed:", error.message);
+      toast({
+        variant: "destructive",
+        title: `Ooups! Une erreur est survenue!`,
+    });
         setLoading(false);
     })
     .finally(() => {

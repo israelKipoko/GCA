@@ -49,11 +49,10 @@ Route::post('/Mobeko/verify-new-email',[EmailsController::class, "verifyNewEmail
 
 Route::post('/Mobeko/register-newly-changed-email',[EmailsController::class, "registerNewEmail"])->name('new-email');
 
-Route::post('/logout/user', [UserController::class, "logout"])->middleware('auth');
+Route::post('/logout/user', [UserController::class, "logout"])->middleware('auth')->name('loggingOut-user');
 
 Route::get('/home/models',[ContentController::class,"models"])->middleware('auth')->name('yes');
 Route::get('/home/reports',[ContentController::class,"reports"])->middleware('auth');
-Route::get('/home/library',[ContentController::class,"library"])->middleware('auth');
 Route::get('/home',[ContentController::class, "index"])->middleware('auth')->name('app.home');
 
 Route::get('/tasks/get-all-tasks',[ActivityController::class, "showTasks"])->middleware('auth');
@@ -75,6 +74,9 @@ Route::post('/cases/upload-file',[ActivityController::class,"uploadFile"])->midd
 Route::get('/folders/show-pending-folders',[ActivityController::class,"showPendingCases"])->middleware('auth');
 
 Route::get('/users/get-information',[ActivityController::class,"AuthUser"])->middleware('auth');
+
+Route::post('/users/change-password',[UserController::class, "updatePassword"])->middleware('auth');
+
 /* TASKS */
 Route::get('/tasks/get-all-case-tasks/{case}',[ActivityController::class,"getAllTasks"])->middleware('auth');
 Route::post('/tasks/create-new-task/{case}',[ActivityController::class,"createCaseTask"])->middleware('auth');
@@ -82,18 +84,22 @@ Route::post('/tasks/create-new-task/{case}',[ActivityController::class,"createCa
 /* EVENTS */
 Route::get('/event/get-user-events',[ActivityController::class,"getAllEvents"]);
 Route::post('/event/create-new-event',[ActivityController::class,"createEvent"]);
+Route::post('/event/delete-event',[ActivityController::class,"deleteEvent"])->middleware('auth');
 Route::post('/home/event/check-availability',[ActivityController::class,"checkAvailability"]);
 
 /* GROUPS */
 Route::get('/groups/get-all-groups',[ActivityController::class,"getGroups"])->middleware('auth');
 Route::post('/groups/create-group',[ActivityController::class,"createGroup"])->middleware('auth');
+Route::post('/groups/delete-group',[ActivityController::class,"deleteGroup"])->middleware('auth');
+Route::post('/groups/add-new-member',[ActivityController::class,"addMember"])->middleware('auth');
 
 /* Connections */ 
-Route::get('/connections',[ActivityController::class,"GetConnections"])->middleware('auth');;
+Route::post('/connections/api/auth/google',[ActivityController::class,"googleCalendar"])->middleware('auth');;
+Route::get('/connections/api/auth/microsoft',[ActivityController::class,"microsoftIntegration"])->middleware('auth');;
 
 // <!-- Route::get('/news/{news}',[ActivityController::class,"showNewsDetails"]); -->
 
-Route::group(['middleware' => ['auth','role:Admin|User']], function () { 
+Route::group(['middleware' => ['auth','role:Super-Admin|Admin|User']], function () { 
     Route::post('/home/pending-cases/{case}/update-case/file',[ActivityController::class,"updateCase"]);
 
     Route::get('/home/calendar',[ContentController::class, "showCalendar"]);
@@ -106,6 +112,15 @@ Route::group(['middleware' => ['auth','role:Admin|User']], function () {
     Route::put('/home/tasks/update-task-status/{task}',[ActivityController::class,"updateTaskStatus"]);
     
     Route::post('pending-cases/{case}/submit-case',[ActivityController::class,"submitCase"]);
+
+     /* Library */
+     Route::get('/home/library',[ContentController::class,"library"])->middleware('auth');
+     Route::get('/home/library/get-all-categories',[ActivityController::class,"getCategories"])->middleware('auth');
+     Route::post('/home/library/create-category',[ActivityController::class,"createLibraryCategory"])->middleware('auth');
+     Route::get('/home/library/show-category-documents/{library}',[ActivityController::class,"showCategoryDocuments"])->middleware('auth');
+     Route::get('/home/library/get-all-category-documents/{library}',[ActivityController::class,"getCategoryDocuments"])->middleware('auth');
+     Route::post('/home/library/create-documents/{library}',[ActivityController::class,"createDocuments"])->middleware('auth');
+     Route::post('/home/library/delete-document/{library}',[ActivityController::class,"deleteDocuments"])->middleware('auth');
 });
 
 Route::group(['middleware' => ['auth','role:Super-Admin|Admin']], function () { 
@@ -128,5 +143,12 @@ Route::group(['middleware' => ['auth','role:Super-Admin|Admin']], function () {
 
     /* User */ 
     Route::post('/members/add-new-member',[UserController::class,"addMember"]);
+    Route::post('/users/delete-member-account',[UserController::class, "deleteMember"]);
+
+    /* Roles */
+    Route::post('/users/change-user-role',[UserController::class,"editUserRole"]);
+
+   
+
  });
 

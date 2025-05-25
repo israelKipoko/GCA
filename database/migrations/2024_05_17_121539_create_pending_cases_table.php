@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreign('user_id');
             $table->foreign('user_id')->references('id')->on('user')->onDelete('cascade');
             $table->longText('comments')->nullable();
+            $table->json('assigned_group')->nullable();
             $table->timestamps();
         });
     }

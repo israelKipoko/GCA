@@ -45,43 +45,56 @@
                 .credentials{
                     display: flex;
                     flex-direction: column;
+                    gap: 2px;
                 }
                 .login{
-                    background-color: #313131;
+                    background-color: #007bff;
                     color: #fff;
                     opacity: 0.8;
                     border-radius: 4px;
                     font-weight: bold;
                     width: fit-content;
-                    padding: 5px 10px;
+                    padding: 7px 15px;
                     margin: auto;
                     text-align: center;
                 }
                 .logo{
                     font-weight: bold;
+                    background-color: #356B8C;
+                    width: fit-content;
+                    margin: auto;
+                    border-radius: 4px;
+                }
+                .logo img{
+                    width: 170px;
+                    height: 40px;
+                    object-fit: contain;
                 }
         </style>
     </head>
     <body class=" bg-[#1B1B1B] scrollable">
         <div class="emailCodeVerificationContainer">
+            <div class="logo">
+                <img src="{{ asset('icons/Mobeko_logo1.png') }}" alt="">
+            </div>
             <div>
                 <h3>Bonjour, {{$name}}</h3>
-                <h4>Nous sommes ravis de vous accueillir sur <span class="logo">Mobeko</span> ! Votre compte a été créé avec succès.</h4>
+                <h4>Nous sommes ravis de vous accueillir sur <span>Mobeko</span> ! Votre compte a été créé avec succès.</h4>
                 <p>Vous pouvez maintenant vous connecter en utilisant les informations suivantes :</p>
                 <div class="credentials">
-                    <p>
+                    <span>
                         🔹 Email : {{$email}}
-                    </p>
-                    <p>
+                    </span>
+                    <span>
                         🔹 Mot de passe : {{$password}}
-                    </p>
+                    </span>
                 </div><br/>
                
             </div>
             <div class="emailCodeVerification">
-                <a href="{{$login_url}}" target="_blank" rel="noopener noreferrer" class="login">
+                <a  href="{{$login_url}}" target="_blank" rel="noopener noreferrer" class="login">
                     Se Connecter
-                </a>
+                </a> 
             </div><br/>
 
             <div>

@@ -24,6 +24,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   dataRefresh: () => void;
+  // changeUserRole: (id: number, name: string, role: string) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -103,7 +104,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className="border-none cursor-pointer">
+                    className="border-none">
                     {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className=" text-center capitalize text-[14px]">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

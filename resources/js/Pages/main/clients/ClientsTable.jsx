@@ -43,7 +43,7 @@ const ClientTable = () =>{
   }, [refreshKey]);
 
   return (
-    <div className="container mx-auto py-10 ">
+    <div className="w-full py-10 ">
    
       <DataTable columns={columns} data={data} dataRefresh={dataRefresh}/>
     </div>

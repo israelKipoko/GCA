@@ -13,4 +13,9 @@ export default defineConfig({
         react(),
         tsconfigPaths()
     ],
+    server: {
+        watch: {
+          ignored: ['**/vendor/**'],
+        },
+      },
 });

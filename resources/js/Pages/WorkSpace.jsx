@@ -324,7 +324,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
       <section className=" w-[600px]">
           <div>
                <Dialog open={toggleDocRenderer} ref={dialogRef}   modal={false}>
-               <DialogContent className='w-[1000px] border-none bg-[#313131] '>
+               <DialogContent className='w-[1000px] border-none dark:bg-dark-secondary bg-light-thirdly '>
                  <section className='w-full h-full flex flex-row relative'>
                      <ScrollArea className='w-[700px] h-[400px] '>
                          <DocViewer documents={docToRender} pluginRenderers={DocViewerRenderers} style={{height:400,overflowY:"auto"}}/>
@@ -333,9 +333,9 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                        <div className='w-full'>
                            <div className='flex flex-row gap-x-2 items-center'>
                                <div className='w-[25px] h-[25px]'>
-                                 <img src={docInfo.avatar} alt="avatar" className=" object-fit-contain rounded-full" />
+                                 <img src={docInfo.avatar} alt="avatar" className=" object-contain rounded-full" />
                                </div>
-                               <h1 className='text-[#fff] text-[14px] capitalize'>{docInfo.name}</h1>
+                               <h1 className='dark:text-white text-dark-secondary text-[14px] capitalize'>{docInfo.name}</h1>
                            </div>
                            <p className='pl-4 my-1 text-white w-full'>
                                {docInfo.comment}
@@ -344,7 +344,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                        </div>
                      </div>
                      <button className='absolute -top-6 -right-2' onClick={() => setToggleDocRedenrer(false)}>
-                         <i class='bx bx-x bx-md text-white'></i>
+                         <i class='bx bx-x bx-md dark:text-white text-dark-secondary '></i>
                      </button>
                  </section>
                  
@@ -353,9 +353,9 @@ const WorkSpace = ({caseId,caseFolders}) =>{
              {caseFiles.length != 0 ? (
                 <section className='apps p-1 flex flex-wrap gap-x-1'>
                   {caseFiles.map((file,index) => (
-                    <div key={index} className='w-[220px] h-[40px] relative flex fex-row gap-x-2 items-center p-2 bg-[#313131] text-[#fff] text-[12px]  rounded-[4px]'>
+                    <div key={index} className='w-[220px] h-[40px] relative flex fex-row gap-x-2 items-center p-2 dark:bg-dark-secondary bg-light-thirdly dark:text-white text-dark-secondary text-[12px]  rounded-[4px]'>
                       <div>
-                          <i className='bx bxs-file text-[#fff] text-[18px]'></i>
+                          <i className='bx bxs-file dark:text-white text-dark-secondary text-[18px]'></i>
                       </div>
                       <div>
                           <h1 className='upload_file_name flex flex-wrap'>{file.name}</h1> 
@@ -363,14 +363,14 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                       </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger className='h-full '>
-                            <div className='hover:bg-[#d8d8d833] rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
-                                <i class='bx bx-chevron-down text-[#fff] bx-sm'></i>
+                            <div className='dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
+                                <i class='bx bx-chevron-down dark:text-white text-dark-secondary bx-sm'></i>
                             </div>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent side='top' className='w-[180px] bg-[#313131] border-none flex flex-col gap-2'>
-                            <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]'>
+                        <DropdownMenuContent side='top' className='w-[180px] dark:bg-dark-secondary bg-light-thirdly border-none flex flex-col gap-2'>
+                            <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover'>
                                 <a className='flex flex-row items-center gap-x-2 w-full h-full'  href={file.url} download={file.name}>
-                                  <i class='bx bxs-download text-[#fff] text-[18px]'></i>Télécharger
+                                  <i class='bx bxs-download dark:text-white text-dark-secondary text-[18px]'></i>Télécharger
                                 </a>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -381,23 +381,23 @@ const WorkSpace = ({caseId,caseFolders}) =>{
           <ScrollArea className="py-1 px-2 workspace_message_box_wrapper ">
             <div className='w-full flex flex-col gap-y-4'>
             {messages.length ? (
-                  messages.map((message) =>(
-                      <div className='flex  flex-row items-start flex-wrap gap-x-1'>
+                  messages.map((message,index) =>(
+                      <div key={index} className='flex  flex-row items-start flex-wrap gap-x-1'>
                           <div className='w-[25px] h-[25px]'>
-                            <img src={message.avatar} alt="avatar" className=" object-fit-contain rounded-full" />
+                            <img src={message.avatar} alt="avatar" className=" object-contain rounded-full" />
                           </div>
                         <div className='flex flex-col justify-center py-0.5 w-fit '>
                             <div>
-                              <h1 className='text-[#fff] text-[14px] capitalize'>{message.name} <span className={cn("ml-1 opacity-[0.5] text-[#ddd] text-[13px]",isSingleWord(message.date) ? 'capitalize' : 'lowercase')}>{message.date}</span></h1>
+                              <h1 className='dark:text-white text-dark-secondary text-[14px] capitalize'>{message.name} <span className={cn("ml-1 opacity-[0.5] dark:text-white text-dark-secondary  text-[13px]",isSingleWord(message.date) ? 'capitalize' : 'lowercase')}>{message.date}</span></h1>
                             </div>
                             <div className='message_box'>
-                              <p className='text-[15px]  w-fit py-1 rounded-[4px] text-[#fff]'>{message.comment}</p>
+                              <p className='text-[15px]  w-fit py-1 rounded-[4px] dark:text-white text-dark-secondary'>{message.comment}</p>
                               <div className='flex flex-wrap gap-2 w-fit'>
                                 {message.files.map((file,index)=>(
                                   <div key={index}>
-                                    <div className='w-[240px] h-[50px] relative flex fex-row gap-x-2 items-center p-2 bg-[#313131] text-[#fff] text-[12px]  rounded-[4px]'>
+                                    <div className='w-[240px] h-[50px] relative flex fex-row gap-x-2 items-center p-2 dark:bg-dark-secondary bg-light-thirdly dark:text-white text-dark-secondary text-[12px]  rounded-[4px]'>
                                       <div>
-                                          <i class='bx bxs-file text-[#fff] text-[18px]'></i>
+                                          <i class='bx bxs-file dark:text-white text-dark-secondary text-[18px]'></i>
                                       </div>
                                       <div>
                                           <h1 className='upload_file_name'>{file.file_name}</h1> 
@@ -405,17 +405,17 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                                       </div>
                                       <DropdownMenu>
                                           <DropdownMenuTrigger className='h-full '>
-                                              <div className='hover:bg-[#d8d8d833] rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
-                                                  <i class='bx bx-chevron-down text-[#fff] bx-sm'></i>
+                                              <div className='dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
+                                                  <i class='bx bx-chevron-down dark:text-white text-dark-secondary bx-sm'></i>
                                               </div>
                                           </DropdownMenuTrigger>
-                                          <DropdownMenuContent side='top' className='w-[180px] bg-[#313131] border-none flex flex-col'>
-                                              <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]' onClick={(e) => ViewDoc(file.original_url,message,null)}>
-                                                <i class='bx bx-file-find text-[#fff] text-[18px]'></i>Aperçu
+                                          <DropdownMenuContent side='top' className='w-[180px] dark:bg-dark-secondary bg-light-thirdly border-none flex flex-col'>
+                                              <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover' onClick={(e) => ViewDoc(file.original_url,message,null)}>
+                                                <i class='bx bx-file-find dark:text-white text-dark-secondary text-[18px]'></i>Aperçu
                                                 </DropdownMenuItem>
-                                              <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]'>
+                                              <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover'>
                                                  <a className='flex flex-row items-center gap-x-2 w-full h-full'  href={file.original_url} download={file.file_name}>
-                                                    <i class='bx bxs-download text-[#fff] text-[18px]'></i>Télécharger
+                                                    <i class='bx bxs-download dark:text-white text-dark-secondary text-[18px]'></i>Télécharger
                                                  </a>
                                               </DropdownMenuItem>
                                           </DropdownMenuContent>
@@ -432,33 +432,33 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                   (
                     <div>
                       <div className='w-[250px] h-[250px] opacity-[0.15] mx-auto'>
-                          <img  className=" object-fit-contain  "  src="../../../icons/discussion.svg" alt="message" />
+                          <img  className=" object-contain  "  src="../../../icons/discussion.svg" alt="message" />
                       </div>
                     </div>
                   )}
             </div>
           </ScrollArea>
-            <div className='mt-2  bg-[#313131] rounded-[4px]'>
+            <div className='mt-2  dark:bg-dark-secondary bg-light-thirdly rounded-[4px]'>
               {isFileUpoading && (
                 <div className='flex flex-row flex-wrap gap-x-1 items-center p-2  border-b'>
                     {filesUploaded.map((file,index) =>(
                       <div key={index} className={cn('relative flex flex-row items-center gap-2 h-[50px] p-1 workspace_box_shadow rounded-[4px] relative', filesUploaded.length > 2 ? "w-[190px]":"w-[200px]")}>
                          <div>
-                              <i class='bx bxs-file text-[#fff] text-[18px]'></i>
+                              <i class='bx bxs-file dark:text-white text-dark-secondary text-[18px]'></i>
                           </div>
                           <div>
-                              <h1 className='text-[#fff] text-[12px] upload_file_name'>{file.name}</h1> 
-                              <p className='text-[#fff] text-[10px]'>{formatFileSize(file.size)}</p>
+                              <h1 className='dark:text-white text-dark-secondary text-[12px] upload_file_name'>{file.name}</h1> 
+                              <p className='dark:text-white text-dark-secondary text-[10px]'>{formatFileSize(file.size)}</p>
                           </div>
                           <DropdownMenu>
                             <DropdownMenuTrigger className='h-full '>
-                                <div className='hover:bg-[#d8d8d833] rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
-                                    <i class='bx bx-chevron-down text-[#fff] bx-sm'></i>
+                                <div className='dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
+                                    <i class='bx bx-chevron-down dark:text-white text-dark-secondary bx-sm'></i>
                                 </div>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent side='top' className='w-[180px] bg-[#313131] border-none flex flex-col'>
-                                {/* <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]'><i class='bx bx-file-find text-[#fff] text-[18px]'></i>Aperçu</DropdownMenuItem> */}
-                                <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]' onClick={() => removeFile(index) }>
+                            <DropdownMenuContent side='top' className='w-[180px] dark:bg-dark-secondary bg-light-thirdly border-none flex flex-col'>
+                                {/* <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover'><i class='bx bx-file-find dark:text-white text-dark-secondary text-[18px]'></i>Aperçu</DropdownMenuItem> */}
+                                <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover' onClick={() => removeFile(index) }>
                                     <i class='bx bx-x text-red-600 text-[20px]'></i>Supprimer
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -475,11 +475,11 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div>
-                            <label htmlFor='file' className='cursor-pointer'><i className="fa-solid fa-paperclip text-[#fff]"></i></label>
+                            <label htmlFor='file' className='cursor-pointer'><i className="fa-solid fa-paperclip dark:text-white text-dark-secondary"></i></label>
                             <input type="file" accept=".pdf, .doc, .docx, .xls, .odt, .xlsx, .txt, .png, .jpeg, .jpg" name='file' id='file' multiple className='hidden' onChange={handleFileChange} />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent className='bg-[#313131] border-none text-[#fff]'>
+                        <TooltipContent className='dark:bg-dark-secondary bg-light-thirdly border-none dark:text-white text-dark-secondary'>
                           <p className='text-[12px]'>Attachez un document</p>
                         </TooltipContent>
                       </Tooltip>
@@ -490,7 +490,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                     onChange={(e)=> setNewMessage(e.target.value)}
                     ref={textareaRef} 
                     type="text" 
-                    className='auto_expand_textarea pr-6 h-[20px] w-full px-1 py-2 text-[15px] focus:outline-none text-[#fff] bg-[#313131] border-none' rows={1} placeholder='Type something'></textarea>
+                    className='auto_expand_textarea pr-6 h-[20px] w-full px-1 py-2 text-[15px] focus:outline-none dark:text-white text-dark-secondary dark:bg-dark-secondary bg-light-thirdly border-none' rows={1} placeholder='Type something'></textarea>
                   </div>
                   <div className='absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-2'>
                     <TooltipProvider>
@@ -500,7 +500,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                             <button onClick={SendMessage}  className='h-fit  mt-1 my-auto'><i class='bx bxs-send text-[#0f6cbd] tefxt-[#335b74] bx-sm'></i></button>
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent className='bg-[#313131] border-none text-[#fff]'>
+                        <TooltipContent className='dark:bg-dark-secondary bg-light-thirdly border-none dark:text-white text-dark-secondary'>
                           <p className='text-[12px]'>Envoyer</p>
                         </TooltipContent>
                       </Tooltip>
@@ -516,16 +516,16 @@ const WorkSpace = ({caseId,caseFolders}) =>{
           <div className='workspace_tools_wrapper' onClick={(e)=> TabsToggle('task')}> 
             <div className='flex flex-col justify-center' >
               <div className='flex items-center gap-x-1'>
-                <h1>Vos tâches</h1><span>{tasks.length}</span>
+                <h1 className='dark:text-white text-dark-secondary '>Vos tâches</h1><span className='dark:text-white text-dark-secondary'>{tasks.length}</span>
               </div>
             </div>
-            <div><i className='bx bx-chevrons-right text-[18px]'></i></div>
+            <div><i className='bx bx-chevrons-right text-[18px] dark:text-white text-dark-secondary'></i></div>
           </div>
           <div className='workspace_tools_wrapper' onClick={(e)=> TabsToggle('docs')}>
             <div className='flex items-center gap-x-1'>
-              <h1>Documents Partagés</h1> <span>{allFiles.length}</span>
+              <h1 className='dark:text-white text-dark-secondary '>Documents Partagés</h1> <span className='dark:text-white text-dark-secondary'>{allFiles.length}</span>
             </div>
-            <div><i className='bx bx-chevrons-right text-[18px]'></i></div>
+            <div><i className='bx bx-chevrons-right text-[18px] dark:text-white text-dark-secondary'></i></div>
           </div> 
         </section>
         :
@@ -547,7 +547,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                         ): (
                           <div className="flex flex-col  items-center h-fit my-auto  no-event mt-4">
                           <img className="w-[60px] h-[60px]" src="../../../icons/no-task.png" alt="No task"/>
-                            <p className="text-[13px] text-center">Les tâches rélatives à ce dossier apparaîtront ici.</p>
+                            <p className="text-[13px] text-center dark:text-white text-dark-secondary">Les tâches rélatives à ce dossier apparaîtront ici.</p>
                           </div>
                         )}
                         </div>
@@ -568,9 +568,9 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                   {allFiles.length ? (
                     allFiles.map((file,index)=>(
                       <div key={index}>
-                         <div className='relative flex fex-row gap-x-2 items-center p-2 bg-[#313131] text-[#fff] text-[12px]  rounded-[4px]'>
+                         <div className='relative flex fex-row gap-x-2 items-center p-2 dark:bg-dark-secondary bg-light-thirdly dark:text-white text-dark-secondary text-[12px]  rounded-[4px]'>
                             <div>
-                                <i class='bx bxs-file text-[#fff] text-[18px]'></i>
+                                <i class='bx bxs-file dark:text-white text-dark-secondary text-[18px]'></i>
                             </div>
                             <div>
                                 <h1 className='upload_file_name'>{file.file_name}</h1> 
@@ -578,17 +578,17 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger className='h-full p-1 absolute right-0 top-1/2 flex items-center -translate-y-1/2'>
-                                    <div className='hover:bg-[#d8d8d833] rounded-r-[4px] hover:cursor-pointer h-full flex items-center '>
-                                        <i class='bx bx-chevron-down text-[#fff] bx-sm'></i>
+                                    <div className='dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-r-[4px] hover:cursor-pointer h-full flex items-center '>
+                                        <i class='bx bx-chevron-down dark:text-white text-dark-secondary bx-sm'></i>
                                     </div>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent side='top' className='w-[180px] bg-[#313131] border-none flex flex-col'>
-                                    <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]' onClick={() => ViewDoc(file.original_url,null,file.model_id)}>
-                                      <i class='bx bx-file-find text-[#fff] text-[18px]'></i>Aperçu
+                                <DropdownMenuContent side='top' className='w-[180px] dark:bg-dark-secondary bg-light-thirdly border-none flex flex-col'>
+                                    <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover' onClick={() => ViewDoc(file.original_url,null,file.model_id)}>
+                                      <i class='bx bx-file-find dark:text-white text-dark-secondary text-[18px]'></i>Aperçu
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem className='text-[#fff] text-[14px] hover:cursor-pointer hover:bg-[#d8d8d833]'>
+                                    <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover'>
                                         <a className='flex flex-row items-center gap-x-2 w-full h-full'  href={file.original_url} download={file.file_name}>
-                                          <i class='bx bxs-download text-[#fff] text-[18px]'></i>Télécharger
+                                          <i class='bx bxs-download dark:text-white text-dark-secondary text-[18px]'></i>Télécharger
                                         </a>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>

@@ -24,6 +24,7 @@ theme: {
 	extend: {
 		boxShadow: {
 			custom: 'rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px',
+			regular: 'rgba(0, 0, 0, 0.25) 2px 2px 2px, rgba(0, 0, 0, 0.22) 2px 2px 2px', 
 			white: 'rgba(255, 255, 255, 0.25) 0px 14px 28px, rgba(255, 255, 255, 0.22) 0px 10px 10px',
 		},
 		scale: {
@@ -41,7 +42,8 @@ theme: {
 			},
 			light: {
 				primary: '#F4F4F4',
-				secondary: '#CFCFCF',
+				secondary: '#5A5A5A',
+				thirdly: '#CFCFCF',
 				hover: '#29292933'
 			},
 			muted: {

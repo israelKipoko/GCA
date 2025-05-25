@@ -6,6 +6,7 @@ import FolderForm from "./FolderForm";
 import axios from 'axios';
 import { useToast } from "../../../hooks/use-toast"
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,7 @@ export function DataTable<TData, TValue>({
   data,
   dataRefresh, 
 }: DataTableProps<TData, TValue>) {
+    const { t, i18n } = useTranslation();
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
         []
         )
@@ -136,7 +138,7 @@ export function DataTable<TData, TValue>({
     }
   });
   return (
-    <div>
+    <div className="w-full">
          <div className="flex px-3 mb-2  justify-between items-center mb-1">
             <Input
               placeholder="Trouvez un dossier..."
@@ -203,16 +205,16 @@ export function DataTable<TData, TValue>({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] border-none">
         <DialogHeader>
-          <DialogTitle className="dark:text-white text-dark-secondary">{row.getValue("title")}</DialogTitle>
+          <DialogTitle className="dark:text-white text-dark-secondary capitalize">{row.getValue("title")}</DialogTitle>
           <DialogDescription className="dark:text-white text-dark-secondary">
               {row.getValue("description")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-            <div className="dark:text-white text-dark-secondary">
+            {/* <div className="dark:text-white text-dark-secondary">
             <label htmlFor="" className="text-[14px] text-center">Assigné à:</label>
               <div className=" flex ">
-                {/* {assignedUsers.map((user, index) => (
+                {assignedUsers.map((user, index) => (
                       <TooltipProvider key={index}>
                       <Tooltip>
                       {(index==0)?
@@ -227,31 +229,52 @@ export function DataTable<TData, TValue>({
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                ))}  */}
+                ))} 
               </div>
-            </div>
+            </div> */}
           <div className="dark:text-white text-dark-secondary flex flex-col gap-y-2">
             <div className="flex justify-between">
-                <div>
+                {/* <div>
                   <label htmlFor="" className="text-[14px]">Client:</label>
                   <h1 className="text-[15px] font-bold">{row.getValue("client")==""?"...":""}</h1>
-                </div>
-                <div className="text-center">
-                  <label htmlFor="" className="text-[14px] text-center">Statut:</label>
-                  {row.getValue("statut") == "pending"?  <div className=" w-fit mx-auto px-3 py-1 rounded-[16px]  capitalize bg-[#ffde4db3] text-[14px] flex items-center gap-x-1"><span className="w-[8px] h-[8px] rounded-full bg-[#ffde4d]"> </span>{row.getValue("statut")}</div>
-                  :<div className=" w-fit mx-auto px-3 py-1 rounded-[16px]  capitalize bg-[#387f39b3] text-[14px] flex items-center gap-x-1"><span className="w-[8px] h-[8px] rounded-full bg-[#387f39]"> </span>{row.getValue("statut")}</div>}
+                </div> */}
+                <div className="text-left flex flex-col">
+                  <label htmlFor="" className="text-[14px] text-left">Statut:</label>
+                  {row.getValue("statut") == "pending"?  
+                  (<span className="inline-flex items-center gap-1 rounded-full bg-yellow-200 px-3 py-1 text-xs font-medium text-yellow-700">
+                    <span className="h-2 w-2 rounded-full bg-yellow-500"></span>
+                    {t("pending")}
+                  </span>)
+                  :
+                 (<span className="inline-flex items-center gap-1 rounded-full bg-green-200 px-3 py-1 text-xs font-medium text-green-700">
+                    <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                    {t("completed")}
+                  </span>)
+                  }
                 </div>
             </div>
-            <div className="flex justify-between">
+            <div className="flex flex-col gap-y-3">
                 <div>
                   <label htmlFor="" className="text-[14px]">Créé par:</label>
                   <h1 className="text-[15px] font-bold">{row.getValue("created_by")}</h1>
                 </div>
-                <div className="text-center ">
+                <div className="text-center flex flex-col w-fit ">
                   <label htmlFor="" className="text-[14px] text-center">Priorité:</label>
-                  {row.getValue("priority") == "medium"? <div className=" w-fit mx-auto px-3 py-1 rounded-[4px] text-[14px]  capitalize bg-[#ffde4d80]  flex items-center gap-x-1">{row.getValue("priority")}</div>
-                  :row.getValue("priority") == "low"?<div className=" w-fit mx-auto px-3 py-1 rounded-[4px] text-[14px] capitalize bg-[#387f3980]  flex items-center gap-x-1">{row.getValue("priority")}</div>
-                  :<div className=" w-fit mx-auto px-3 py-1 rounded-[4px]  capitalize bg-[#c40c0c80] text-[14px] flex items-center gap-x-1">{row.getValue("priority")}</div> }
+                  {row.getValue("priority") == "medium"? 
+                  <span className="inline-flex items-center gap-1 rounded-full bg-yellow-200 px-3 py-1 text-xs font-medium text-yellow-700">
+                    <span className="h-2 w-2 rounded-full bg-yellow-700"></span>
+                    {t("medium")}
+                  </span>
+                  :row.getValue("priority") == "low"?
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-300 px-3 py-1 text-xs font-medium text-green-700">
+                      <span className="h-2 w-2 rounded-full bg-green-700"></span>
+                      {t("low")}
+                    </span>
+                  :
+                  <span className="inline-flex items-center gap-1 rounded-full bg-red-200 px-3 py-1 text-xs font-medium text-red-700">
+                    <span className="h-2 w-2 rounded-full bg-red-700"></span>
+                    {t("high")}
+                  </span>}
                 </div>
             </div>
           </div>
