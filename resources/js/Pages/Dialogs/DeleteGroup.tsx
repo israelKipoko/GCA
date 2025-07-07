@@ -72,8 +72,9 @@ return (
                     Ce groupe sera définitivement supprimé. Tous ses membres seront retirés de tous les dossiers,tâches et événements auxquels ce groupe était associé.
                     </h1>
                 </div>
-                       
-                    <button  disabled={loading}  type="submit" className=' w-full py-1.5 px-4 dark:bg-[#D84444] bg-red-600 rounded-[4px] flex justify-center text-white text-[15px] font-bold'>
+                <div className='w-full flex flex-row gap-x-2'>
+                  <button onClick={()=>setOpenDeleteAccountDialog(false)} type='button' className=' dark:bg-[#d8d8d844] bg-[#29292922] scalling-animation w-full py-1.5 px-4  rounded-[4px] flex justify-center font-bold text-[15px] dark:text-white text-dark-secondary '>Annuler</button>
+                   <button disabled={loading}  type="submit" className=' w-full py-1.5 px-4  bg-destructive scalling-animation rounded-[4px] flex justify-center text-white text-[15px] font-bold'>
                         {loading ? (
                           <>
                             <svg 
@@ -98,10 +99,10 @@ return (
                             </svg>
                           </>
                         ) : (
-                          "Supprimer"
+                         "Supprimer"
                         )}
                   </button>
-                  <button onClick={()=>setOpenDeleteAccountDialog(false)} type='button' className=' dark:bg-[#d8d8d811] bg-[#29292922] w-full py-1.5 px-4  rounded-[4px] flex justify-center font-bold dark:text-white text-dark-secondary text-[15px]'>Annuler</button>
+                </div>  
                 </form>
           </DialogContent>
     </Dialog>

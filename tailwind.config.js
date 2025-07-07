@@ -54,6 +54,13 @@ theme: {
 				DEFAULT: 'hsl(var(--destructive))',
 				foreground: 'hsl(var(--destructive-foreground))'
 			},
+			action: {
+				DEFAULT: '#356B8C',
+			},
+			destructive:{
+				DEFAULT: '#dc2626',
+			    secondary: "#D84444"
+			},
 			input: 'hsl(var(--input))',
 			ring: 'hsl(var(--ring))',
 			chart: {

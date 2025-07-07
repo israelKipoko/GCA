@@ -12,7 +12,7 @@ import {
     DialogTrigger,
   } from "../../../../components/ui/dialog";
 
-const CreateGroup = ({allUsers, openCreateGroup, setOpenCreateGroup, refreshLayout, dataRefresh }) =>{
+const CreateGroup = ({allUsers, openCreateGroup, setOpenCreateGroup, refreshLayout, dataRefresh,refreshGroups }) =>{
    const [loading, setLoading] = useState(false);
 
    const [name, setName] = useState("");
@@ -56,8 +56,8 @@ const handleOptionClick = (id) => {
 
     axios.post("/groups/create-group", formData)
     .then(response => {
-        refreshLayout();
-        dataRefresh();
+        // refreshLayout();
+        refreshGroups();
         setOpenCreateGroup(false);
         toast({
           variant: "default",
@@ -96,13 +96,13 @@ const handleOptionClick = (id) => {
   }, []);
 return (
     <Dialog open={openCreateGroup} onOpenChange={setOpenCreateGroup}>
-          <DialogContent className="md:max-w-[450px] max-h-[500px] min-h-[200px] border-none p-3">
+          <DialogContent className="md:max-w-[450px] max-h-[500px] min-h-[200px] border-none py-3 px-4">
             <DialogTitle className="dark:text-white text-dark-secondary font-bold ">
-                Inviter un membre
+                Créer un groupe
             </DialogTitle>
             <form onSubmit={createGroup} className='w-full flex flex-col items-center justify-center gap-y-4 '>
                 <h1 className='dark:text-white text-dark-secondary text-left text-[15px] text-left'>
-                    Le membre invité recevra un e-mail contenant ses informations de connexion.
+                  Ajoutez des membres pour vivre pleinement l’expérience du travail collectif.
                 </h1>
                 <div className='flex flex-col gap-y-2 w-full'>
                     <div className='flex flex-col input_div mx-auto  w-full h-fit '>
@@ -113,7 +113,7 @@ return (
                             name="name"
                             value={name}
                             onChange={(e)=> setName(e.target.value)}
-                            placeholder="Entrez le nom du nouveau membre"
+                            placeholder="Entrez le nom du groupe"
                             required
                             autoComplete='off'/>
                     </div>     
@@ -146,7 +146,7 @@ return (
                             className="dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[14px] select-placeholder"
                             onFocus={() => setIsDropdownOpen(true)}
                             onInput={(e) => setFilter((e.target).value.toLowerCase())}
-                            placeholder="Ajouter une équipe" autoComplete='off'/>
+                            placeholder="Ajouter des membres" autoComplete='off'/>
                       </div>
                     </div>
                         {isDropdownOpen && (

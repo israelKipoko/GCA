@@ -10,13 +10,99 @@ import GroupsTable from "../tables/goups/groupsTable"
 
 const Members = ({allUsers,refreshLayout}) =>{
     const [activeTab, setActiveTab] = useState('members');
+    const [refreshKey, setRefreshKey] = useState(0);
 
+      const dataRefresh = () => {
+      setRefreshKey((oldKey) => oldKey + 1);
+    };
     const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
     const [openCreateGroup, setOpenCreateGroup] = useState(false);
 
     const [totalUsers, setTotalUsers] = useState(null);
     const [totalGroups, setTotalGroups] = useState(null);
+    const [groupData, setGroupData] = useState([]);
+    const [userdata, setUserData] = useState([]);
    
+
+// Fetch BOTH users and groups
+const getData = async () => {
+
+  try {
+    const [usersResponse, groupsResponse] = await Promise.all([
+      axios.get('/users/get-all-users'),
+      axios.get('/groups/get-all-groups'),
+    ]);
+
+    handleUsersData(usersResponse.data[0]);
+    handleGroupsData(groupsResponse.data);
+
+  } catch (error) {
+      console.log("❌ FULL ERROR:", error);
+  if (error.response) {
+    console.log("🔴 Response error:", error.response.data);
+  } else if (error.request) {
+    console.log("🟡 Request made, no response:", error.request);
+  } else {
+    console.log("⚪ General error:", error.message);
+  }
+  }
+};
+
+// Shared handler for users
+const handleUsersData = (rawUsers) => {
+  const transformedUsers = rawUsers?.map((user) => ({
+    id: user.id,
+    name: `${user.firstname || ""} ${user.name || ""}`.trim(),
+    email: user.email ?? "...",
+    role: user.role ?? "...",
+    avatar: user.avatar_link ?? "...",
+    groups: user.groups ?? "...",
+  })) || [];
+
+  setUserData(transformedUsers);
+  setTotalUsers(transformedUsers.length);
+};
+
+// Shared handler for groups
+const handleGroupsData = (rawGroups) => {
+  console.log("grop")
+  const transformedGroups = rawGroups?.map((group) => ({
+    id: group.id,
+    groupName: group.name ?? "...",
+    name: group.description ?? "",
+    members: group.members ?? [],
+    membersCount: group.membersCount ?? 0,
+    groupCases: group.groupCases ?? [],
+  })) || [];
+  setGroupData(transformedGroups);
+  setTotalGroups(transformedGroups.length);
+};
+
+// Fetch ONLY users
+const refreshUsersOnly = async () => {
+  try {
+    const response = await axios.get('/users/get-all-users');
+    handleUsersData(response.data[0]);
+  } catch (error) {
+    console.error("Error fetching users:", error.message);
+  }
+};
+
+// Fetch ONLY groups
+const refreshGroupsOnly = async () => {
+  try {
+    const response = await axios.get('/groups/get-all-groups');
+    handleGroupsData(response.data);
+  } catch (error) {
+    console.error("Error fetching groups:", error.message);
+  }
+};
+
+
+  useEffect(() => {
+     console.log("🔥 useEffect triggered with refreshKey =", refreshKey);
+      getData();
+  }, [refreshKey]);
 return (
     <section className='my-6'>
        <Tabs defaultValue="members" className="w-full">
@@ -40,14 +126,14 @@ return (
             <TabsContent value="members" className='h-full w-full'>
               <section className='h-full'>
                 <ScrollArea className='h-full'>
-                  <UsersTable setTotalUsers={setTotalUsers} openAddUserDialog={openAddUserDialog} setOpenAddUserDialog={setOpenAddUserDialog} refreshLayout={refreshLayout}/>
+                  <UsersTable data={userdata} refreshUsers={refreshUsersOnly} openAddUserDialog={openAddUserDialog} setOpenAddUserDialog={setOpenAddUserDialog} dataRefresh={dataRefresh}/>
                 </ScrollArea>
               </section>
             </TabsContent>
             <TabsContent value="groups"  className='h-full w-full'>
               <section className='h-full'>
                   <ScrollArea className='h-full'>
-                    <GroupsTable setTotalGroups={setTotalGroups} allUsers={allUsers} openCreateGroup={openCreateGroup} setOpenCreateGroup={setOpenCreateGroup} refreshLayout={refreshLayout}/>
+                    <GroupsTable data={groupData} refreshGroups={refreshGroupsOnly} allUsers={allUsers} openCreateGroup={openCreateGroup} setOpenCreateGroup={setOpenCreateGroup} refreshLayout={refreshLayout} dataRefresh={dataRefresh}/>
                   </ScrollArea>
                 </section>
             </TabsContent>

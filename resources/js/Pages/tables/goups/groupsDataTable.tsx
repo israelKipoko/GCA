@@ -24,12 +24,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   dataRefresh: () => void;
+  refreshGroups: () => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   dataRefresh,
+  refreshGroups,
 }: DataTableProps<TData, TValue>) {
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
@@ -48,7 +50,8 @@ export function DataTable<TData, TValue>({
         columnVisibility: {
           avatar: false,
           id: false,
-          email: false,
+          name: false,
+          groupCases: false,
         },
       }
   })
@@ -63,7 +66,7 @@ export function DataTable<TData, TValue>({
     setRefreshKey((oldKey:any) => oldKey + 1);
   };
   useEffect(() => {
-    dataRefresh();
+    refreshGroups();
   }, [refreshKey]);
 
   return (

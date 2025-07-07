@@ -14,6 +14,7 @@ class Groups extends Model
     protected $fillable = [
         'name',
         'users',
+        'description',
     ];
 
     protected function users(): Attribute{

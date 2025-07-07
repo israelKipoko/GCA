@@ -111,7 +111,7 @@ const SideBar = ({refreshLayout, allUsers, activeTab}) =>{
      }
     })
     .catch(error => {
-      console.log(error.message)
+      console.log(error);
     });
   }
   const Logout = () =>  {

@@ -38,6 +38,12 @@ body{
     margin: 0;
     width: 100%;
 }
+.scalling-animation{
+    transition: all 0.2s ease-in-out;
+    &:hover{
+        transform: scale(1.01);
+    }
+}
 .scrollable {
   overflow: auto;
   scrollbar-width: thin; /* For Firefox */

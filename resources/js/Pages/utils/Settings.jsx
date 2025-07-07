@@ -158,7 +158,7 @@ const SettingsDialog = ({ user, allUsers, refreshParent, refreshLayout, openedTa
    })
 return (
     <Dialog open={openSettingsDialog} onOpenChange={setOpenSettingsDialog}>
-        <DialogContent className="md:max-w-[1000px] h-[450px] border-none p-0 rounded-md">
+        <DialogContent className="md:max-w-[1000px] h-[500px] border-none p-0 rounded-md">
             <DialogTitle className="dark:text-white text-dark-secondary font-bold hidden">
             </DialogTitle>
               <Tabs defaultValue={openedTab} className="flex w-full p-0">
@@ -182,7 +182,7 @@ return (
                         </TabsTrigger>
                     ))}
                 </TabsList>
-                <TabsContent value="profile" className=' w-full h-[450px] m-0 p-3 rounded-md'>
+                <TabsContent value="profile" className=' w-full h-[500px] m-0 p-3 rounded-md'>
                     <section className='h-full'>
                         <ScrollArea className='h-full'>
                             <h1 className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">{t("Profil")}</h1>
@@ -293,7 +293,7 @@ return (
                         </ScrollArea>
                     </section>
                 </TabsContent>
-                <TabsContent value="settings" className=' w-full  h-[450px] m-0 p-3 rounded-md'>
+                <TabsContent value="settings" className=' w-full  h-[500px] m-0 p-3 rounded-md'>
                     <section className='h-full'>
                         <ScrollArea className='h-full'>
                         <h1 className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">Paramètres</h1>
@@ -406,7 +406,7 @@ return (
                 <TabsContent value="connections" className=' w-full h-full  m-0 p-3 rounded-md'>
                     <Connections user={user} refreshParent={refreshParent}/>
                 </TabsContent>
-                <TabsContent value="members" className=' w-full h-[450px] m-0 p-3 rounded-md'>
+                <TabsContent value="members" className=' w-full h-[500px] m-0 p-3 rounded-md'>
                     <section className='h-full'>
                         <ScrollArea className='h-full'>
                             <h1 className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">Membres</h1>

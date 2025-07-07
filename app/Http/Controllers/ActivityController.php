@@ -415,6 +415,7 @@ class ActivityController extends Controller
         $formFields['client_id'] =  $request->newFolder['clientId'];
         $formFields['priority'] =  $request->newFolder['priority'];
         $formFields['assigned_to'] =  $request->newFolder['selectedOptions'];
+        $formFields['assigned_group'] =  $request->newFolder['selectedGroups'];
         $formFields['created_by'] = Auth::id();
         $formFields['type'] = "CJ";
         $formFields['due_date'] = $request->newFolder['formattedDate'];
@@ -434,6 +435,7 @@ class ActivityController extends Controller
             'title' => $request->newFolder['title'],
             'participants' => $request->newFolder['selectedOptions'],
             'date' => $request->newFolder['formattedDate'],
+            'case_id' => $folder->id,
             'time' => [
             'start_time' =>null,
             'end_time' => null,
@@ -505,7 +507,7 @@ class ActivityController extends Controller
 
     public function getAllEvents(){
         $users = null;
-        $events = Event::with('user')
+        $events = Event::with('user','cases')
         ->where(function($query) {
             $query->whereJsonContains('participants', Auth::id())
                   ->orWhere('created_by', Auth::id());
@@ -604,7 +606,6 @@ class ActivityController extends Controller
            }else{
                $user['avatar_link'] = asset('storage'.$user->avatar);
            }
-
         //  $client = new GoogleClient();
         //  $client->setClientId(env('VITE_GOOGLE_CLIENT_ID'));
         //  $client->setClientSecret(env('VITE_GOOGLE_CLIENT_SECRET'));
@@ -674,16 +675,16 @@ class ActivityController extends Controller
     /* Get all groups */
     public function getGroups(){
         $user = Auth::user();
+        $cases = [];
 
         if($user->hasRole('Super-Admin') || $user->hasRole('Admin')){
             $groups = Groups::get();
-            $members = [];
 
             foreach($groups as $group){
                 if(!empty($group->users)){
                     $members = [];
                     foreach($group->users as $member){
-                        $groupUser = User::find($member);
+                        $groupUser = User::with('media')->select('id','name', 'firstname', 'email', 'avatar')->find($member);
                         if($groupUser->hasMedia("profile_pictures")){
                             $groupUser['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
                         }else{
@@ -693,10 +694,19 @@ class ActivityController extends Controller
                         $members [] = $groupUser;
                     }
 
+                  // Get cases assigned to the group
+                    $groupCases = Cases::whereJsonContains('assigned_group', (int) $group->id)->select('id', 'title')->get();
+
+                    // Only add if not null and not empty
+                    if ($groupCases && $groupCases->isNotEmpty()) {
+                       $group['groupCases'] = $groupCases;
+                    }
+
                     $group['members'] = $members;
                     $group['membersCount'] = sizeof($members);
                 }
             }
+     
             return response()->json($groups,201);
         }
 
@@ -706,7 +716,7 @@ class ActivityController extends Controller
             if(!empty($group->users)){
                 $members = [];
                 foreach($group->users as $member){
-                    $groupUser = User::find($member);
+                    $groupUser = User::with('media')->select('id','name', 'firstname', 'email','avatar')->find($member);
                     if($groupUser->hasMedia("profile_pictures")){
                         $groupUser['avatar_link'] = $user->getFirstMediaUrl('profile_pictures');
                     }else{
@@ -717,8 +727,17 @@ class ActivityController extends Controller
                 }
                 $group['members'] = $members;
                 $group['membersCount'] = sizeof($members);
+
+               // Get cases assigned to the group
+                $groupCases = Cases::whereJsonContains('assigned_group', (int) $group->id)->select('id', 'title')->get();
+
+                // Only add if not null and not empty
+                if ($groupCases && $groupCases->isNotEmpty()) {
+                    $group['groupCases'] = $groupCases;
+                }
             }
         }
+
 
         return response()->json($groups,201);
     }
@@ -766,19 +785,59 @@ class ActivityController extends Controller
     }
 
     public function addMember(Request $request){
+        // Validate input
+         $validated = $request->validate([
+            'groupId' => 'required|exists:groups,id',
+              'newMembers' => 'required',
+        ]);
+
+        // Find group
         $group = Groups::find($request->groupId);
- 
+
+        // Decode and sanitize newMembers
         $newMembers = json_decode($request->newMembers, true);
 
+        // Get current members as array of user IDs
+        $oldMembers = $group->users ?? [];
+    
+        // Remove duplicates
+        $allMembers = array_unique(array_merge($oldMembers, $newMembers));
+
+        $group->users = $allMembers;
+        $group->save();
+
+    return response()->json(['message' => 'Members added successfully.'], 201);
+    }
+    public function removeMember(Request $request){
+           // Validate the request
+        $validated = $request->validate([
+            'groupId' => 'required|integer|exists:groups,id',
+            'id' => 'required|integer||exists:users,id'
+        ]);
+        $group = Groups::find($validated['groupId']);
+
         $oldMembers = $group->users;
-        $members = array_merge($oldMembers, $newMembers);
-        $group->users = $members;
+        $members = array_filter($oldMembers, fn($memberId) => (int) $memberId !== (int) $validated['id']);
+        $group->users = array_values($members);
 
         $group->save();
 
         return response()->json([],201);
     }
+    public function chnageGroupName(Request $request){
+          // Validate the request
+        $validated = $request->validate([
+            'groupId' => 'required|integer|exists:groups,id',
+            'newName' => 'required|string|max:255'
+        ]);
 
+         // Find and update the group
+        $group = Groups::find($validated['groupId']);
+        $group->name = strip_tags($validated['newName']); // additional sanitization
+        $group->save();
+
+         return response()->json([],201);
+    }
     public function googleCalendar(Request $request){
         $code = $request->token;
         $user = Auth::user();

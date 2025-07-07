@@ -1,7 +1,7 @@
 {
     "welcome": "Bienvenue!",
     "login": "Identification",
-    "to login": "Login",
+    "to login": "Se Connecter",
     "Se Déconnecter": "Logout",
     "Profil": "Mon Profil",
     "Accueil": "Accueil",
@@ -53,5 +53,6 @@
      "Modifier": "Modifier",
      "Aucun événement": "Aucun événement",
      "Choisissez les participants": "Choisissez les participants",
-     "Ajouter un titre": "Ajouter un titre"
+     "Ajouter un titre": "Ajouter un titre",
+      "Afficher": "Afficher"
   }

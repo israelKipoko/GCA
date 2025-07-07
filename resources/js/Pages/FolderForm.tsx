@@ -13,9 +13,6 @@ import 'filepond/dist/filepond.min.css';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../components/ui/dropdown-menu";
 import {
@@ -63,7 +60,7 @@ import {
 
     interface Groups {
       id: string;
-      groupName: string;
+      name: string;
       members: Array<Member>;
       users: string;
     }
@@ -75,6 +72,8 @@ import {
   const [usersList, setUsersList] = useState<User[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [groups, setGroups] = useState<Groups[]>([]);
+  const [groupsList, setGroupsList] = useState<Groups[]>([]);
+  const [selectedUserFromGroup, setSelectedUserFromGroup] = useState<User[]>([]);
   
   const { toast } = useToast();
 
@@ -114,12 +113,13 @@ import {
         .then(response => {
           allGroups = response.data.map((element: any)  => ({
             id:element.id,
-            groupName: element.name,
+            name: element.name,
             members: element.members || [],
             users: element.users || [],
             membersCount: element.membersCount || "",
           }));
           setGroups(allGroups);
+          setGroupsList(allGroups);
         })
         .catch(error => {
           console.log('no')
@@ -168,12 +168,11 @@ const handleUpdateFiles = (fileItems: any[]) => {
   const handleSelect = (value: string) => {
     setPriority(value);
   };
+
  const handleOptionClick = (id: string) => {
-    // if (!selectedOptions.includes(value)) {
       setSelectedOptions([...selectedOptions, id]);
       setUsers(users.filter(user => user.id !== id));
-    // }
-  };
+ }
   const handleClientOptionClick = (id: string, text: string) => {
       setSelectedClientOptions(text);
       setClient(id);
@@ -183,16 +182,38 @@ const handleUpdateFiles = (fileItems: any[]) => {
       const removedUser = usersList.find(user => user.id === id);
 
       if (!removedUser) {
-          console.error(`User with id ${id} not found`);
+          console.log(`User with id ${id} not found`);
           return; // Early exit if user is not found
       }
-        setUsers([...users, removedUser]); 
-        setSelectedOptions(selectedOptions.filter(option => option !== id));
+      setUsers(prevUsers => [...prevUsers, removedUser]);
+        // setSelectedOptions(selectedOptions.filter(option => option !== id));
+      // Remove the user from selectedOptions
+      setSelectedOptions(prevOptions => {
+        const updatedOptions = prevOptions.filter(option => option !== id);
+
+        // If this was the last selected option, reset groups
+        if (updatedOptions.length === 0) {
+          setGroups(groupsList);
+          setSelectedGroups([]);
+        }
+
+        return updatedOptions;
+      });
   };
 
   const handleGroupClick = (id:string) =>{
     setSelectedGroups([...selectedGroups, id]);
-    setGroups(groups.filter(group => group.id !== id));
+
+    const selectedGroup:any = groups.find(group => group.id === id);
+    
+    const memberIds = selectedGroup.members.map((member: any) => member.id);
+    // Update selectedOptions by appending all member IDs
+    setSelectedOptions(prev => [...prev, ...memberIds]);
+    // Remove these members from users
+    setUsers(prevUsers => prevUsers.filter(user => !memberIds.includes(user.id)));
+
+    // setSelectedUserFromGroup(selectedGroup.members)
+    setGroups(groups.filter(group => group.id !== id)); // remove the selected group from the dropdown
   }
 
   const handleRemoveGroup = (id: string) => {
@@ -267,7 +288,7 @@ const handleSubmit = (e:FormEvent) => {
       .then(response => {
         clientId = response.data.id;
         const fileLength = files.length
-        const data = {title,selectedOptions,description,priority,formattedDate,clientId,files,fileLength};
+        const data = {title,selectedOptions,selectedGroups,description,priority,formattedDate,clientId,files,fileLength};
         axios.post('/folders/create-new-folder',{
           newFolder: data,
         })
@@ -295,7 +316,7 @@ const handleSubmit = (e:FormEvent) => {
     }else{
       clientId = client;
        const fileLength = files.length;
-       const data = {title,selectedOptions,description,priority,formattedDate,clientId,files,fileLength};
+       const data = {title,selectedOptions,selectedGroups,description,priority,formattedDate,clientId,files,fileLength};
 
         axios.post('/folders/create-new-folder',{
           newFolder: data,
@@ -345,8 +366,8 @@ const handleSubmit = (e:FormEvent) => {
                     <div id='' className='realtive'>
                       <div id="participants_badges_wrapper" className=''>
                          {selectedClientOptions != "" ? 
-                          <div key={selectedClientOptions} data-value={selectedClientOptions} className="participants border border-[#356B8C]">
-                                <span className='px-1 text-[14px]'>{selectedClientOptionsText}</span>
+                          <div key={selectedClientOptions} data-value={selectedClientOptions} className="participants bg-[#356B8C]">
+                                <span className='px-1 text-[14px] capitalize'>{selectedClientOptionsText}</span>
                               <span onClick={() => handleRemoveClientOption()} className=''>
                               <i className="fa-solid fa-x font-bold text-white text-[10px] p-1 opacity-[0.7] rounded-full bg-[#356B8C]"></i>
                               </span>
@@ -423,10 +444,10 @@ const handleSubmit = (e:FormEvent) => {
                             );
                           })}
                           {/* {selectedGroups.map(value => {
-                            const text = groups.find(group => group.id === value)?.groupName || value;
+                            const text = groupsList.find(group => group.id === value)?.name || value;
                             return (
                               <div key={value} data-value={value} className="participants border border-[#356B8C]">
-                                <span>{text}</span>
+                                <span className='capitalize'>{text}</span>
                                 <span onClick={() => handleRemoveGroup(value)}>
                                 <i className="fa-solid fa-x font-bold text-white text-[10px] p-1 opacity-[0.7] rounded-full bg-[#356B8C]"></i>
                                 </span>
@@ -440,74 +461,79 @@ const handleSubmit = (e:FormEvent) => {
                         className="dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[14px] select-placeholder"
                         onFocus={() => setIsDropdownOpen(true)}
                         onInput={(e) => setFilter((e.target as HTMLInputElement).value.toLowerCase())}
-                        placeholder="Ajouter une équipe" autoComplete='off'/>
+                        placeholder="Ajouter des contribuants" autoComplete='off'/>
                   </div>
-                </div>
+                  </div>
                     {isDropdownOpen && (
                       <section className='options dark:bg-dark-primary bg-light-primary'>
-                            <ScrollArea ref={optionsRef} className="z-10 p-1  w-full  rounded h-[150px] shadow open">
+                        <ScrollArea ref={optionsRef} className="z-10 p-1  w-full  rounded h-[150px] shadow open">
+                        {groups.length && (
+                        <div>
+                          <p className='text-[14px] dark:text-white text-dark-secondary bordker-b border-[#ffffff66] font-bold border-light-secondary'>Groupes</p>
                           <div className=" p-1 open">
-                            {users
-                              .filter(option => 
-                                option.name.toLowerCase().includes(filter) &&
-                                !selectedOptions.includes(option.id) // Exclude users already in selectedUsers
+                          {groups
+                              .filter(group => 
+                                group.name.toLowerCase().includes(filter) &&
+                                !selectedGroups.includes(group.id) // Exclude users already in selectedUsers
                               )
-                              .map(option => (
+                              .map(group => (
                                 <div
-                                  key={option.id}
-                                  className="option rounded dark:text-white text-dark-secondary flex -center hover:dark:bg-dark-hover hover:bg-light-hover"
-                                  data-value={option.id}
-                                  onClick={() => handleOptionClick(option.id)}>
-                                  <img src={option.avatar} alt="avatar" className='w-[30px] h-[30px] rounded-full' />
+                                  key={group.id}
+                                  className="ml-1 option rounded dark:text-white text-dark-secondary flex -center hover:dark:bg-dark-hover hover:bg-light-hover"
+                                  data-value={group.id}
+                                  onClick={() => handleGroupClick(group.id)}>
                                     <div className=''>
-                                      <h1 className='capitalize'>{option.fullname}</h1>
-                                      <span className='text-[12px] pl-2 opacity-[0.6]'>{option.email}</span>
+                                      <h1 className='capitalize'>{group.name}</h1>
+                                      <div className='ml-2 text-[12px] p-1 flex flex-row'>
+                                      {group.members.map((user,index) =>(
+                                            <TooltipProvider key={index} >
+                                            <Tooltip >
+                                                <TooltipTrigger asChild className='cursor-pointer '>
+                                                    <div key={index} className="-ml-2 element_tooltip_container w-[25px] h-[25px] rounded-full">
+                                                        <img src={user.avatar_link} alt="user-profile" className=" rounded-full w-full h-full object-contain"/>
+                                                    </div>
+                                                </TooltipTrigger>
+                                            <TooltipContent className=' z-10'>
+                                                <p className='text-[12px]'>{user.firstname+" "+ user.name}</p>
+                                            </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        ))}
+                                      </div>
                                     </div>
                                 </div>
                               ))}
                           </div>
-                          {/* {groups.length && (
-                            <div>
-                              <p className='text-[14px] dark:text-white text-dark-secondary border-b border-[#ffffff66] font-bold border-light-secondary'>Groupes</p>
-                              <div className=" p-1 open">
-                              {groups
-                                  .filter(group => 
-                                    group.groupName.toLowerCase().includes(filter) &&
-                                    !selectedGroups.includes(group.id) // Exclude users already in selectedUsers
-                                  )
-                                  .map(group => (
-                                    <div
-                                      key={group.id}
-                                      className="option rounded dark:text-white text-dark-secondary flex -center hover:dark:bg-dark-hover hover:bg-light-hover"
-                                      data-value={group.id}
-                                      onClick={() => handleGroupClick(group.id)}>
-                                        <div className=''>
-                                          <h1 className='capitalize'>{group.groupName}</h1>
-                                          <div className='text-[12px] p-1 flex flex-row'>
-                                          {group.members.map((user,index) =>(
-                                                <TooltipProvider key={index} >
-                                                <Tooltip >
-                                                    <TooltipTrigger asChild className='cursor-pointer '>
-                                                        <div key={index} className="-ml-2 element_tooltip_container w-[25px] h-[25px] rounded-full">
-                                                            <img src={user.avatar_link} alt="user-profile" className=" rounded-full w-full h-full object-fit-contain"/>
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                <TooltipContent className=' z-10'>
-                                                    <p className='text-[12px]'>{user.firstname+" "+ user.name}</p>
-                                                </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                            ))}
-                                          </div>
-                                        </div>
-                                    </div>
-                                  ))}
-                              </div>
+                          <p className='text-[14px] dark:text-white text-dark-secondary border-b border-[#ffffff66] font-bold border-light-secondary'></p>
+                        </div>
+                      )}
+                      <div className=" p-1 open">
+                        {users
+                          .filter(option => 
+                            option.name.toLowerCase().includes(filter) &&
+                            !selectedOptions.includes(option.id) // Exclude users already in selectedUsers
+                          )
+                          .map(option => (
+                            <div
+                              key={option.id}
+                              className="option rounded dark:text-white text-dark-secondary flex -center hover:dark:bg-dark-hover hover:bg-light-hover"
+                              data-value={option.id}
+                              onClick={() => handleOptionClick(option.id)}>
+                              <img src={option.avatar} alt="avatar" className='w-[30px] h-[30px] rounded-full' />
+                                <div className=''>
+                                  <h1 className='capitalize'>{option.fullname}</h1>
+                                  <span className='text-[12px] pl-2 opacity-[0.6]'>{option.email}</span>
+                                </div>
                             </div>
-                          )} */}
-                          </ScrollArea>
+                          ))}
+                      </div>
+                      
+                      </ScrollArea>
                       </section>
                     )}
+                  {/* <div className='absolute -bottom-6'>
+                    <h1 className='font-bold text-[14px] dark:text-white text-dark-secondary opacity-[0.6]'>Groupes sélectionnés :</h1>
+                  </div> */}
                 </div>
                 </div>
                 <div className='flex flex-rox items-center'>

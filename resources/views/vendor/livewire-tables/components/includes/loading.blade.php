@@ -13,7 +13,7 @@ $customAttributes['loader-icon'] = $component->getLoadingPlaceHolderIconAttribut
     {{
         $attributes->merge($customAttributes['loader-wrapper'])
             ->class(['w-full text-center h-screen place-items-center align-middle' => $isTailwind && ($customAttributes['loader-wrapper']['default'] ?? true)])
-            ->class(['w-100 text-center h-100 align-items-center' => $isBootstrap && ($customAttributes['loader-wrapper']['default'] ?? true)]);
+            ->class(['w-100 text-center h-100 align-items-center' => $isBootstrap && ($customAttributes['loader-wrapper']['default'] ?? true)])
     }}
     wire:loading.class.remove="hidden d-none"
     >
@@ -24,7 +24,7 @@ $customAttributes['loader-icon'] = $component->getLoadingPlaceHolderIconAttribut
                         $attributes->merge($customAttributes['loader-icon'])
                             ->class(['lds-hourglass' => $isTailwind && ($customAttributes['loader-icon']['default'] ?? true)])
                             ->class(['lds-hourglass' => $isBootstrap && ($customAttributes['loader-icon']['default'] ?? true)])
-                            ->except('default');
+                            ->except('default')
                 }}
                 ></div>
                 <div>{{ $component->getLoadingPlaceholderContent() }}</div>

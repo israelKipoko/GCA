@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->json('users');
+            $table->longText('description')->nullable(); // Added description field
             $table->timestamps();
         });
     }

@@ -45,7 +45,7 @@ export function DataTable<TData, TValue>({
     state: {
         columnFilters,
       },
-      initialState: {
+    initialState: {
         columnVisibility: {
           avatar: false,
           id: false,

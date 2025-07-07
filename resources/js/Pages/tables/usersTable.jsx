@@ -6,37 +6,8 @@ import { Toaster } from "../../../../components/ui/toaster"
 import AddUser from "../Dialogs/AddUser";
 import { useToast } from "../../../../hooks/use-toast";
 
-const UsersTable = ({setTotalUsers,openAddUserDialog, setOpenAddUserDialog, refreshLayout}) =>{
-  const [refreshKey, setRefreshKey] = useState(0);
+const UsersTable = ({data, openAddUserDialog, setOpenAddUserDialog, dataRefresh, refreshUsers}) =>{
   const { toast } = useToast();
-
-  const dataRefresh = () => {
-    setRefreshKey((oldKey) => oldKey + 1);
-  };
-  const [data, setData] = useState([]);
-  var transformedData;
-
-   function getData() {
-    axios.get('/users/get-all-users')
-        .then(response => {
-          transformedData = response.data[0].map(element => ({
-            id:element.id,
-            name: element.firstname + element.name,
-            email: element.email || "...",
-            role: element.role || "...",
-            avatar: element.avatar_link || "...",
-            groups: element.groups || "...",
-          }));
-         setData(transformedData);
-         setTotalUsers(transformedData.length);
-        })
-        .catch(error => {
-            console.log(error.message)
-          });
-
-       
-   return transformedData
-  }
 
   const changeUserRole = (name, id, role) => {
     const formData = new FormData();
@@ -44,7 +15,7 @@ const UsersTable = ({setTotalUsers,openAddUserDialog, setOpenAddUserDialog, refr
       formData.append("userID", id);
     axios.post('/users/change-user-role', formData)
     .then(response => {
-      dataRefresh();
+      refreshUsers();
        toast({
          variant: "default",
          title: `${name}" est maintenant un ${role}!!`,
@@ -57,15 +28,11 @@ const UsersTable = ({setTotalUsers,openAddUserDialog, setOpenAddUserDialog, refr
         });
     });
   }
-  useEffect(() => {
-      getData();
-  }, [refreshKey]);
 
   return (
     <div className="w-full mx-auto py-10 ">
         <AddUser openAddUserDialog={openAddUserDialog} setOpenAddUserDialog={setOpenAddUserDialog} dataRefresh={dataRefresh}/>
-   
-      <DataTable columns={columns(changeUserRole,dataRefresh)} data={data} dataRefresh={dataRefresh}/>
+        <DataTable columns={columns(changeUserRole,dataRefresh)} data={data} dataRefresh={dataRefresh}/>
     </div>
   )
 }

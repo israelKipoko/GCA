@@ -2,9 +2,10 @@
 import React, { useState } from 'react'
 import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "../../../../../components/ui/button";
-import { User, MoreHorizontal, Eye, Trash2,UserPlus, BookUser } from "lucide-react";
+import { MoreHorizontal, Trash2,UserPlus, BookUser } from "lucide-react";
 import DeleteGroup from "../../Dialogs/DeleteGroup";
 import NewGroupMember from "../../Dialogs/NewGroupMember";
+import GroupDetails from "../../Dialogs/GroupDetails";
 import {
   Tooltip,
   TooltipContent,
@@ -15,7 +16,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../../../components/ui/dropdown-menu";
@@ -30,13 +30,22 @@ export type Member = {
 export type Groups = {
   id: number
   groupName: string
+  name: string
   members: Array<Member>
   membersCount: string
 }
 
-export const columns = (dataRefresh:()=> void,allUsers: number[]): ColumnDef<Groups>[] => [
+export const columns = (dataRefresh:()=> void,allUsers: number[],refreshGroups:()=> void): ColumnDef<Groups>[] => [
   {
     accessorKey: "id",
+  },
+  {
+  accessorKey: "name",
+  header: "Description", // Optional — better for clarity
+  enableHiding: true, // ✅ allow it to be hidden by default
+},
+  {
+    accessorKey: "groupCases",
   },
   {
     accessorKey: "groupName",
@@ -50,7 +59,7 @@ export const columns = (dataRefresh:()=> void,allUsers: number[]): ColumnDef<Gro
     header: () => <div className="text-center flex items-center gap-x-1 w-fit mx-auto">Nbr. des membres</div>,
     cell: ({ row }) => {
       let countMember:number = row.getValue("membersCount");
-      return <div className="text-center mx-auto w-fit">{row.getValue("membersCount")} {row.getValue("membersCount")!=0? ((countMember > 1)? "Membres":"Membre"):"0"}</div>
+      return <div className="text-center mx-auto w-fit">{row.getValue("membersCount")} {row.getValue("membersCount")!=0? ((countMember > 1)? "Membres":"Membre"):""}</div>
     },
   },
 
@@ -83,6 +92,7 @@ export const columns = (dataRefresh:()=> void,allUsers: number[]): ColumnDef<Gro
       cell: ({ row }) => {
         const [openDeleteAccountDialog, setOpenDeleteAccountDialog] = useState(false);
         const [openNewGroupMemberDialog, setOpenNewGroupMemberDialog] = useState(false);
+        const [openGroupDetailsDialog, setOpenGroupDetailsDialog] = useState(false);
         let groupsUsers:Array<Member> = row.getValue("members");
 
         const filteredUsers = allUsers.filter((user:any) =>
@@ -98,11 +108,11 @@ export const columns = (dataRefresh:()=> void,allUsers: number[]): ColumnDef<Gro
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
-              <DropdownMenuItem className="font-bold">
+              <DropdownMenuItem className="font-bold" onClick={()=>setOpenGroupDetailsDialog(true)}>
                 <BookUser /> Gestion du groupe
               </DropdownMenuItem>
               <DropdownMenuItem className="font-bold" onClick={()=>setOpenNewGroupMemberDialog(true)}>
-                <UserPlus /> Nouveau membre
+                <UserPlus /> Ajouter un membre
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="dark:text-[#D84444] text-red-600 font-bold" onClick={()=>setOpenDeleteAccountDialog(true)}>
@@ -111,6 +121,7 @@ export const columns = (dataRefresh:()=> void,allUsers: number[]): ColumnDef<Gro
             </DropdownMenuContent>
             <DeleteGroup groupId={row.getValue("id")} groupName={row.getValue("groupName")} openDeleteAccountDialog={openDeleteAccountDialog} setOpenDeleteAccountDialog={setOpenDeleteAccountDialog} dataRefresh={dataRefresh}/>
             <NewGroupMember groupId={row.getValue("id")} groupName={row.getValue("groupName")}  allMembers={filteredUsers} openNewGroupMemberDialog={openNewGroupMemberDialog} setOpenNewGroupMemberDialog={setOpenNewGroupMemberDialog} dataRefresh={dataRefresh}/>
+            <GroupDetails groupId={row.getValue("id")} groupName={row.getValue("groupName")} description={row.getValue("description")} groupCases={row.getValue("groupCases")} groupMembers={row.getValue("members")} allMembers={filteredUsers} open={openGroupDetailsDialog} setOpen={setOpenGroupDetailsDialog} dataRefresh={dataRefresh} refreshGroups={refreshGroups}/>
           </DropdownMenu>
         )
       },

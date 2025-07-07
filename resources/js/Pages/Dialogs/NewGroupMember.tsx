@@ -60,7 +60,10 @@ const NewGroupMember: React.FC<NewMemberDialogsProps> = ({
 
       const addMember = (e: React.FormEvent) =>{
           e.preventDefault();
-    
+
+         if(selectedOptions.length == 0 )
+          return;
+
           setLoading(true);
     
           const formData = new FormData();
@@ -69,9 +72,8 @@ const NewGroupMember: React.FC<NewMemberDialogsProps> = ({
        
            axios.post('/groups/add-new-member', formData)
            .then(response => {
-    
             setLoading(false);
-    
+            
              dataRefresh();
               //  toast({
               //    variant: "default",
@@ -99,6 +101,9 @@ const NewGroupMember: React.FC<NewMemberDialogsProps> = ({
       };
        
     useEffect(() => {
+      if(openNewGroupMemberDialog)
+        setIsDropdownOpen(true);
+
       document.addEventListener('click', handleDocumentClick);
       return () => {
         document.removeEventListener('click', handleDocumentClick);
@@ -106,9 +111,9 @@ const NewGroupMember: React.FC<NewMemberDialogsProps> = ({
     }, []);
   return (
     <Dialog open={openNewGroupMemberDialog} onOpenChange={setOpenNewGroupMemberDialog}>
-      <DialogContent className="md:max-w-[450px] max-h-[500px] min-h-[200px] border-none p-3" autoFocus={false}>
+      <DialogContent className="md:max-w-[450px] max-h-[500px] min-h-[230px] border-none p-6" autoFocus={false}>
           <DialogTitle className="dark:text-white text-dark-secondary font-bold ">
-              Ajouter un membre dans <span className='font-bold capitalize'>"{groupName}"</span>
+              Ajouter un nouveau membre
           </DialogTitle>
         <form onSubmit={addMember} className='w-full flex flex-col items-center justify-center gap-y-4 '>
           <input
@@ -141,9 +146,11 @@ const NewGroupMember: React.FC<NewMemberDialogsProps> = ({
                         <input
                             ref={triggerRef}
                             id="selected_participants"
+                            name='selected_participants'
                             className="dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[14px] select-placeholder"
                             onFocus={() => setIsDropdownOpen(true)}
                             onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                               setIsDropdownOpen(true)
                               setFilter((e.currentTarget.value).toLowerCase());
                             }}
                             placeholder="Ajouter des membres" 

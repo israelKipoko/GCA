@@ -14,8 +14,8 @@ export default defineConfig({
         tsconfigPaths()
     ],
     server: {
-        watch: {
-          ignored: ['**/vendor/**'],
-        },
-      },
+    host: 'localhost', // not 0.0.0.0
+    port: 5174,
+    strictPort: true,
+  }
 });

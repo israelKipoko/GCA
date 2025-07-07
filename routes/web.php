@@ -92,6 +92,8 @@ Route::get('/groups/get-all-groups',[ActivityController::class,"getGroups"])->mi
 Route::post('/groups/create-group',[ActivityController::class,"createGroup"])->middleware('auth');
 Route::post('/groups/delete-group',[ActivityController::class,"deleteGroup"])->middleware('auth');
 Route::post('/groups/add-new-member',[ActivityController::class,"addMember"])->middleware('auth');
+Route::put('/groups/remove-member',[ActivityController::class,"removeMember"])->middleware('auth');
+Route::put('/groups/change-name',[ActivityController::class,"chnageGroupName"])->middleware('auth');
 
 /* Connections */ 
 Route::post('/connections/api/auth/google',[ActivityController::class,"googleCalendar"])->middleware('auth');;

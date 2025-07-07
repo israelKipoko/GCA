@@ -2,12 +2,13 @@ import React, { useEffect, useState,useRef } from 'react'
 import { Calendar } from '../../../../components/ui/calendar';
 import { fr, enUS } from 'date-fns/locale';
 import { format,parseISO, isAfter, isEqual } from "date-fns"
-import { Video, Plus,CalendarIcon, CircleCheck,BriefcaseBusiness,Trash2,MoreVertical,PencilLine } from 'lucide-react';
+import { Video, Plus,CalendarIcon, CircleCheck,BriefcaseBusiness,Trash2,MoreVertical,Eye,CalendarClock, Clock } from 'lucide-react';
 import { Button } from "../../../../components/ui/button";
 import { useToast } from "../../../../hooks/use-toast";
 import axios from 'axios';
 import { ScrollArea } from '../../../../components/ui/scroll-area';
 import { useTranslation } from "react-i18next";
+import DisplayEvent from '../Dialogs/DisplayEvent';
   import { cn } from "../../../../lib/utils";
   import { TimePicker, Space,ConfigProvider } from "antd";
   import dayjs from 'dayjs';
@@ -25,12 +26,6 @@ import { useTranslation } from "react-i18next";
     DialogTitle,
     DialogTrigger,
   } from "../../../../components/ui/dialog"
-
-  import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-  } from "../../../../components/ui/popover"
   import {
     DropdownMenu,
     DropdownMenuContent,
@@ -56,6 +51,8 @@ const EventManager = ({allUsers}) =>{
     const optionsRef = useRef(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [openCalendarDialog, setOpenCalendarDialog] = useState(false);
+    const [openDisplayEvent, setOpenDisplayEvent] = useState(false);
+    const [selectedEventToDisplay,setSelectedEventToDisplay] = useState();
     const [isDeleting, setIsDeleting] = useState(false);
     
     const [isDarkMode, setIsDarkMode] = useState(
@@ -76,10 +73,10 @@ const EventManager = ({allUsers}) =>{
             date: element.date,
             time: element.time,
             link: element.meeting_link,
+            case: element.cases,
             participants: element.event_users || [],
             createdby: element.user.name + " " + element.user.firstname,
           }));
-        
           setEvents(transformedData);
         })
         .catch(error => {
@@ -212,7 +209,7 @@ return (
            <Calendar
             locale={i18n.language== "en-US"? enUS: fr}
             weekStartsOn={0}
-           className='  rounded-[4px]'
+           className='rounded-[4px]'
            mode="single"
            numberOfMonths={1}
            selected={calendarDate}
@@ -257,8 +254,8 @@ return (
                         {selectedUsers.map(value => {
                           const text = allUsers.find(option => option.id === value)?.name || value;
                           return (
-                            <div key={value} data-value={value} className="participants">
-                              <span>{text}</span>
+                            <div key={value} data-value={value} className="participants bg-[#356B8C]">
+                              <span className='capitalize'>{text}</span>
                               <span onClick={() => handleRemoveOption(value)}>
                                   <i className="fa-solid fa-x text-bold text-[10px] border p-1 opacity-[0.7] rounded-full"></i>
                               </span>
@@ -289,7 +286,7 @@ return (
                               className="option rounded dark:text-white text-dark-secondary flex -center hover:dark:bg-dark-hover hover:bg-light-hover"
                               data-value={option.id}
                               onClick={() => handleOptionClick(option.id, option.name)}>
-                                <img src={option.avatar} alt="avatar" className='w-[25px] h-[25px]' />
+                                <img src={option.avatar} alt="avatar" className='w-[25px] h-[25px] rounded-full' />
                                 <div className=''>
                                   <h1 className='capitalize'>{option.name}</h1>
                                   <span className='text-[12px] pl-2 opacity-[0.6]'>{option.email}</span>
@@ -383,14 +380,39 @@ return (
                 <div className=' flex flex-row items-start gap-x-4 '>
                   <p className='w-[70px] text-center dark:text-[#fff] text-dark-secondary opacity-[0.7]'>{format(parseISO(date), 'dd MMMM', { locale: fr })}</p>
                   <div className='flex flex-row flex-wrap gap-x-6 gap-y-4'>
-                  {event.map((event) => (
-                    <div className='flex flex-row gap-x-1 items-start'>
-                      <div className='bg-[#007bff66] rounded-full w-8 h-8 flex items-center justify-center'>
-                        <BriefcaseBusiness className=' text-[#fff] ' size={18}/>
-                      </div>
+                  {event.map((event,index) => (
+                    <div key={index} className='flex flex-row gap-x-1 items-start'>
+                      {event.case == null?
+                        <div className='bg-[#ffc10766] rounded-full w-8 h-8 flex items-center justify-center'>
+                          <TooltipProvider>
+                              <Tooltip>
+                                  <TooltipTrigger asChild className='cursor-pointer'>
+                                      <CalendarClock  className=' text-[#fff] ' size={18}/>
+                                  </TooltipTrigger>
+                                  <TooltipContent className='dark:bg-dark-secondary bg-light-thirdly border-none dark:text-white text-dark-secondary'>
+                                      <p className='text-[12px] capitalize'>événement</p>
+                                  </TooltipContent>
+                              </Tooltip>
+                          </TooltipProvider>
+                        </div>:
+                        <div className='bg-[#007bff66] rounded-full w-8 h-8 flex items-center justify-center'>
+                          <TooltipProvider>
+                              <Tooltip>
+                                  <TooltipTrigger asChild className='cursor-pointer'>
+                                      <BriefcaseBusiness  className=' text-[#fff] ' size={18}/>
+                                  </TooltipTrigger>
+                                  <TooltipContent className='dark:bg-dark-secondary bg-light-thirdly border-none dark:text-white text-dark-secondary'>
+                                      <p className='text-[12px] capitalize'>Dossier</p>
+                                  </TooltipContent>
+                              </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        }
                       <div className=''>
-                        <div className='flex justify-between items-center gap-x-3'>
-                        <h1 className='font-bold capitalize text-[16px]  dark:opacity-[0.8] dark:text-[#fff] text-dark-secondary'>{event.title}</h1> 
+                        <div className='flex justify-between items-center gap-x-1'>
+                        <div className='w-fit max-w-[150px] flex items-center justify-center'>
+                          <h1 className='upload_file_name font-bold capitalize text-[16px]  dark:opacity-[0.8] dark:text-[#fff] text-dark-secondary'>{event.title}</h1> 
+                        </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -402,12 +424,12 @@ return (
                               {event.link != null?
                                   <a href={event.link} target='__blank'>
                                     <DropdownMenuItem className="font-bold" >
-                                      <Video color="#fff" size={18}/>{t("Participer")} 
+                                      <Video color="#fff" size={18} fill='#fff'/>{t("Participer")} 
                                     </DropdownMenuItem>
                                   </a>
                              :""}
-                                <DropdownMenuItem className="font-bold" >
-                                  <PencilLine /> {t("Modifier")}
+                                <DropdownMenuItem className="font-bold" onClick={()=> {setOpenDisplayEvent(true), setSelectedEventToDisplay(event)}}>
+                                  <Eye /> {t("Afficher")}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={()=>DeleteEvent(event.id,event.title)} className="dark:text-[#D84444] text-red-600 font-bold" >
@@ -415,7 +437,11 @@ return (
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div> 
-                          {event.time.start_time && <span className='flex flex-row text-[14px] font-bold dark:text-[#fff] text-dark-secondary opacity-[0.6]'>{event.time.start_time} - {event.time.end_time}</span>}
+                          {event.time.start_time && 
+                          <div className='flex items-center gap-x-1 mb-2'>
+                            <Clock size={18} className='dark:text-white text-dark-secondary'/>
+                            <span className='flex flex-row text-[14px] font-bold dark:text-[#fff] text-dark-secondary opacity-[0.6]'>{event.time.start_time} - {event.time.end_time}</span>
+                          </div>}
                           {event.participants.length ?
                           <div className="flex gap-x-2 assigned_to_profile ">
                             {event.participants.map((user,index) => (
@@ -441,6 +467,7 @@ return (
                   </div>
                 </div>
                 {!(Object.entries(groupedEvents).length == (index+1)) &&<div className=' w-1 h-12 bg-white ml-[100px] opacity-[0.5] rounded-full my-2'></div>}
+                <DisplayEvent openDisplayEvent={openDisplayEvent} setOpenDisplayEvent={setOpenDisplayEvent} event={selectedEventToDisplay}/>
               </div>
                ))):
                (
