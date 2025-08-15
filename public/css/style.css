@@ -1,8 +1,8 @@
 :root{
-    --primaryColor : #F4F4F4;
-    --secondaryColor: #CFCFCF;
+    --primaryColor : #e7e7e7;
+    --secondaryColor: #e7e7e7;
     --textColor: #313131;
-    --hover: #29292933;
+    --hover: #d1d1d1;
     --mainBlue : #356B8C;
     --mainBlueHover : #335b74;
     --actionColor: #0f6cbd;
@@ -26,9 +26,9 @@ html {
 }
 @media (prefers-color-scheme: light) {
   :root{
-    --primaryColor : #F4F4F4;
-    --secondaryColor: #5A5A5A;
-    --hover: #29292933;
+    --primaryColor : #e7e7e7;
+    --secondaryColor: #e7e7e7;
+    --hover: #d1d1d1;
     --mainBlue : #356B8C;
     --mainBlueHover : #335b74;
     --actionColor: #0f6cbd;
@@ -730,7 +730,7 @@ button:disabled{
   background-color: var(--hover);
 }
 .active_tab_dark{
-  background-color: #29292933;
+  background-color: "#d1d1d1";
 }
 .tab-pane {
   display: none;

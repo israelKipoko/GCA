@@ -344,7 +344,7 @@ const handleSubmit = (e:FormEvent) => {
         <form onSubmit={handleSubmit}>
             <section className=''>
               <ScrollArea className='md:max-h-[450px] max-h-[520px]'>
-              <div className='flex flex-col gap-y-6'>
+              <div className='flex flex-col gap-y-6 px-2'>
                 <div className="input_div w-fit mx-auto ">
                   <label htmlFor="title" className='dark:text-white text-dark-secondary opacity-[0.8]'>Titre :</label>
                     <input

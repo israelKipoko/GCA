@@ -41,10 +41,10 @@ theme: {
 				hover: '#d8d8d833',
 			},
 			light: {
-				primary: '#F4F4F4',
-				secondary: '#5A5A5A',
-				thirdly: '#CFCFCF',
-				hover: '#29292933'
+				primary: '#e7e7e7',
+				secondary: '#dfdfdf',
+				thirdly: '#f6f6f6',
+				hover: '#e7e7e7'
 			},
 			muted: {
 				DEFAULT: 'hsl(var(--muted))',

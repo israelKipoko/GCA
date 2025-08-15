@@ -316,7 +316,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                 </section>
               ):""}
           <ScrollArea className="max-h-[500px]">
-            <div className='w-fit flex flex-col'>
+            <div className='w-full flex flex-col'>
             {messages.length ? (
                   messages.map((message,index) =>(
                       <div key={index} className='flex flex-row items-end w-fit  gap-x-1 py-4 px-3'>
@@ -337,7 +337,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                                 <div className='flex flex-wrap flex-1 gap-2 w-fit'>
                                   {message.files.map((file,index)=>(
                                     <div key={index} className=''>
-                                      <div className='w-fit z-500  upload_file_name relative flex fex-row gap-x-2 items-center dark:bg-dark-hover bg-light-hover dark:text-white text-dark-secondary text-[12px]  rounded-[4px]'>
+                                      <div className='w-fit z-500  upload_file_name relative flex fex-row gap-x-2 items-center dark:bg-dark-hover bg-light-secondary dark:text-white text-dark-secondary text-[12px]  rounded-[4px]'>
                                       <div className='flex flex-row items-center gap-x-1 px-2 w-fit h-fit'>
                                             {
                                               
@@ -479,8 +479,8 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                     </div>
                   ))):
                   (
-                    <div>
-                      <div className='w-[250px] h-[250px] opacity-[0.15] mx-auto'>
+                    <div className=' flex justify-between mx-auto'>
+                      <div className='w-[250px] h-[250px] flex justify-between dark:opacity-[0.15] mx-auto'>
                           <img  className=" object-contain  "  src="../../../icons/discussion.svg" alt="message" />
                       </div>
                     </div>
