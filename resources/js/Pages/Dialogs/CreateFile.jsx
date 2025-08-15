@@ -85,8 +85,8 @@ function CreateFile({refreshData,setOpenCreateFileDialog,libraryID}) {
             labelIdle='Faites glisser et déposez vos fichiers ou <span class="filepond--label-action">Parcourir</span>' />
         </div>
 
-        <div className='w-fit ml-auto'>
-            <button  disabled={loading}  type="submit" className='transition-transform duration-300 transform hover:scale-[1.035]  py-1.5 px-4 bg-[#356B8C] rounded-[4px] flex justify-center text-white text-[14px] font-bold'>
+        <div className=' w-full ml-auto'>
+            <button  disabled={loading}  type="submit" className='w-full transition-transform duration-300 transform hover:scale-[1.035]  py-1.5 px-4 bg-[#356B8C] rounded-[4px] flex justify-center text-white text-[14px] font-bold'>
                 {loading ? (
                     <>
                     <svg 

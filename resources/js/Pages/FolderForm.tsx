@@ -4,7 +4,7 @@ import { format } from "date-fns"
 import { fr } from 'date-fns/locale';
 import { Button } from "../../../components/ui/button"
 import { Calendar } from "../../../components/ui/calendar"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, Users,CircleCheck } from "lucide-react"
 import { useToast } from "../../../hooks/use-toast"
 import { ScrollArea } from '../../../components/ui/scroll-area';
 import { FilePond, registerPlugin } from 'react-filepond';
@@ -64,10 +64,7 @@ import {
       members: Array<Member>;
       users: string;
     }
-    
-    let allUsers: User[];
-    let dataClient: Client[];
-    let allGroups: Groups[];
+
   const [users, setUsers] = useState<User[]>([]);
   const [usersList, setUsersList] = useState<User[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -77,56 +74,56 @@ import {
   
   const { toast } = useToast();
 
-    async function getData() {
-      axios.get('/users/get-all-users')
-        .then(response => {
-          allUsers = response.data[0].map((element: any)  => ({
-            id:element.id,
-            name:element.name,
-            fullname:element.firstname +" "+ element.name,
-            postname:element.postname,
-            email:element.email,
-            avatar:element.avatar_link,
-          }));
-          setUsers(allUsers);
-          setUsersList(allUsers);
-        })
-        .catch(error => {
-          console.log('no')
-        });
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
-        axios.get('/clients/get-all-clients')
-        .then(response => {
-          dataClient = response.data[0].map((element: any)  => ({
-            id:element.id,
-            name:element.name,
-            sector:element.sector,
-            logo:element.logo_link,
-          }));
-          setClients(dataClient);
-        })
-        .catch(error => {
-          console.log('we couldnot get clients');
-        });
+ async function getData() {
+  try {
+    setIsLoadingData(true);
 
-      await axios.get('/groups/get-all-groups')
-        .then(response => {
-          allGroups = response.data.map((element: any)  => ({
-            id:element.id,
-            name: element.name,
-            members: element.members || [],
-            users: element.users || [],
-            membersCount: element.membersCount || "",
-          }));
-          setGroups(allGroups);
-          setGroupsList(allGroups);
-        })
-        .catch(error => {
-          console.log('no')
-        });
-       
-   return [allUsers,dataClient,allGroups]
+    const [usersRes, clientsRes, groupsRes] = await Promise.all([
+      axios.get('/users/get-all-users'),
+      axios.get('/clients/get-all-clients'),
+      axios.get('/groups/get-all-groups'),
+    ]);
+
+    const allUsers = usersRes.data[0].map((element: any) => ({
+      id: element.id,
+      name: element.name,
+      fullname: `${element.firstname} ${element.name}`,
+      postname: element.postname,
+      email: element.email,
+      avatar: element.avatar_link,
+    }));
+    setUsers(allUsers);
+    setUsersList(allUsers);
+
+    const dataClient = clientsRes.data[0].map((element: any) => ({
+      id: element.id,
+      name: element.name,
+      sector: element.sector,
+      logo: element.logo_link,
+    }));
+    setClients(dataClient);
+
+    const allGroups = groupsRes.data.map((element: any) => ({
+      id: element.id,
+      name: element.name,
+      members: element.members || [],
+      users: element.users || [],
+      membersCount: element.membersCount || 0,
+    }));
+    setGroups(allGroups);
+    setGroupsList(allGroups);
+
+    return [allUsers, dataClient, allGroups];
+  } catch (error) {
+    console.error("Error loading data:", error);
+    return [[], [], []]; // safe fallback
+  } finally {
+    setIsLoadingData(false);
   }
+}
+
  
   useEffect(() => {
     getData();
@@ -142,6 +139,7 @@ import {
   const [newClientName, setNewClientName] = useState<string>(''); 
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+  const [selectedGroupUser, setSelectedGroupUser] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [filter, setFilter] = useState('');
   const triggerRef = useRef<HTMLInputElement>(null);
@@ -191,12 +189,6 @@ const handleUpdateFiles = (fileItems: any[]) => {
       setSelectedOptions(prevOptions => {
         const updatedOptions = prevOptions.filter(option => option !== id);
 
-        // If this was the last selected option, reset groups
-        if (updatedOptions.length === 0) {
-          setGroups(groupsList);
-          setSelectedGroups([]);
-        }
-
         return updatedOptions;
       });
   };
@@ -208,24 +200,31 @@ const handleUpdateFiles = (fileItems: any[]) => {
     
     const memberIds = selectedGroup.members.map((member: any) => member.id);
     // Update selectedOptions by appending all member IDs
-    setSelectedOptions(prev => [...prev, ...memberIds]);
+    setSelectedGroupUser(prev => [...prev, ...memberIds]);
     // Remove these members from users
-    setUsers(prevUsers => prevUsers.filter(user => !memberIds.includes(user.id)));
+    // setUsers(prevUsers => prevUsers.filter(user => !memberIds.includes(user.id)));
 
     // setSelectedUserFromGroup(selectedGroup.members)
     setGroups(groups.filter(group => group.id !== id)); // remove the selected group from the dropdown
+
+    setSelectedOptions(prevOptions => {
+        const updatedOptions = prevOptions.filter(option => !memberIds.includes(option));
+
+        return updatedOptions;
+      });
   }
 
   const handleRemoveGroup = (id: string) => {
-    const removedUser = groups.find(group => group.id === id);
+    const removedUser = groupsList.find(group => group.id === id);
 
-    if (!removedUser) {
-        console.error(`User with id ${id} not found`);
-        return; // Early exit if user is not found
-    }
-      setGroups([...groups, removedUser]); 
-      setSelectedGroups(selectedGroups.filter(option => option !== id));
-};
+      if (!removedUser) {
+          console.error(`User with id ${id} not found`);
+          return; // Early exit if user is not found
+      }
+        setSelectedGroupUser(selectedGroupUser.filter(option => option !== id));
+        setGroups(prev =>[...prev, removedUser]); 
+        setSelectedGroups(selectedGroups.filter(option => option !== id));
+  };
 
   const handleRemoveClientOption = () => {
     setSelectedClientOptions('');
@@ -259,9 +258,9 @@ const handleUpdateFiles = (fileItems: any[]) => {
   };
 
   useEffect(() => {
-    document.addEventListener('click', handleDocumentClick);
+    document.addEventListener('mousedown', handleDocumentClick);
     return () => {
-      document.removeEventListener('click', handleDocumentClick);
+      document.removeEventListener('mousedown', handleDocumentClick);
     };
   }, []);
 
@@ -343,10 +342,10 @@ const handleSubmit = (e:FormEvent) => {
 
     return (
         <form onSubmit={handleSubmit}>
-            <section>
-              <ScrollArea className='h-[450px]'>
+            <section className=''>
+              <ScrollArea className='md:max-h-[450px] max-h-[520px]'>
               <div className='flex flex-col gap-y-6'>
-                <div className="input_div w-fit mx-auto">
+                <div className="input_div w-fit mx-auto ">
                   <label htmlFor="title" className='dark:text-white text-dark-secondary opacity-[0.8]'>Titre :</label>
                     <input
                         type="text"
@@ -358,7 +357,7 @@ const handleSubmit = (e:FormEvent) => {
                         placeholder="Ajouter un titre"
                         required autoComplete='off'/>
                 </div>
-                <div className='custom-select w-fit mx-auto'>
+                <div className='custom-select w-full mx-auto'>
                   <div className="multiple-select input_div ">
 
                   <label htmlFor="selected_participants" className='dark:text-white text-dark-secondary opacity-[0.8]'>Client :</label>
@@ -369,7 +368,7 @@ const handleSubmit = (e:FormEvent) => {
                           <div key={selectedClientOptions} data-value={selectedClientOptions} className="participants bg-[#356B8C]">
                                 <span className='px-1 text-[14px] capitalize'>{selectedClientOptionsText}</span>
                               <span onClick={() => handleRemoveClientOption()} className=''>
-                              <i className="fa-solid fa-x font-bold text-white text-[10px] p-1 opacity-[0.7] rounded-full bg-[#356B8C]"></i>
+                                <i className="fa-solid fa-x font-bold text-dark-secondary  text-[10px] p-1 opacity-[0.7] rounded-full bg-[#fff]"></i>
                               </span>
                           </div>: 
                           <div className=''></div>}
@@ -396,8 +395,10 @@ const handleSubmit = (e:FormEvent) => {
                   </div>
                         {isClientDropdownOpen && (
                           <section className='options dark:bg-dark-primary bg-light-primary'>
-
-                          <ScrollArea ref={optionsClientRef} className=" h-[150px] z-10 p-1 w-full rounded shadow open">
+                          {isLoadingData?
+                          <p className='px-2'>Chargement...</p>
+                          :
+                          <ScrollArea ref={optionsClientRef} className=" max-h-[150px] z-10 p-1 w-full rounded shadow open">
                             {clients
                               .filter(option => option.name.toLowerCase().includes(clientFilter))
                               .map(option => (
@@ -415,16 +416,16 @@ const handleSubmit = (e:FormEvent) => {
                                     </div>
                                 </div>
                               ))}
-                          </ScrollArea>
+                          </ScrollArea>}
                           </section> 
                         )}
                 </div>
                 </div>
                 </div>
-                <div className='custom-select w-fit mx-auto'>
+                <div className='custom-select w-full mx-auto'>
                   <div className="multiple-select input_div">
 
-                  <label htmlFor="selected_participants" className='dark:text-white text-dark-secondary opacity-[0.8]'>Contribuants :</label>
+                  <label htmlFor="participants_badges_wrapper" className='dark:text-white text-dark-secondary opacity-[0.8]'>Contribuants :</label>
                   <div className=" event_title_input  w-fit mx-auto  dark:bg-dark-primary bg-light-primary  dark:text-white text-dark-secondary ">
                     <div id='participants_badges_wrapper'>
                       <input
@@ -433,27 +434,27 @@ const handleSubmit = (e:FormEvent) => {
                         required/>
                       <div id="participants_badges_wrapper">
                       {selectedOptions.map(value => {
-                            const text = usersList.find(option => option.id === value)?.name || value;
+                            const text = usersList.find(option => option.id === value)?.fullname || value;
                             return (
-                              <div key={value} data-value={value} className="participants border border-[#356B8C]">
-                                <span>{text}</span>
+                              <div key={value} data-value={value} className="participants  bg-[#356B8C]">
+                                <span className='px-1 capitalize'>{text}</span>
                                 <span onClick={() => handleRemoveOption(value)}>
-                                <i className="fa-solid fa-x font-bold text-white text-[10px] p-1 opacity-[0.7] rounded-full bg-[#356B8C]"></i>
+                                    <i className="fa-solid fa-x font-bold text-dark-secondary  text-[10px] p-1 opacity-[0.7] rounded-full bg-[#fff]"></i>
                                 </span>
                               </div>
                             );
                           })}
-                          {/* {selectedGroups.map(value => {
+                          {selectedGroups.map(value => {
                             const text = groupsList.find(group => group.id === value)?.name || value;
                             return (
-                              <div key={value} data-value={value} className="participants border border-[#356B8C]">
-                                <span className='capitalize'>{text}</span>
+                              <div key={value} data-value={value} className="participants  bg-green-700  ">
+                                <span className='capitalize px-1 flex flex-row items-center gap-x-1'><Users size={16}/>{text}</span>
                                 <span onClick={() => handleRemoveGroup(value)}>
-                                <i className="fa-solid fa-x font-bold text-white text-[10px] p-1 opacity-[0.7] rounded-full bg-[#356B8C]"></i>
+                                  <i className="fa-solid fa-x font-bold text-dark-secondary  text-[10px] p-1 opacity-[0.7] rounded-full bg-[#fff]"></i>
                                 </span>
                               </div>
                             );
-                          })} */}
+                          })}
                     </div>
                     <input
                         ref={triggerRef}
@@ -466,9 +467,34 @@ const handleSubmit = (e:FormEvent) => {
                   </div>
                     {isDropdownOpen && (
                       <section className='options dark:bg-dark-primary bg-light-primary'>
-                        <ScrollArea ref={optionsRef} className="z-10 p-1  w-full  rounded h-[150px] shadow open">
-                        {groups.length && (
+                         {isLoadingData?
+                          <p className='px-2  dark:text-white text-dark-secondary'>Chargement...</p>
+                          :
+                          <div ref={optionsRef}>
+                        <ScrollArea className="z-10 p-1  w-full  rounded max-h-[150px] shadow open">
+                          <div   className=" p-1 open">
+                            {users
+                              .filter(option => 
+                                option.name.toLowerCase().includes(filter) &&
+                                !selectedOptions.includes(option.id) // Exclude users already in selectedUsers
+                              )
+                              .map(option => (
+                                <div
+                                  key={option.id}
+                                  className={`option rounded dark:text-white text-dark-secondary flex -center hover:dark:bg-dark-hover hover:bg-light-hover ${selectedGroupUser.includes(option.id)? "opacity-[0.2] pointer-events-none":""}`}
+                                  data-value={option.id}
+                                  onClick={() => handleOptionClick(option.id)}>
+                                  <img src={option.avatar} alt="avatar" className='w-[30px] h-[30px] rounded-full' />
+                                    <div className=''>
+                                      <h1 className='capitalize'>{option.fullname}</h1>
+                                      <span className='text-[12px] pl-2 opacity-[0.6]'>{option.email}</span>
+                                    </div>
+                                </div>
+                              ))}
+                          </div>
+                      {groups.length && (
                         <div>
+                          <p className='text-[14px] dark:text-white text-dark-secondary border-b border-[#ffffff66] font-bold border-light-secondary'></p>
                           <p className='text-[14px] dark:text-white text-dark-secondary bordker-b border-[#ffffff66] font-bold border-light-secondary'>Groupes</p>
                           <div className=" p-1 open">
                           {groups
@@ -504,31 +530,10 @@ const handleSubmit = (e:FormEvent) => {
                                 </div>
                               ))}
                           </div>
-                          <p className='text-[14px] dark:text-white text-dark-secondary border-b border-[#ffffff66] font-bold border-light-secondary'></p>
                         </div>
                       )}
-                      <div className=" p-1 open">
-                        {users
-                          .filter(option => 
-                            option.name.toLowerCase().includes(filter) &&
-                            !selectedOptions.includes(option.id) // Exclude users already in selectedUsers
-                          )
-                          .map(option => (
-                            <div
-                              key={option.id}
-                              className="option rounded dark:text-white text-dark-secondary flex -center hover:dark:bg-dark-hover hover:bg-light-hover"
-                              data-value={option.id}
-                              onClick={() => handleOptionClick(option.id)}>
-                              <img src={option.avatar} alt="avatar" className='w-[30px] h-[30px] rounded-full' />
-                                <div className=''>
-                                  <h1 className='capitalize'>{option.fullname}</h1>
-                                  <span className='text-[12px] pl-2 opacity-[0.6]'>{option.email}</span>
-                                </div>
-                            </div>
-                          ))}
-                      </div>
-                      
                       </ScrollArea>
+                      </div>}
                       </section>
                     )}
                   {/* <div className='absolute -bottom-6'>
@@ -536,7 +541,7 @@ const handleSubmit = (e:FormEvent) => {
                   </div> */}
                 </div>
                 </div>
-                <div className='flex flex-rox items-center'>
+                <div className='flex md:flex-row flex-col gap-y-6 gap-x-4 items-center'>
                     <div className="input_div w-fit mx-auto">
                     <label htmlFor="" className='text-[14px] dark:text-white text-dark-secondary opacity-[0.8]'>Date limite:</label>
                     <DropdownMenu  open={openCalendarDialog} onOpenChange={setOpenCalendarDialog}>
@@ -544,7 +549,7 @@ const handleSubmit = (e:FormEvent) => {
                           <Button
                               type='button'
                               className={(
-                                "w-[280px] border border-[#ffffff66] border-light-secondary dark:border dark:bg-dark-primary bg-light-primary rounded-md opacity-[0.8] p-2 capitalize justify-between text-left font-normal")}
+                                "w-full border border-[#ffffff66] border-light-secondary dark:border dark:bg-dark-primary bg-light-primary rounded-md opacity-[0.8] p-2 capitalize justify-between text-left font-normal")}
                             >
                               {date ? <span className='dark:text-white text-dark-secondary'>{format(date, "PPP", { locale: fr })}</span> : <span className='dark:text-white text-dark-secondary  opacity-[0.5]'>Chossissez une date</span>}
                               <CalendarIcon   size={13} className='mr-2 dark:text-white text-dark-secondary'/>
@@ -562,9 +567,9 @@ const handleSubmit = (e:FormEvent) => {
                     </DropdownMenu>
                     </div>
                     <div className="input_div w-fit mx-auto">
-                    <label htmlFor="" className='text-[14px] dark:text-white text-dark-secondary opacity-[0.8]'>Priorité:</label>
+                      <label htmlFor="" className='text-[14px] dark:text-white text-dark-secondary opacity-[0.8]'>Priorité:</label>
                         <Select value={priority}  onValueChange={handleSelect} >
-                            <SelectTrigger className="w-[180px] border border-[#ffffff66]  opacity-[0.8] rounded-md outline-none focus:outline-none ">
+                            <SelectTrigger className="w-full border border-[#ffffff66]  opacity-[0.8] rounded-md outline-none focus:outline-none ">
                                 <SelectValue  placeholder="Priorité opacity-[0.6]" className='dark:text-white text-dark-secondary'/>
                             </SelectTrigger>
                             <SelectContent className=''>
@@ -613,8 +618,8 @@ const handleSubmit = (e:FormEvent) => {
                   labelIdle='Faites glisser et déposez vos fichiers ou <span class="filepond--label-action">Parcourir</span>' />
                 </div>
                 </div>
-                  <div className='w-fit ml-auto mt-6 py-2'>
-                      <button  disabled={isLoading}  type="submit" className=' w-32 py-1.5 px-4 bg-[#356B8C] rounded-[4px] flex justify-center text-white font-bold'>
+                  <div className='md:w-fit w-full ml-auto mt-6 py-2'>
+                      <button  disabled={isLoading}  type="submit" className='action_button md:w-32 w-full py-1.5 px-4 cbg-[#356B8C] flex flex-row items-center gap-x-2  rounded-[4px] justify-center text-white font-bold'>
                           {isLoading ? (
                             <>
                               <svg 
@@ -639,7 +644,7 @@ const handleSubmit = (e:FormEvent) => {
                               </svg>
                             </>
                           ) : (
-                            "Valider"
+                            <span className='flex flex-row items-center gap-x-2'> Valider <CircleCheck size={18}/></span>
                           )}
                       </button>
                   </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState,useRef } from 'react'
 import { format,addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Calendar } from "../../../../components/ui/calendar";
+import {Loader} from 'lucide-react';
 import {
     Popover,
     PopoverContent,
@@ -13,15 +14,9 @@ import {
     TooltipProvider,
     TooltipTrigger,
   } from "../../../../components/ui/tooltip";
-  import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-  } from "../../../../components/ui/dropdown-menu";
   import { cn } from "../../../../lib/utils";
 
-const TodoCreateInput = ({ newTask, setNewTask, CreateTask, isAssign, users, assignedUsers,caseId,addUsersToTask }) =>{
+const TodoCreateInput = ({ newTask, setNewTask, CreateTask, isAssign, users, assignedUsers,caseId,addUsersToTask, isLoading }) =>{
 
     const [dueDate, setDueDate] = useState(null);
     const [showCalendar, setShowCalendar] = useState(false);
@@ -39,9 +34,15 @@ const TodoCreateInput = ({ newTask, setNewTask, CreateTask, isAssign, users, ass
             <div className="check " onClick={(e)  => { 
                     CreateTask(e, caseId,dueDate); 
                     setDueDate(null)}}>
-                <div className="">
-                    <i className="fas fa-plus text-[18px]  dark:text-[#878895] text-dark-secondary"></i>
-                </div>
+                {isLoading?
+                    <div>
+                        <Loader size={18} className="dark:text-white text-dark-secondary animate-spin [animation-duration:2s]"/>
+                    </div>
+                :
+                    <div className="">
+                        <i className="fas fa-plus text-[18px]  dark:text-[#fff] text-dark-secondary"></i>
+                    </div>
+                }
             </div>
             <form className="todo_text" id="new_todo_form"  onSubmit={(e) => {
                     e.preventDefault();
@@ -70,7 +71,7 @@ const TodoCreateInput = ({ newTask, setNewTask, CreateTask, isAssign, users, ass
                             )):"":""}
                              { dueDate !=null ? 
                                 <div>
-                                    {dueDate !=null ?<span className='text-[12px]'><i className='bx bx-calendar-event dark:text-white text-dark-secondary text-[12px] mr-1'></i>{format(dueDate, 'dd MMM yyyy')}</span>:""}
+                                    {dueDate !=null ?<span className='text-[12px] dark:text-white text-dark-secondary '><i className='bx bx-calendar-event dark:text-white text-dark-secondary text-[12px] mr-1'></i>{format(dueDate, 'dd MMM yyyy')}</span>:""}
                                 </div>
                                 :""}
                     </div>

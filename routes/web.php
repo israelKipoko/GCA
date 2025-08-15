@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ClientsController;
 use App\Models\User;
 use App\Events\Message;
 use Illuminate\Support\Facades\Auth;
@@ -9,6 +10,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\EmailsController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\CasesController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -70,6 +73,8 @@ Route::get('/home/pending-cases/{case}',[ActivityController::class,"showCaseDeta
 Route::get('/cases/get-all-case-messages/{case}',[ActivityController::class,"getAllCaseMessages"]);
 Route::post('/cases/create-new-message/{case}',[ActivityController::class,"createMessage"]);
 Route::post('/cases/upload-file',[ActivityController::class,"uploadFile"])->middleware('auth');
+Route::put('/cases/messages/delete-message', [CasesController::class, "DeleteMessage"])->middleware('auth');
+Route::put('/cases/messages/edit-message', [CasesController::class, "EditMessage"])->middleware('auth');
 
 Route::get('/folders/show-pending-folders',[ActivityController::class,"showPendingCases"])->middleware('auth');
 
@@ -93,7 +98,7 @@ Route::post('/groups/create-group',[ActivityController::class,"createGroup"])->m
 Route::post('/groups/delete-group',[ActivityController::class,"deleteGroup"])->middleware('auth');
 Route::post('/groups/add-new-member',[ActivityController::class,"addMember"])->middleware('auth');
 Route::put('/groups/remove-member',[ActivityController::class,"removeMember"])->middleware('auth');
-Route::put('/groups/change-name',[ActivityController::class,"chnageGroupName"])->middleware('auth');
+Route::put('/groups/change-name',[ActivityController::class,"changeGroupName"])->middleware('auth');
 
 /* Connections */ 
 Route::post('/connections/api/auth/google',[ActivityController::class,"googleCalendar"])->middleware('auth');;
@@ -138,6 +143,8 @@ Route::group(['middleware' => ['auth','role:Super-Admin|Admin']], function () {
 
     Route::get('/clients/get-client-cases/{clientId}',[ActivityController::class,"getClientCases"]);
 
+    Route::put('/clients/modify-values',[ClientsController::class, "edit"]);
+    Route::post("/clients/update-logo", [ClientsController::class,"updateLogo"]);
     /* CLIENT */ 
     
     Route::post('/folders/create-new-folder',[ActivityController::class,"createCase"]);

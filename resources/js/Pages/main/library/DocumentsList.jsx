@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { useTranslation } from "react-i18next";
 import { useToast } from "../../../../../hooks/use-toast";
+import { Skeleton } from "../../../../../components/ui/skeleton";
 import {
     Dialog,
     DialogContent,
@@ -20,6 +21,11 @@ import {
     DialogTitle,
     DialogTrigger,
   } from "../../../../../components/ui/dialog";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "../../../../../components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +48,9 @@ function LibraryCategory({libraryID}) {
   const [sortBy, setSortBy] = useState('file_name');
   const [sortOrder, setSortOrder] = useState('asc');
 
+const [openMoreDialog, setOpenMoreDialog] = useState(false);
+const [isLoading, setIsLoading] = useState(false);
+
   const [isDeleting, setIsDeleting] = useState(false);
 
  const dataRefresh = () => {
@@ -51,8 +60,10 @@ function LibraryCategory({libraryID}) {
     const { t, i18n } = useTranslation();
     const { toast } = useToast();
     var transformedData;
-    function getData(page) {
-           axios.get(`/home/library/get-all-category-documents/${libraryID}`, {
+    async function getData(page) {
+        try{
+            setIsLoading(true);
+        const response = await axios.get(`/home/library/get-all-category-documents/${libraryID}`, {
             params: {
               search,
               mime_type: mimeType,
@@ -60,28 +71,29 @@ function LibraryCategory({libraryID}) {
               sort_order: sortOrder,
               page
             }
-          }).then(response => {
-               transformedData = response.data.data.map(element => ({
-                 id:element.id,
-                 name: element.name,
-                 type: element.mime_type,
-                 size: element.size,
-                 modification_date: element.updated_at,
-                 url: element.original_url,
-                 thumb_url: element.thumb_url,
-                 total: element.total_docs,
-               }));
-               setFiles(transformedData);
-               setFilteredData(transformedData);
-               setPagination({
-                  current_page: response.data.current_page,
-                  last_page: response.data.last_page,
-               });
-               setTotalItems(response.data.total);
-             })
-             .catch(error => {
+          })
+            transformedData = response.data.data.map(element => ({
+                id:element.id,
+                name: element.name,
+                type: element.mime_type,
+                size: element.size,
+                modification_date: element.updated_at,
+                url: element.original_url,
+                thumb_url: element.thumb_url,
+                total: element.total_docs,
+            }));
+            setFiles(transformedData);
+            setFilteredData(transformedData);
+            setPagination({
+                current_page: response.data.current_page,
+                last_page: response.data.last_page,
+            });
+            setTotalItems(response.data.total);
+            }catch(error) {
                console.log(error);
-             });
+            }finally{
+                setIsLoading(false);
+            };
         return transformedData
        }
 
@@ -159,9 +171,9 @@ function LibraryCategory({libraryID}) {
          getData(currentPage);
      }, [refreshParent,currentPage,search, mimeType, sortBy, sortOrder]);
   return (
-   <div className="container mx-auto py-10 ">
+   <div className=" mx-auto md:py-10 py-4 w-full">
     <div className="w-full ">
-        <div className="flex px-3 mb-2 justify-between gap-x-4 items-center">
+        <div className="flex md:flex-row flex-col gap-y-3 md:px-4 px-0 mb-2 justify-between gap-x-4 items-center">
             <div>
                 <div className='flex flex-row gap-x-3'>
                     {filterTitles.map((filter,index)=>{
@@ -174,38 +186,51 @@ function LibraryCategory({libraryID}) {
                     })}
                 </div>
             </div>
-            <div className='flex px-3 mb-2 justify-center gap-x-4 items-center '>
-                <Input
-                placeholder={t("Trouver un document")}
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-[300px] px-[30px]"/>
-                <Dialog open={openCreateFileDialog} onOpenChange={setOpenCreateFileDialog}>
-                    <DialogTrigger asChild>
-                    <Button size="sm" className="py-1 px-2 bg-[#356B8C] rounded-[4px] flex flex-row gap-x-1 text-white font-bold">
-                        {t("Ajouter")} <Plus size={13}/>
-                    </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[450px] border-none">
-                        <DialogHeader>
-                            {/* <DialogTitle className="dark:text-white text-dark-secondary font-bold">Nouveau Document</DialogTitle> */}
-                            {/* <DialogDescription className="dark:text-white text-dark-secondary font-bold">
-                                Comment souhaitez-vous nommer cette catégorie ?
-                            </DialogDescription> */}
-                        </DialogHeader>
-                        <CreateFile refreshData={dataRefresh} setOpenCreateFileDialog={setOpenCreateFileDialog} libraryID={libraryID}/>
-                    </DialogContent>
-                </Dialog>
+            <div className='flex md:px-3 mb-2 justify-center gap-x-4 items-center md:w-fit w-full'>
+                <div className='md:w-fit w-full'>
+                    <Input
+                    placeholder={t("Trouver un document")}
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="md:w-[300px] w-full px-[30px]"/>
+                </div>
+                <div  className="md:flex  md:static absolute right-2 z-10 bottom-20 items-center gap-x-3">
+                    <Dialog open={openCreateFileDialog} onOpenChange={setOpenCreateFileDialog}>
+                        <DialogTrigger asChild>
+                        <Button size="sm" className="py-2 z-10 px-2 bg-action md:rounded-[4px] rounded-full md:w-fit w-12 md:h-fit h-12 flex flex-row gap-x-1 text-white font-bold">
+                           <span className='md:block hidden'> {t("Ajouter")}</span> <Plus size={18}/>
+                        </Button>
+                        </DialogTrigger>
+                        <DialogContent className="md:w-[450px]  w-[350px] border-none">
+                            <DialogHeader>
+                                {/* <DialogTitle className="dark:text-white text-dark-secondary font-bold">Nouveau Document</DialogTitle> */}
+                                {/* <DialogDescription className="dark:text-white text-dark-secondary font-bold">
+                                    Comment souhaitez-vous nommer cette catégorie ?
+                                </DialogDescription> */}
+                            </DialogHeader>
+                            <CreateFile refreshData={dataRefresh} setOpenCreateFileDialog={setOpenCreateFileDialog} libraryID={libraryID}/>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+               
             </div>
         </div>
-            <div className=' flex flex-col gap-x-4 gap-y-3 my-6 px-4'>
-                {files.length ?(
+            <div className=' flex flex-col gap-x-4 gap-y-3 md:my-6 my-4 md:px-9'>
+            {isLoading?
+            <div  className='flex flex-col gap-x-4 gap-y-3  md:px-9'>
+             <Skeleton className="h-[60px] w-full rounded-md border" />
+             <Skeleton className="h-[60px] w-full rounded-md border" />
+             <Skeleton className="h-[60px] w-full rounded-md border" />
+            </div>
+            
+             :
+                files.length ?(
                 files.map((file,index)=>(
-                    <div key={index} className='hover:cursor-pointer w-full dark:bg-[#313131] bg-light-thirdly border-none py-2 relative overflow-hidden rounded-md'>
+                    <div key={index} className='hover:cursor-pointer w-full dark:bg-[#313131] bg-light-thirdly border-none md:py-2 py-2 relative overflow-hidden rounded-md'>
                         <div className='flex flex-row justify-between items-center px-2 dark:text-white text-dark-secondary'>
                             <div className='flex flex-row items-center justify-center gap-x-2'>
                                 <div className='h-[50px] w-[40px] '>
-                                    {
+                                   {
                                         file.type == "application/vnd.openxmlformats-officedocument.presentationml.presentation"  || file.type == "application/vnd.ms-powerpoint"?
                                             <img src={powerpointIcon} alt="file" className='w-full h-full object-contain '/>
                                         :
@@ -215,8 +240,13 @@ function LibraryCategory({libraryID}) {
                                         file.type == "application/vnd.oasis.opendocument.text" || file.type == "application/msword" || file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"?
                                             <img src={wordIcon} alt="file" className='w-full h-full object-contain '/>
                                         :
-                                        file.type == "application/vnd.ms-excel" || file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" &&
+                                        file.type == "application/vnd.ms-excel" || file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ?
                                             <img src={excelIcon} alt="file" className='w-full h-full object-contain '/>
+                                            :
+                                        file.type = "image" ?
+                                            <img src={file.original_url} alt="file" className='w-full h-full object-contain '/>
+                                        :
+                                        <i class='bx bxs-file dark:text-white text-dark-secondary text-[20px]'></i>
                                         )
                                     }
                                 </div>
@@ -225,66 +255,60 @@ function LibraryCategory({libraryID}) {
                                     <p className='opacity-[0.7] text-[13px]'>{formatFileSize(file.size)}</p>
                                 </div>
                             </div>
-                            <div className='w-[150px]'>
+                            <div className='w-[150px] md:block hidden'>
                                 <h1 className='font-bold capitalize text-[12px] opacity-[0.6] text-center'>Type</h1>
                                 <p className=' text-[14px] upload_file_name text-center'>{file.type}</p>
                             </div>
-                            <div>
+                            <div className=' md:block hidden'>
                                 <h1 className='font-bold capitalize text-[12px] opacity-[0.6] text-center'>{t("Dernière modification")}</h1>
                                 <p className=' text-[14px] text-center'>{formatDate(file.modification_date)}</p>
                             </div>
                             <div className='flex items-center justift-center gap-x-3'>
-                                <div>
+                                <div className=' md:block hidden'>
                                     <a href={file.url} target='_blank' className='py-1 px-4 text-[14px] flex flez-row items-center gap-x-2 dark:bg-dark-hover bg-light-hover transition-all hover:dark:bg-[#d8d8d866] hover:bg-[#29292966] opacity-[0.8] rounded-[4px]'>
                                         {t("Open")} <SquareArrowOutUpRight size={15}/>
                                     </a>
                                 </div>
                                 <div>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
+                                     <Popover >
+                                        <PopoverTrigger>
                                             <Button variant="ghost" className="h-8 w-8 p-0">
                                                 <span className="sr-only">Open menu</span>
                                                 <MoreVertical className="h-4 w-4" />
                                             </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className='w-[130px]'>
-                                            {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
-                                            {/* <DropdownMenuItem className="font-bold">
-                                            <BookUser /> Gestion du groupe
-                                            </DropdownMenuItem> */}
-                                            <DropdownMenuItem className="font-bold"  onClick={()=>shareFile(file.name,file.url)}>
-                                                <Share /> {t("Partager")}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={()=>deleteDocument(file.id, file.name)} className="dark:text-[#D84444] text-red-600 font-bold text-center " >
-                                            <Trash2/> {isDeleting ? (
+                                        </PopoverTrigger>
+                                        <PopoverContent  className='w-[130px] flex flex-col'>
+                                            <div  className="dark:text-white text-dark-secondary hover:dark:bg-[#d8d8d833] hover:bg-light-hover cursor-pointer font-bold flex px-2 py-1.5 items-center gap-x-2 p-1 border-b"  onClick={()=>shareFile(file.name,file.url)}>
+                                                <Share size={18}/> {t("Partager")}
+                                            </div>
+                                            <div onClick={()=>deleteDocument(file.id, file.name)} className=" hover:dark:bg-[#d8d8d833] hover:bg-light-hover cursor-pointer dark:text-[#D84444] flex flex items-center gap-x-2 px-2 py-1.5 text-red-600 font-bold text-center ">
+                                                <Trash2 size={18}/> {isDeleting ? (
                                                 <>
-                                                <svg 
-                                                    className="animate-spin h-5 w-5 text-white" 
-                                                    xmlns="http://www.w3.org/2000/svg" 
-                                                    fill="none" 
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <circle 
-                                                    className="opacity-25" 
-                                                    cx="12" 
-                                                    cy="12" 
-                                                    r="10" 
-                                                    stroke="currentColor" 
-                                                    strokeWidth="4"
-                                                    ></circle>
-                                                    <path 
-                                                    className="opacity-75" 
-                                                    fill="currentColor" 
-                                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                                                    ></path>
-                                                </svg>
+                                                    <svg 
+                                                        className="animate-spin h-5 w-5 text-white" 
+                                                        xmlns="http://www.w3.org/2000/svg" 
+                                                        fill="none" 
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <circle 
+                                                        className="opacity-25" 
+                                                        cx="12" 
+                                                        cy="12" 
+                                                        r="10" 
+                                                        stroke="currentColor" 
+                                                        strokeWidth="4"
+                                                        ></circle>
+                                                        <path 
+                                                        className="opacity-75" 
+                                                        fill="currentColor" 
+                                                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                                        ></path>
+                                                    </svg>
                                                 </>
-                                            ) :  t("Supprimer")}
-                                            </DropdownMenuItem>
-                                            {/* <DropdownMenuItem>View payment details</DropdownMenuItem> */}
-                                        </DropdownMenuContent>
-                                        </DropdownMenu>
+                                                ) :  t("Supprimer")}
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                             </div>
                         </div>
@@ -295,15 +319,16 @@ function LibraryCategory({libraryID}) {
                 <div>
                     <h1 className='text-center dark:text-white text-dark-secondary font-bold'>{t("Aucun document trouvé.")}</h1>
                 </div>
+            
                 }
             </div>
             <div className='flex items-center justify-between px-6'>
-                <div>
-                    <h1 className='dark:text-white text-dark-secondary font-bold'>Total: {totalItems}</h1>
-                </div>
                 <div className='flex items-center gap-x-6'>
                     <button disabled={!(pagination.current_page === 1 && totalItems === 0)}  className='text-sm flex items-center dark:text-white text-dark-secondary ' onClick={() => setCurrentPage(--pagination.current_page)}><ChevronsLeft size={20}/>{t("Précédent")}</button>
                     <button disabled={!(pagination.current_page === totalItems && pagination.current_page === pagination.last_page)}  className='text-sm flex items-center dark:text-white text-dark-secondary ' onClick={() => setCurrentPage(++pagination.current_page)}>{t("Suivant")}<ChevronsRight size={20}/></button>
+                </div>
+                 <div>
+                    <h1 className='dark:text-white text-dark-secondary font-bold'>Total: {totalItems}</h1>
                 </div>
             </div>
         </div>

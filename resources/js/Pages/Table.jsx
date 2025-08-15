@@ -27,9 +27,10 @@ const Table = () =>{
             client: element.client?.name ?? '',
             dead_line: element.due_date ?? '',
             priority: element.priority ?? 'Low',
-            created_by: `${element.user?.firstname ?? ''} ${element.user?.name ?? ''}`.trim(),
+            created_by: element.user ?? [],
             description: element.description ?? '',
             users: element.assigned_to ?? [],
+            groups: element.assigned_group ?? [],
           }));
          setData(transformedData);
         })

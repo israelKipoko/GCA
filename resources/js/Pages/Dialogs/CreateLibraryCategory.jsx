@@ -58,8 +58,8 @@ function CreateLibraryCategory({dataRefresh,setOpenLibraryDialog}) {
                 required/>
                 {error && <p className='text-sm dark:text-[#D84444] text-red-600 font-bold flex items-center gap-x-1 py-1'><AlertTriangle size={15}/>{error}</p>}
         </div>
-        <div className='w-fit ml-auto'>
-            <button  disabled={loading}  type="submit" className='ransition-transform duration-300 transform hover:scale-[1.035] w-[200px] py-1.5 px-4 bg-[#356B8C] rounded-[4px] flex justify-center text-white text-[14px] font-bold'>
+        <div className='md:w-fit w-full ml-auto'>
+            <button  disabled={loading}  type="submit" className='ransition-transform duration-300 transform hover:scale-[1.035] md:w-[200px] w-full py-1.5 px-4 bg-[#356B8C] rounded-[4px] flex justify-center text-white text-[14px] font-bold'>
                 {loading ? (
                     <>
                     <svg 

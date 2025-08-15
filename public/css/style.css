@@ -20,6 +20,10 @@
   --actionColorHover: #12538b;
   --mainBorderRadius : 4px;
 }
+
+html {
+  overflow-y: scroll;
+}
 @media (prefers-color-scheme: light) {
   :root{
     --primaryColor : #F4F4F4;
@@ -107,10 +111,17 @@ body{
     top: 50%;
     transform: translate(-50%, -50%);
 }
+/* style.css or a scoped CSS file */
+.custom-timepicker .ant-picker-suffix,
+.custom-timepicker .ant-picker-clear {
+  color: var(--textColor) !important;
+}
+
 .input_div{
     display: flex;
     flex-direction: column;
     position: relative;
+    width: 100%;
 }
 .input_div label{
   font-size: 15px;  
@@ -609,16 +620,9 @@ button:disabled{
   top: 2%;
 }
 .workspace_message_box_wrapper{
-  height: 400px;
   display: flex;
   flex-direction: column;
   row-gap: 8px;
-}
-.message_box{
-  /* box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px; */
-  /* border-bottom: 1px solid hsl(237, 14%, 26%); */
-  /* border-radius: 8px; */
-  max-width: calc(100% - 40px);
 }
 .auto_expand_textarea{
   width: 100%;
@@ -643,7 +647,6 @@ button:disabled{
   background-color: var(--secondaryColor);
   color: #fff;
   border-bottom: 1px solid hsl(237, 14%, 26%);
-  width: 400px;
   transition: all ease-in-out 0.2s;
   cursor: pointer;
   display: flex;
@@ -685,7 +688,6 @@ button:disabled{
 }
 .workspace_tabs_content_wrapper{
   position: relative;
-  height: 400px;
 }
 .workspace_box_shadow{
   box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
@@ -966,7 +968,8 @@ button:disabled{
   padding-left: 10px;
   padding-block: 7px;
   transition: all ease-in-out 0.2s;
-  width: 500px !important;
+  /* width: 500px !important; */
+  width: 100%;
 }
 .event_title_input:focus{
   box-shadow: 0 0 3px 2px var(--mainBlue);
@@ -977,7 +980,6 @@ button:disabled{
   padding-left: 10px;
   padding-block: 7px;
   transition: all ease-in-out 0.2s;
-  width: 230px !important;
 }
 .short_input:focus{
   box-shadow: 0 0 3px 2px var(--mainBlue);
@@ -1011,6 +1013,7 @@ button:disabled{
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+  width: 100%;
 }
 .event_reminder_trigger:hover{
   background-color: #b1afaf80;
@@ -1105,7 +1108,7 @@ textarea{
 }
 .participants{
   /* background-color: rgba(53, 107, 140,0.5); */
-  padding: 3px;
+  padding: 5px;
   border-radius: 8px;
   font-size: 14px;
   display: flex;
@@ -1135,7 +1138,7 @@ textarea{
 /* Register */
 /* TO DO LIST */
 .todo_items{
-  padding-inline: 10px;
+  /* padding-inline: 10px; */
   display: flex;
   flex-direction: column;
   row-gap: 1px;
@@ -1143,7 +1146,6 @@ textarea{
 }
 .todolist_tabs_content_wrapper{
   position: relative;
-  height: 380px;
 }
 .todo_item{
   padding: 10px;
@@ -1594,6 +1596,7 @@ textarea{
   justify-content: center;
   font-size: 1.5rem;
   font-weight: 500;
+  margin: auto;
 }
 .add-event-wrapper {
   position: absolute;

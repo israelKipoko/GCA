@@ -104,10 +104,10 @@ const refreshGroupsOnly = async () => {
       getData();
   }, [refreshKey]);
 return (
-    <section className='my-6'>
-       <Tabs defaultValue="members" className="w-full">
-          <div className='flex flex-row items-center  justify-between'>
-            <TabsList className="w-[400px] grid  gap-x-2 grid-cols-2 bg-none rounded-md ">
+    <section className='my-6  w-full flex justify-center '>
+       <Tabs defaultValue="members" className="md:w-full w-[300px] ">
+          <div className='flex md:flex-row flex-col-reverse md:items-center items-end gap-y-2 justify-between'>
+            <TabsList className="md:w-[400px] w-[300px] grid  gap-x-2 grid-cols-2 bg-none rounded-md ">
                 <TabsTrigger onClick={()=> setActiveTab('members')} value="members" className={cn("todo_wrapper_tabs",activeTab=="members"?"active_tab":"")}> 
                   <div><User size={16}/>Membres</div>
                    <span className='font-bold rounded-full  dark:bg-dark-secondary bg-light-thirdly'>{totalUsers}</span>
@@ -117,24 +117,24 @@ return (
                   <span className='font-bold rounded-full  dark:bg-dark-secondary bg-light-thirdly'>{totalGroups}</span>
                 </TabsTrigger>
             </TabsList>
-              <div>
-                <Button onClick={activeTab === "members"? setOpenAddUserDialog: setOpenCreateGroup} className="py-1 px-2 bg-[#356B8C] rounded-[4px] flex flex-row gap-x-1 text-white font-bold">
-                  {activeTab === "members"? (`Ajouter un membre`) : "Créer un groupe"}<Plus size={13}/>
+              <div className=''>
+                <Button onClick={activeTab === "members"? setOpenAddUserDialog: setOpenCreateGroup} className="py-1 px-2 bg-action rounded-[4px]  flex flex-row gap-x-1 text-white font-bold">
+                  {activeTab === "members"? <span className=''>Ajouter un membr</span>  : <span className=''>Créer un groupe</span> }<Plus size={18}/>
                 </Button>
               </div>
           </div>
             <TabsContent value="members" className='h-full w-full'>
-              <section className='h-full'>
-                <ScrollArea className='h-full'>
+              <section className='h-full w-full '>
+                {/* <ScrollArea className='h-full w-full'> */}
                   <UsersTable data={userdata} refreshUsers={refreshUsersOnly} openAddUserDialog={openAddUserDialog} setOpenAddUserDialog={setOpenAddUserDialog} dataRefresh={dataRefresh}/>
-                </ScrollArea>
+                {/* </ScrollArea> */}
               </section>
             </TabsContent>
             <TabsContent value="groups"  className='h-full w-full'>
               <section className='h-full'>
-                  <ScrollArea className='h-full'>
+                  {/* <ScrollArea className='h-full'> */}
                     <GroupsTable data={groupData} refreshGroups={refreshGroupsOnly} allUsers={allUsers} openCreateGroup={openCreateGroup} setOpenCreateGroup={setOpenCreateGroup} refreshLayout={refreshLayout} dataRefresh={dataRefresh}/>
-                  </ScrollArea>
+                  {/* </ScrollArea> */}
                 </section>
             </TabsContent>
         </Tabs>

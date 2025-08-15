@@ -5,8 +5,13 @@ import { Input } from "../../../components/ui/input";
 import FolderForm from "./FolderForm";
 import axios from 'axios';
 import { useToast } from "../../../hooks/use-toast"
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { CasesToolbar } from "./main/cases/CasesToolbar";
+import { ClientsFilter } from "./main/cases/ClientsFilter";
+import { ViewOptions } from "./main/cases/ViewOptions";
+import ViewCase from "./main/cases/ViewCase";
+import { priorities } from "./main/cases/data"
 import {
   Dialog,
   DialogContent,
@@ -24,6 +29,8 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
+  SortingState,
+  getSortedRowModel
 } from "@tanstack/react-table"
 import {
   Table,
@@ -33,12 +40,6 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../../components/ui/tooltip"
 
 
 interface DataTableProps<TData, TValue> {
@@ -57,6 +58,7 @@ export function DataTable<TData, TValue>({
   dataRefresh, 
 }: DataTableProps<TData, TValue>) {
     const { t, i18n } = useTranslation();
+    const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
         []
         )
@@ -83,28 +85,39 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
     state: {
         columnFilters,
+        sorting
       },
       initialState: {
         columnVisibility: {
           description: false,
           users: false,
+          groups: false,
           id: false,
         },
       }
   })
+  const isFiltered = table.getState().columnFilters.length > 0
   const { toast } = useToast();
 
   const wait = () => new Promise((resolve) => setTimeout(resolve, 1000));
   const [open, setOpen] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
+  var clients: any[] = [];
 
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refreshParent = () => {
     setRefreshKey((oldKey:any) => oldKey + 1);
   };
+  const [screenSize, setScreenSize] = useState({
+          width: window.innerWidth - 25,
+          height: window.innerHeight
+      });
+
   useEffect(() => {
     wait().then(() => setOpen(false));
     dataRefresh();
@@ -129,6 +142,13 @@ export function DataTable<TData, TValue>({
   var assignedUsers:User[] = [];
   table.getRowModel().rows.forEach((row) => {
     var users = row.getValue('users') as User;
+    const client:string = row.getValue('client');
+
+  if (client.trim() !== '') {
+    clients.push(client);
+  }
+
+  
     if (Array.isArray(users)) {
       if (users.length === 2) {
         assignedUsers.push(users);  // Keep the array of length 2 as a sub-array
@@ -137,35 +157,70 @@ export function DataTable<TData, TValue>({
       }
     }
   });
+    clients = clients.map((client) => ({
+      name: client,
+    }));
   return (
-    <div className="w-full">
-         <div className="flex px-3 mb-2  justify-between items-center mb-1">
-            <Input
-              placeholder="Trouvez un dossier..."
-              value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-              onChange={(event) =>
-                table.getColumn("title")?.setFilterValue(event.target.value)
-              }
-              className="w-[300px]"/>
+    <div className="w-full ">
+         <div className="flex md:flex-row flex-col-reverse md:px-4 px-0 mb-2  justify-between items-center mb-1">
+            <div className="flex md:flex-row flex-col-reverse items-center gap-y-2 gap-x-3">
+              <Input
+                placeholder="Trouvez un dossier..."
+                value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+                onChange={(event) =>
+                  table.getColumn("title")?.setFilterValue(event.target.value)
+                }
+                className="w-[300px]"/>
+                <div className="md:flex items-center hidden gap-x-2">
+
+                {table.getColumn("priority") && (
+                  <CasesToolbar
+                    column={table.getColumn("priority")}
+                    title="Priority"
+                    options={priorities}
+                  />
+                )}
+
+                {table.getColumn("client") && (
+                  <ClientsFilter
+                    column={table.getColumn("client")}
+                    name="Clients"
+                    options={clients}
+                  />
+                )}
+                {isFiltered && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 p-2 rounded-full"
+                      onClick={() => table.resetColumnFilters()}
+                    >
+                      <X size={18} />
+                    </Button>
+                  )}
+                </div>
+            </div>
+            <div className="md:flex  md:static absolute right-2 z-10 bottom-20 items-center gap-x-3">
+              <ViewOptions table={table}/>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button className="py-1 px-2 bg-[#356B8C] rounded-[4px] flex flex-row gap-x-1 text-white font-bold">
-                  Créer un dossier <Plus size={13}/>
+                <Button className="py-2 z-10 px-2 bg-action md:rounded-[4px] rounded-full md:w-fit w-12 md:h-fit h-12 flex flex-row gap-x-1 text-white font-bold">
+                  <span className="md:block hidden">Créer un dossier</span> <Plus size={18}/>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]  border-none">
+              <DialogContent className={`md:w-[600px] w-[${screenSize.width}px] border-none md:px-6 px-3`}>
                 <DialogHeader>
                   <DialogTitle className="dark:text-white text-dark-secondary font-bold">Nouveau Dossier</DialogTitle>
-                  {/* <DialogDescription>
-                    Make changes to your profile here. Click save when you're done.
-                  </DialogDescription> */}
                 </DialogHeader>
+                   <DialogDescription className='hidden'></DialogDescription>
                 
                 <FolderForm refreshParent={refreshParent}/>
               </DialogContent>
             </Dialog>
+          </div>
+
       </div>
-        <div className="rounded-md ">
+        <div className="rounded-md px-4">
         <Table className="table">
             <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -186,121 +241,45 @@ export function DataTable<TData, TValue>({
             ))}
             </TableHeader>
             <TableBody>
-            {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row,index) => (
+        {table.getRowModel().rows?.length ? (
+          table.getRowModel().rows.map((row,index) => (
                  
-                    <Dialog key={index}>
-      <DialogTrigger asChild>
-                <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className=" border-none cursor-pointer">
-                        
-                    {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className=" capitalize text-center text-[14px]">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                    ))}
-                </TableRow>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] border-none">
-        <DialogHeader>
-          <DialogTitle className="dark:text-white text-dark-secondary capitalize">{row.getValue("title")}</DialogTitle>
-          <DialogDescription className="dark:text-white text-dark-secondary">
-              {row.getValue("description")}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-            {/* <div className="dark:text-white text-dark-secondary">
-            <label htmlFor="" className="text-[14px] text-center">Assigné à:</label>
-              <div className=" flex ">
-                {assignedUsers.map((user, index) => (
-                      <TooltipProvider key={index}>
-                      <Tooltip>
-                      {(index==0)?
-                        <TooltipTrigger className="border-none w-fit ">
-                           <img src={user.avatar_link}  className="w-[35px] h-[35px] rounded-full"/>
-                        </TooltipTrigger>:
-                          <TooltipTrigger className="border-none w-fit  -ml-2">
-                              <img src={user.avatar_link}  className="w-[35px] h-[35px] rounded-full" />
-                          </TooltipTrigger>}
-                        <TooltipContent className="bg-[#262626] border-none">
-                          <p>{user.name}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                ))} 
-              </div>
-            </div> */}
-          <div className="dark:text-white text-dark-secondary flex flex-col gap-y-2">
-            <div className="flex justify-between">
-                {/* <div>
-                  <label htmlFor="" className="text-[14px]">Client:</label>
-                  <h1 className="text-[15px] font-bold">{row.getValue("client")==""?"...":""}</h1>
-                </div> */}
-                <div className="text-left flex flex-col">
-                  <label htmlFor="" className="text-[14px] text-left">Statut:</label>
-                  {row.getValue("statut") == "pending"?  
-                  (<span className="inline-flex items-center gap-1 rounded-full bg-yellow-200 px-3 py-1 text-xs font-medium text-yellow-700">
-                    <span className="h-2 w-2 rounded-full bg-yellow-500"></span>
-                    {t("pending")}
-                  </span>)
-                  :
-                 (<span className="inline-flex items-center gap-1 rounded-full bg-green-200 px-3 py-1 text-xs font-medium text-green-700">
-                    <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                    {t("completed")}
-                  </span>)
-                  }
-                </div>
-            </div>
-            <div className="flex flex-col gap-y-3">
-                <div>
-                  <label htmlFor="" className="text-[14px]">Créé par:</label>
-                  <h1 className="text-[15px] font-bold">{row.getValue("created_by")}</h1>
-                </div>
-                <div className="text-center flex flex-col w-fit ">
-                  <label htmlFor="" className="text-[14px] text-center">Priorité:</label>
-                  {row.getValue("priority") == "medium"? 
-                  <span className="inline-flex items-center gap-1 rounded-full bg-yellow-200 px-3 py-1 text-xs font-medium text-yellow-700">
-                    <span className="h-2 w-2 rounded-full bg-yellow-700"></span>
-                    {t("medium")}
-                  </span>
-                  :row.getValue("priority") == "low"?
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-300 px-3 py-1 text-xs font-medium text-green-700">
-                      <span className="h-2 w-2 rounded-full bg-green-700"></span>
-                      {t("low")}
-                    </span>
-                  :
-                  <span className="inline-flex items-center gap-1 rounded-full bg-red-200 px-3 py-1 text-xs font-medium text-red-700">
-                    <span className="h-2 w-2 rounded-full bg-red-700"></span>
-                    {t("high")}
-                  </span>}
-                </div>
-            </div>
-          </div>
-          <div className="dark:text-white text-dark-secondary flex flex-col capitalize ">
-            <label htmlFor="" className="text-[14px]">Date limite:</label>
-             <span className="text-[15px]">{formatDate(row.getValue("dead_line"))}</span>
-          </div>
-        </div>
-        <DialogFooter>
-        <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-          <DialogTrigger>
-              <Button type="button" className="dark:bg-[#d8d8d833] bg-light-hover py-1 font-bold dark:text-red-400 text-red-600 hover:text-red-500 text-[14px]">Supprimer<i className='bx bx-trash text-[14px]'></i></Button>
+        <Dialog key={index}>
+          <DialogTrigger asChild>
+              <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className=" border-none cursor-pointer">
+                      
+                  {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id} className=" capitalize text-center text-[14px]">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                  ))}
+              </TableRow>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] border-none">
-            <DialogHeader>
-              <DialogTitle className="dark:text-white text-dark-secondary capitalize">êtes-Vous sûr?</DialogTitle>
-              <DialogDescription className="dark:text-white text-dark-secondary">
-              Cette action ne peut pas être annulée. Cela supprimera définitivement le dossier même pour tous les autres utilisateurs.</DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-            <Button onClick={(e)=> setOpenDelete(false)} type="button" className="dark:bg-[#d8d8d833] bg-light-hover py-1 font-bold dark:text-white text-dark-secondary text-[14px]">Annuler</Button>
-            <Button onClick={(event) => deleteFolder(row.getValue("id"),event)} type="button" className="dark:bg-[#d8d8d833] bg-light-hover py-1 font-bold dark:text-red-400 text-red-600  hover:text-red-500 text-[14px]">Supprimer</Button>
-          </DialogFooter>
-          </DialogContent>  
-        </Dialog>
-          <Button type="button" className="dark:text-white text-dark-secondary font-bold dark:bg-[#d8d8d833] bg-light-hover ">
+      <DialogContent className="md:max-w-[600px] max-w-[350px] border-none">
+        <ViewCase title={row.getValue("title")} users={row.getValue("users")} groups={row.getValue("groups")} description={row.getValue("description")} status={row.getValue("statut")} owner={row.getValue("created_by")} priority={row.getValue("priority")} deadLine={row.getValue("dead_line")} refresh={dataRefresh}/>
+        
+        <DialogFooter className="flex flex-row gap-x-2 items-center justify-between">
+          <Dialog open={openDelete} onOpenChange={setOpenDelete}>
+            <DialogTrigger className="w-full">
+                <Button type="button" className="w-full dark:bg-[#d8d8d833] bg-light-hover py-1 font-bold dark:text-red-400 text-red-600 hover:text-red-500 text-[14px]">Supprimer<i className='bx bx-trash text-[14px]'></i></Button>
+            </DialogTrigger>
+            <DialogContent className="md:max-w-[600px]   max-w-[350px] border-none">
+              <DialogHeader>
+                <DialogTitle className="dark:text-white text-dark-secondary capitalize">êtes-Vous sûr?</DialogTitle>
+                <DialogDescription className="dark:text-white text-dark-secondary">
+                Cette action ne peut pas être annulée. Cela supprimera définitivement le dossier même pour tous les autres utilisateurs.</DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="flex flex-row gap-x-2 items-center justify-between">
+              <Button onClick={(event) => deleteFolder(row.getValue("id"),event)} type="button" className="w-full dark:bg-[#d8d8d833] bg-light-hover py-1 font-bold dark:text-red-400 text-red-600  hover:text-red-500 text-[14px]">Supprimer</Button>
+              <Button onClick={(e)=> setOpenDelete(false)} type="button" className="w-full dark:bg-[#d8d8d833] bg-light-hover py-1 font-bold dark:text-white text-dark-secondary text-[14px]">Annuler</Button>
+            </DialogFooter>
+            </DialogContent>  
+          </Dialog>
+
+          <Button type="button" className="w-full dark:text-white text-dark-secondary font-bold dark:bg-[#d8d8d833] bg-light-hover ">
             <a href={"/home/pending-cases/"+row.getValue("id")}>
                 Ouvrir <i className="fa-solid fa-arrow-up-right-from-square"></i>
             </a>
@@ -320,7 +299,7 @@ export function DataTable<TData, TValue>({
             </TableBody>
         </Table>
         </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex items-center justify-start space-x-2 py-4">
         <Button
           variant="outline"
           size="sm"

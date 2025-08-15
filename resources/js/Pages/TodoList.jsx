@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { cn } from "../../../lib/utils";
 import { ScrollArea } from "../../../components/ui/scroll-area";
 import TodoCreateInput from './utils/TodoCreateInput';
@@ -9,6 +9,7 @@ import TodoItem from './utils/TodoItem';
 import Lottie from 'lottie-react';
 import live from '../../../public/animation/live-animation.json';
 import { useTranslation } from "react-i18next";
+import { AlignJustify } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -16,11 +17,10 @@ import {
   AccordionTrigger,
 } from "../../../components/ui/accordion";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../../components/ui/tooltip";
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+  } from "../../../components/ui/popover";
 
 const TodoList = () =>{
   const [refreshKey, setRefreshKey] = useState(0);
@@ -36,6 +36,7 @@ const TodoList = () =>{
   const [completedPlannedTasks, setCompletedPlannedTasks]  = useState([]);
   const [userRole, setUserRole] = useState('');
   const [users, setUsers] = useState([]);
+  const [openPopover, setOpenPopover] = useState(false);
 
   const { t, i18n } = useTranslation();
   
@@ -47,7 +48,7 @@ const TodoList = () =>{
   const audio = new Audio('../../../sounds/completed_2.mp3');
     const date = new Date();
     const todayDate = format(date, 'yyyy-MM-dd');
-    const formattedDate = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' }).format(date);
+    const formattedDate = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
   const dataRefresh = () => {
     setRefreshKey((oldKey) => oldKey + 1);
   };
@@ -168,8 +169,43 @@ const TodoList = () =>{
   return (
     <section>
         <div id="todo_wrapper" className="flex h-full dark:bg-dark-primary bg-[#E5E5E5]">
-        <Tabs defaultValue="my_day" className="flex  w-full">
-            <TabsList className="flex flex-col  gap-y-0.5 w-[300px] justify-start items-start pt-2 todo_wrapper_tabs_list h-full">
+        <Tabs defaultValue="my_day" className="flex relative w-full">
+          <div className='md:hidden flex absolute -top-9 right-0'>
+            <Popover open={openPopover} onOpenChange={setOpenPopover}>
+              <PopoverTrigger>
+                  <div className='relative   text-white py-1.5 px-2  rounded-md flex items-center justify-start'>
+                    <AlignJustify size={20} />
+                  </div>
+              </PopoverTrigger>
+              <PopoverContent>
+                <TabsList className="flex flex-col  gap-y-0.5  justify-start items-start pt-2 todo_wrapper_tabs_list h-full">
+                {overDueTasks.length == 0 ? "": 
+                  <TabsTrigger onClick={()=> setActiveTab('overDue')} value="overDue" className={cn("todo_wrapper_tabs",activeTab=="overDue"?"dark:active_tab active_tab_dark":"")}> <div className='flex items-center'><Lottie animationData={live}  autoplay={true} style={{ width: 18, height: 18 }} loop={true} />{t("rappel")}</div> <span>{(overDueTasks.length) == 0?"":(overDueTasks.length)}</span></TabsTrigger>
+                }
+                <TabsTrigger onClick={()=>{ setActiveTab('my_day'); setOpenPopover(false)}} value="my_day" className={cn("todo_wrapper_tabs dark:text-white text-dark-secondary",activeTab=="my_day"?"dark:active_tab active_tab_dark":"")}> <div><i class='bx bx-sun dark:text-[#eeee22] text-[#FFA500]'></i>{t("Ma Journée")}</div> <span className='dark:text-white text-dark-secondary'>{(myDayTasks.length + myDayCompletedTasks.length) == 0?"":(myDayTasks.length + myDayCompletedTasks.length)}</span></TabsTrigger>
+                <TabsTrigger onClick={()=> setActiveTab('planned')} value="planned" className={cn("todo_wrapper_tabs ",activeTab=="planned"?"dark:active_tab active_tab_dark":"")}><div><i class='bx bx-calendar-event text-[#0f6cbd]'></i>{t("Planifiées")} </div><span className='dark:text-white text-dark-secondary'>{(plannedTasks.length + completedPlannedTasks.length) == 0?"":(plannedTasks.length + completedPlannedTasks.length)}</span></TabsTrigger>
+                <TabsTrigger onClick={()=> setActiveTab('my_tasks')} value="my_tasks" className={cn("todo_wrapper_tabs ",activeTab=="my_tasks"?"dark:active_tab active_tab_dark":"")}> <div><i class='bx bx-home-alt text-[#0f6cbd]'></i>{t("Mes Tâches")} </div><span className='dark:text-white text-dark-secondary'>{(tasks.length + completedTasks.length) == 0?"":(tasks.length + completedTasks.length)}</span></TabsTrigger>
+                {casesTasks.length ? (
+                  <section className='w-full'>
+                      <div className='border opacity-[0.5] my-2 rounded-full w-[100%] mx-auto'></div>
+                      <Accordion type="single" collapsible className='w-full'>
+                          <AccordionItem value="item-1">
+                            <AccordionTrigger className='dark:text-white text-dark-secondary text-sm w-full todo_wrapper_tabs'><div><i class='bx my-auto bx-dock-left'></i>{t("Mes Dossiers")}</div></AccordionTrigger>
+                            <AccordionContent className='mt-1'>
+                                {groupedCasesTasks.map((group, groupIndex) => (
+                                    <TabsTrigger key={groupIndex} onClick={()=> setActiveTab(`${group[0].caseId}`)} value={group[0].caseId} className={cn("todo_wrapper_tabs ml-1",activeTab==`${group[0].caseId}`?"dark:active_tab active_tab_dark":"")}> <div className='capitalize'><i class='bx bx-list-ul my-auto text-[#0f6cbd]'></i>{group[0].caseTitle}</div><span>{group.length == 0?"":(group.length)}</span></TabsTrigger>
+                                  ))}
+                            </AccordionContent>
+                          </AccordionItem>
+                      </Accordion>
+                  </section>
+                    
+                ):(<div></div>)}
+                </TabsList>
+              </PopoverContent>
+            </Popover>
+          </div>
+            <TabsList className="flex flex-col md:block hidden gap-y-0.5 w-[300px] justify-start items-start pt-2 todo_wrapper_tabs_list h-full">
                 {overDueTasks.length == 0 ? "": 
                   <TabsTrigger onClick={()=> setActiveTab('overDue')} value="overDue" className={cn("todo_wrapper_tabs",activeTab=="overDue"?"dark:active_tab active_tab_dark":"")}> <div className='flex items-center'><Lottie animationData={live}  autoplay={true} style={{ width: 18, height: 18 }} loop={true} />{t("rappel")}</div> <span>{(overDueTasks.length) == 0?"":(overDueTasks.length)}</span></TabsTrigger>
                 }
@@ -201,9 +237,9 @@ const TodoList = () =>{
                         <h1 className="flex items-center gap-x-2  text-md font-bold dark:text-white text-dark-secondary">{t("rappel")}</h1>
                         <span className=" capitalize dark:text-[#d8d8d8] text-[#292929]  text-[14px] text-center w-fit">Vous êtes en retard sur {overDueTasks.length > 1?"ces":"cette"} tâches!!</span>  
                     </div>
-                    <div className='todolist_tabs_content_wrapper  w-full'>
-                        <div className="todo_items ">
-                          <ScrollArea className='h-full'>
+                    <div className='todolist_tabs_content_wrapper w-full'>
+                        <div className="todo_items h-full">
+                          <ScrollArea className='max-h-[380px] h-full'>
                           {overDueTasks.length ? (
                           overDueTasks.map((task,taskIndex)=>(
                               <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task} isCaseTitle={true}/>
@@ -222,23 +258,27 @@ const TodoList = () =>{
             </TabsContent>
             }
             <TabsContent value="my_day" className=' w-full'>
-                <div class="h-full py-1 px-3 w-full">
+                <div class="h-full py-1 px-3 w-full flex flex-col">
                     <div className="r w-fit ">
-                        <h1 className="flex items-center gap-x-2  text-md font-bold dark:text-white text-dark-secondary">{t("Ma Journée")}</h1>
+                        <h1 className="flex items-center gap-x-2  text-md font-bold dark:text-white text-dark-secondary" >{t("Ma Journée")}</h1>
                         <span className=" capitalize dark:text-[#d8d8d8] text-[#292929] text-[14px] text-center w-fit">{formattedDate}</span>  
                     </div>
-                    <div className='todolist_tabs_content_wrapper  w-full'>
-                        <div className="todo_items ">
-                          <ScrollArea className='h-full'>
-                          {myDayTasks.length || myDayCompletedTasks.length ? (
-                          myDayTasks.map((task,taskIndex)=>(
+                    <div className='todolist_tabs_content_wrapper flex-1 w-full'>
+                        <div className="todo_items h-full ">
+                          <ScrollArea className='max-h-[380px]'>
+                            {myDayTasks.length || myDayCompletedTasks.length ? (
+                            myDayTasks.map((task,taskIndex)=>(
                               <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task} isCaseTitle={true}/>
                              ))
                             ): (
-                              <div className="flex flex-col items-center h-fit my-auto  no-event">
-                                <img src="../../../icons/my_day.webp" alt="No task"/>
-                                <p className="text-[13px] text-center dark:text-[#878895] text-dark-secondary">Vous n'avez aucune tâche aujourd'hui.<br/>Profitez de votre journée!!!</p>
-                              </div>
+                                <div className="flex flex-col items-center justify-center h-[300px] text-center">
+                                  <img src="../../../icons/my_day.webp" alt="No task" />
+                                  <p className="text-[13px] dark:text-[#878895] text-dark-secondary mt-2">
+                                    Vous n'avez aucune tâche aujourd'hui.
+                                    <br />
+                                    Profitez de votre journée!!!
+                                  </p>
+                                </div>
                           )}
                           {myDayCompletedTasks.length > 0?
                           <Accordion type="single" collapsible>
@@ -270,21 +310,21 @@ const TodoList = () =>{
 
             </TabsContent>
             <TabsContent value="planned" className=' w-full'>
-                <div class="h-full py-1 px-3 w-full">
+                <div class="h-full py-1 px-3 w-full flex flex-col">
                     <div className="r w-fit mb-1">
                         <h1 className="flex items-center gap-x-2  text-md font-bold dark:text-white text-dark-secondary">Planifiées</h1>
-                    </div>
-                    <div className='todolist_tabs_content_wrapper  w-full'>
+                    </div> 
+                    <div className='todolist_tabs_content_wrapper flex-1 w-full'>
                         <div className="todo_items ">
-                           <ScrollArea className='h-full'>
+                           <ScrollArea className='max-h-[380px]'>
                               {plannedTasks.length || completedPlannedTasks.length ? (
                               plannedTasks.map((task,taskIndex)=>(
                                   <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task}/>
                                 ))
                                 ): (
-                                  <div className="flex flex-col items-center h-fit my-auto  no-event">
+                                <div className="flex flex-col items-center justify-center h-[300px] text-center">
                                   <img src="../../../icons/planned_task.webp" alt="planned tasks"/>
-                                  <p className="text-[13px] text-center">Les tâches avec une date d'échéance et un rappel apparaîtront ici!!</p>
+                                  <p className="text-[13px] text-center dark:text-white text-dark-secondary">Les tâches avec une date d'échéance et un rappel apparaîtront ici!!</p>
                                 </div>
                               )}
                               {completedPlannedTasks.length > 0?
@@ -310,13 +350,13 @@ const TodoList = () =>{
                 </div>
             </TabsContent>
             <TabsContent value="my_tasks" className=' w-full'>
-            <div class="h-full py-1 px-3 w-full">
+            <div class="h-full py-1 px-3 w-full flex flex-col">
                     <div className="r w-fit mb-1">
                         <h1 className="flex items-center gap-x-2  text-md font-bold dark:text-white text-dark-secondary">Mes Tâches</h1>
                     </div>
-                    <div className='todolist_tabs_content_wrapper  w-full'>
+                    <div className='todolist_tabs_content_wrapper flex-1 w-full'>
                         <div className="todo_items ">
-                          <ScrollArea>
+                          <ScrollArea className='max-h-[380px]'>
                               {tasks.length || completedTasks.length ? (
                               tasks.map((task,taskIndex)=>(
                                     <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task}/>
@@ -324,7 +364,7 @@ const TodoList = () =>{
                                 ): (
                                   <div className="flex flex-col items-center h-fit my-auto  no-event">
                                     <img src="../../../icons/my_day.webp" alt="No task"/>
-                                    <p className="text-[13px] text-center">Votre liste des tâches est vide!!</p>
+                                    <p className="text-[13px] text-center dark:text-white text-dark-secondary">Votre liste des tâches est vide!!</p>
                                   </div>
                               )}
                               {completedTasks.length > 0? 

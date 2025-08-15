@@ -4,11 +4,15 @@ import { Input } from "../../../../../components/ui/input";
 import React, { useState, useEffect} from "react";
 import { Plus, User, Mail, Phone, MapPin, BriefcaseBusiness, SquareArrowOutUpRight } from "lucide-react";
 import ClientForm from "../../ClientForm";
+import { ViewOptions } from "../cases/ViewOptions";
+import ViewClient from "./ViewClient";
 import axios from 'axios';
 import {
   ColumnDef,
   flexRender,
   ColumnFiltersState,
+  SortingState,
+  getSortedRowModel,
   getCoreRowModel,
   getPaginationRowModel,
   getFilteredRowModel,
@@ -43,6 +47,7 @@ export function DataTable<TData, TValue>({
   data,
   dataRefresh,
 }: DataTableProps<TData, TValue>) {
+   const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
         )
@@ -53,8 +58,11 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
     state: {
         columnFilters,
+         sorting,
       },
       initialState: {
         columnVisibility: {
@@ -115,30 +123,37 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full ">
-          <div className="flex px-3 mb-2 justify-between items-center ">
-            <Input
-                placeholder="Trouver un client..."
-                value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-                onChange={(event) =>
-                    table.getColumn("name")?.setFilterValue(event.target.value)
-                }className="w-[300px] px-[30px]"
-            />
-            <Dialog open={openClientForm} onOpenChange={setOpenClientForm}>
-              <DialogTrigger asChild>
-                <Button className="py-1 px-2 bg-[#356B8C] rounded-[4px] flex flex-row gap-x-1 text-white font-bold">
-                  Créer un client <Plus size={13}/>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] border-none">
-                <DialogHeader>
-                  <DialogTitle className="dark:text-white text-dark-secondary font-bold">Nouveau Client</DialogTitle>
-                </DialogHeader>
-                
-                <ClientForm refreshParent={refreshParent}/>
-              </DialogContent>
-            </Dialog>
+          <div className="flex w-full md:flex-row flex-col-reverse md:px-4 px-0 mb-2  justify-between items-center mb-1 ">
+            <div>
+              <Input
+                  placeholder="Trouver un client..."
+                  value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+                  onChange={(event) =>
+                      table.getColumn("name")?.setFilterValue(event.target.value)
+                  }className="w-[300px] px-[30px] "
+              />
+            </div>
+            <div className="md:flex  md:static absolute right-2 z-10 bottom-20 items-center gap-x-3">
+              <ViewOptions table={table}/>
+              <Dialog open={openClientForm} onOpenChange={setOpenClientForm}>
+                <DialogTrigger asChild>
+                  <Button className="py-2 z-10 px-2 bg-[#356B8C] md:rounded-[4px] rounded-full md:w-fit w-12 md:h-fit h-12 flex flex-row gap-x-1 text-white font-bold">
+                      <span className="md:block hidden">Créer un client</span> <Plus size={18}/>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="md:w-[600px] w-[350px] border-none md:px-6 px-3">
+                  <DialogHeader>
+                    <DialogTitle className="dark:text-white text-dark-secondary font-bold">Nouveau Client</DialogTitle>
+                  </DialogHeader>
+                  <DialogDescription className='hidden'></DialogDescription>
+                  
+                  
+                  <ClientForm refreshParent={refreshParent}/>
+                </DialogContent>
+              </Dialog>
+            </div>
         </div>
-    <div className="rounded-md">
+    <div className="rounded-md px-3">
       <Table className="table">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -174,67 +189,8 @@ export function DataTable<TData, TValue>({
                             ))}
                         </TableRow>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px] border-none">
-                        <DialogHeader>
-                            <DialogTitle className=" flex items-center gap-x-2 mb-4">
-                              <div className=" rounded-full w-16 h-16 flex items-center justify-center bg-[#ffffff44]">
-                                {row.getValue("logo") == ""? 
-                                  <User size={30}/>
-                                :
-                                <img src={row.getValue("logo")} alt="logo"  className="w-full h-full object-fit-contain rounded-full"/>
-                                }
-                              </div> 
-                               <h1 className="font-bold capitalize flex flex-col">
-                                  {row.getValue("name")}
-                                  <span className="text-[13px]">{row.getValue("sector")}</span>
-                               </h1> 
-                              </DialogTitle>
-                            <div className=" px-6 flex flex-col gap-y-4">
-                                <div >
-                                   <h1 className="flex flex-row gap-x-2 items-center dark:text-white text-dark-secondary">
-                                    <Mail size={20}/> {row.getValue("email")}
-                                   </h1> 
-                                </div>
-                                <div >
-                                   <h1 className="flex flex-row gap-x-2 items-center dark:text-white text-dark-secondary">
-                                    <Phone size={20}/> {row.getValue("phone")}
-                                   </h1> 
-                                </div>
-                                <div >
-                                   <h1 className="flex flex-row gap-x-2 items-center dark:text-white text-dark-secondary">
-                                    <MapPin size={20}/> {row.getValue("location")}
-                                   </h1> 
-                                </div>
-                                {row.getValue("count_cases") ? (
-                                  <div className="px-2 flex flex-col gap-y-1">
-                                    <div>
-                                      <h1 className="font-bold dark:text-white text-dark-secondary">Dossiers</h1>
-                                    </div>
-                                    <div className="flex flex-col gap-y-2 px-4">
-                                      {clientCases.map((clientCase, index) => (
-                                         <div className="flex flex-row gap-x-2 items-center dark:text-white text-dark-secondary">
-                                            <BriefcaseBusiness size={15}/> 
-                                              <a href={`/home/pending-cases/${clientCase.id}`} className="capitalize text-[14px] font-bold flex flex-row items-center gap-x-6 hover:underline">{clientCase.title} </a>
-                                          </div>
-                                          // <Accordion type="single" collapsible className="w-full border-b rounded-none" key={index}>
-                                          //   <AccordionItem value={clientCase.title}>
-                                          //     <AccordionTrigger className="bgd-[#ffffff44] borded-b rounded-md py-2 text-white font-bold capitalize">
-                                          //       <div className="flex flex-row gap-x-2 items-center">
-                                          //         <BriefcaseBusiness size={18}/> 
-                                          //          <h1 className="capitalize text-[14px]">{clientCase.title}</h1>
-                                          //       </div>
-                                          //       </AccordionTrigger>
-                                          //     <AccordionContent className="bg-d[#ffffff44] rounded-b-md text-white">
-                                                  
-                                          //     </AccordionContent>
-                                          //   </AccordionItem>
-                                          // </Accordion>
-                                        ))}
-                                    </div>
-                                  </div>
-                                ) : ""}
-                            </div>
-                        </DialogHeader>
+                    <DialogContent className="md:w-[600px] w-[350px] border-none">
+                          <ViewClient refresh={dataRefresh} id={row.getValue("id")} name={row.getValue("name")} sector={row.getValue("sector")} logo={row.getValue("logo")} email={row.getValue("email")} phone={row.getValue("phone")} location={row.getValue("location")} cases={row.getValue("count_cases")} clientCases={clientCases}/>
                     </DialogContent>
                 </Dialog>
             ))
@@ -248,7 +204,7 @@ export function DataTable<TData, TValue>({
         </TableBody>
       </Table>
     </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex items-center justify-start space-x-2 py-4">
             <Button
             variant="outline"
             size="sm"

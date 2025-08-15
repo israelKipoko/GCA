@@ -18,7 +18,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    useSidebar
+    useSidebar,
   } from "../../../../components/ui/sidebar"
 import {
     Tooltip,
@@ -157,13 +157,13 @@ return (
           <SidebarGroupContent className='mt-4'>
             <SidebarMenu className={cn('',open?"flex flex-col items-start ":"flex flex-col justify-center items-center")}> 
               {items.map((item,index) => (
-                <SidebarMenuItem key={index} className={`flex justify-center dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-md w-full ${activeTab === item.title?"dark:bg-[#d8d8d833]  bg-light-hover":""}`}>
+                <SidebarMenuItem key={index} className={`flex justify-center dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-md w-full ${activeTab === item.title?"dark:bg-dark-hover bg-light-hover ":""}`}>
                   <SidebarMenuButton asChild className='w-full '>
                     <Link href={item.url} className=''>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
-                          <item.icon size={18} className={` opacity-[0.8] ${activeTab === item.title?"dark:text-[#007bff] text-[#007bff]":"dark:text-white  text-dark-secondary"}`}/>
+                          <item.icon size={18} className={` opacity-[0.8] dark:text-white  text-dark-secondary `}/>
                         </TooltipTrigger>
                         {!open? 
                         <TooltipContent side='right' className=' dark:bg-[#d8d8d8] bg-[#292929] opacity-1'>
@@ -171,7 +171,7 @@ return (
                         </TooltipContent>:""}
                       </Tooltip>
                     </TooltipProvider>
-                      <span className={` font-bold dark:opacity-[0.8] ${activeTab === item.title?"dark:text-[#007bff] text-[#007bff]":"dark:text-white text-dark-secondary"}`}>{t(item.title)}</span>
+                      <span className={` font-bold dark:opacity-[0.8] dark:text-white text-dark-secondary `}>{t(item.title)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -207,22 +207,26 @@ return (
       <SidebarFooter className='p-0 pb-1 px-0.2'>
           <DropdownMenu>
             <DropdownMenuTrigger>
-                <section className={cn('flex flex-row gap-x-1 rounded-[4px] justify-center p-1',open?"dark:hover:bg-[#d8d8d833] hover:bg-light-hover cursor-pointer":"")}>
-                  <div className={cn(" rounded-full",open?"w-[38px] h-[38px]":"w-[35px] h-[35px] cursor-pointer")}>
-                      <img src={user.length!=0?user[0].avatar:""} alt="user-profile" className='w-full h-full rounded-full object-contain'/>
+                <section className={cn('flex flex-row  w-full gap-x-1 rounded-[4px] justify-between py-2 px-2',open?"dark:hover:bg-[#d8d8d833] hover:bg-light-hover  dark:bg-dark-hover bg-light-hover cursor-pointer":"")}>
+                  <div className='flex gap-x-2'>
+                    <div className={cn(" rounded-full",open?"w-[38px] h-[38px]":"w-[35px] h-[35px] cursor-pointer")}>
+                        <img src={user.length!=0?user[0].avatar:""} alt="user-profile" className='w-full h-full rounded-full object-contain'/>
+                    </div>
+                     {open &&
+                      <div className='flex flex-col items-start dark:text-white text-dark-secondary'>
+                        <h1 className='text-[14px] font-bold capitalize'>{user.length!=0?user[0].name:""}</h1>
+                        <p className='text-[12px]'>{user.length!=0?user[0].email:""}</p>
+                      </div>
+                      }
                   </div>
                   {open?
                     <div className='flex flex-row items-center'>
-                        <div className='flex flex-col items-start dark:text-white text-dark-secondary'>
-                          <h1 className='text-[14px] font-bold capitalize'>{user.length!=0?user[0].name:""}</h1>
-                          <p className='text-[12px]'>{user.length!=0?user[0].email:""}</p>
-                        </div>
                         <ChevronsUpDown size={20} className='dark:text-white text-dark-secondary'/>
                     </div>:
                     ""}
                 </section>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side='top' sideOffset={10} className='border-none text-white'>
+            <DropdownMenuContent side='top' sideOffset={10} className='shadow-lg border-none text-white'>
               <DropdownMenuItem className='flex flex-'>
                 <div className={cn(" rounded-full w-[24px] h-[24px] ")}>
                       <img src={user.length!=0?user[0].avatar:""} alt="user-profile" className='w-full h-full rounded-full object-contain'/>

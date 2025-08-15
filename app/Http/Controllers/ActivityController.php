@@ -30,7 +30,7 @@ use Spatie\MediaLibrary\Support\PathGenerator\PathGenerator;
 class ActivityController extends Controller
 {
     public function showFolders(){
-        $folders= Cases::with('user')->with('client')->where(function($query) {
+        $folders= Cases::with(['user:id,name,firstname,avatar'])->with('client')->where(function($query) {
             $query->whereJsonContains('assigned_to', Auth::id())
                 ->orWhere('created_by', Auth::id());
         })->latest('updated_at')->get();
@@ -43,9 +43,10 @@ class ActivityController extends Controller
          }
         foreach ($folders as $folder){
             $assignedArray = [];
+            $assignedGroupArray = [];
         
             foreach($folder->assigned_to as $userId){
-                $assignedUser = User::find($userId);
+                $assignedUser = User::with("media")->findOrFail($userId);
         
                 if (!$assignedUser) continue;
         
@@ -63,11 +64,41 @@ class ActivityController extends Controller
             }
         
             $folder->assigned_to = $assignedArray;
+
+                // Groups
+                $groups = [];
+              foreach($folder->assigned_group as $id){
+                $group = Groups::select("id","name","users")->findOrFail($id);
+        
+                if (!$group) continue;
+                
+                foreach($group->users as $userId){
+                    $user = User::with("media")->findOrFail($userId);  
+
+                    if (!$user) continue; // breaker 
+
+                    if($user->hasMedia("profile_pictures")){
+                        $assignedGroupArray[] = [
+                            "avatar_link" => $user->getFirstMediaUrl(),
+                            "name" => $user->firstname. " ".$user->name,
+                        ];
+                    } else {
+                        $assignedGroupArray[] = [
+                            "avatar_link" => asset('storage'.$user->avatar),
+                            "name" => $user->firstname. " ".$user->name,
+                        ];
+                    }
+                }
+                  $group->users= $assignedGroupArray;
+                  $groups[] = $group;
+            }
+                $folder->assigned_group = $groups;
+
         }
         
         return response()->json([$folders]);
     }
-    function showPendingCases(){
+    public function showPendingCases(){
         $folders = Cases::withCount(['task as completed_tasks_count' => function($query) {
             $query->where('status', 'completed');
         }])->withCount(['task as uncompleted_tasks_count' => function($query) {
@@ -262,11 +293,16 @@ class ActivityController extends Controller
             'comments' => $request->newComment,
         ]);
         if($request->input('fileLength') != 0){
-            $files = TemporaryFile::take($request->input('fileLength'))->latest('created_at')->get();
+          $files = TemporaryFile::where('user_id', auth()->id()) // current user ID
+                ->latest('created_at') // order newest first
+                ->take($request->input('fileLength')) // limit
+                ->get();
             foreach($files as $file){
-                $message->addMedia(public_path('/storage/'.$file->path))
-                ->toMediaCollection($case->id, 'messages');
-                Storage::delete('/temporary'.$file->path);
+                $message->addMedia(public_path('storage/'.$file->path))
+                    ->toMediaCollection($case->id, 'messages');
+                // Delete from temporary folder
+                Storage::delete('temporary/'.$file->path);
+                // Remove record from DB
                 $file->delete();
             }
         }
@@ -326,7 +362,7 @@ class ActivityController extends Controller
     }
     public function createCaseTask(Request $request, Cases $case){
         $assignedTo = empty($request->users) ? null : $request->users;
-       $task = Task::create([
+       Task::create([
             'title' => $request->title,
             'case_id' => $case->id,
             'due_date' => $request->dueDate,
@@ -431,6 +467,7 @@ class ActivityController extends Controller
             }
         }
 
+        if($request->newFolder['formattedDate']){
         Event::create([
             'title' => $request->newFolder['title'],
             'participants' => $request->newFolder['selectedOptions'],
@@ -442,6 +479,7 @@ class ActivityController extends Controller
         ],
             'created_by' => Auth::id(),
           ]);
+        }
          return response()->json(['folder' => $folder]);
     }
 
@@ -516,6 +554,8 @@ class ActivityController extends Controller
         ->orderBy('time->start_time', 'asc')
         ->get();
         foreach($events as $event){
+            $assignedGroupArray = [];
+
             if(!empty($event->participants)){
                 foreach($event->participants as $id){
                     $user = User::find($id);
@@ -529,14 +569,44 @@ class ActivityController extends Controller
                 $event['event_users'] = $users;
             }
             $users = [];
-        }
       
+           // Groups
+        $groups = [];
+        foreach($event->group_participants as $id){
+            $group = Groups::select("id","name","users")->findOrFail($id);
+
+            if (!$group) continue;
+        
+            foreach($group->users as $userId){
+                $user = User::with("media")->findOrFail($userId);  
+
+                if (!$user) continue; // breaker 
+
+                if($user->hasMedia("profile_pictures")){
+                    $assignedGroupArray[] = [
+                        "avatar_link" => $user->getFirstMediaUrl(),
+                        "name" => $user->firstname. " ".$user->name,
+                    ];
+                } else {
+                    $assignedGroupArray[] = [
+                        "avatar_link" => asset('storage'.$user->avatar),
+                        "name" => $user->firstname. " ".$user->name,
+                    ];
+                }
+            }
+            $group->users= $assignedGroupArray;
+            $groups[] = $group;
+        }
+        $event->group_participants = $groups;
+        }
+
         return response()->json([$events]);
     }
     public function createEvent(Request $request){
       Event::create([
         'title' => $request->data['title'],
         'participants' => $request->data['selectedUsers'],
+        'group_participants' => $request->data['selectedGroups'],
         'date' => $request->data['dataDate'],
         'meeting_link' => $request->data['eventLink'],
         'time' => [
@@ -545,7 +615,7 @@ class ActivityController extends Controller
         ],
         'created_by' => Auth::id(),
       ]);
-      return response()->json([201]);
+      return response()->json([],200);
     }
 
     public function deleteEvent(Request $request){
@@ -824,7 +894,7 @@ class ActivityController extends Controller
 
         return response()->json([],201);
     }
-    public function chnageGroupName(Request $request){
+    public function changeGroupName(Request $request){
           // Validate the request
         $validated = $request->validate([
             'groupId' => 'required|integer|exists:groups,id',
@@ -872,7 +942,7 @@ class ActivityController extends Controller
 
     /* Library */
     public function getCategories(){
-        $libraries = Library::select("id","category_name")->orderBy("category_name","asc")->paginate(9);
+        $libraries = Library::select("id","category_name")->orderBy("category_name","asc")->paginate(12);
         foreach ($libraries as $library) {
             $count = $library->getMedia($library->category_name)->count();
             $library["total_docs"] = $count;

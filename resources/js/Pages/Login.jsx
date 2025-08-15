@@ -26,11 +26,11 @@ return (
         <section id="login_page" className="py-12 px-6">
             <section id="login_content" className=" flex lg:flex-basis flex-wrap lg:gap-y-4 gap-y-9  justify-around md:w-[75%] w-full">
                 <div className=" md:w-[450px] px-4  text-center flex flex-col justify-around text-[#fff] font-bold">
-                    <div className=" rounded-[4px] w-[100px] h-[40px] text-white w-fit mx-auto">
+                    <div className=" rounded-[4px] md:w-[100px] w-[200px] md:h-[40px] h-[50px] text-white w-fit mx-auto">
                         <img src={logo} className="w-full h-full object-contain" alt="logo"/>
                     </div>
                     <div className="overlay"></div>
-                    <div className="mb-[2px]">
+                    <div className="mb-[2px] md:block hidden">
                         <h1 className="text-[25px] text-left mb-5">{t("welcome")}</h1>
                         <p className="text-[14px] text-center">
                         {t("welcome text description")}
@@ -38,7 +38,7 @@ return (
                     </div>
                 </div>
                 <div className="bg-[#B1C9EF] px-4 py-6 rounded-[16px]">
-                    <form name="form" onSubmit={handleSubmit} action="" method="POST" className="md:w-[350px] w-[280px]">
+                    <form name="form" onSubmit={handleSubmit} action="" method="POST" className="min-w-[300px] md:min-w-[350px]">
                         <header>
                             <h1 className="uppercase font-bold mb-6 text-center md:text-xl text-[15px]">{t("login")}</h1>
                         </header>

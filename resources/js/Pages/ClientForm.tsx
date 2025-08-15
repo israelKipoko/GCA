@@ -4,7 +4,7 @@ import { format } from "date-fns"
 import { fr } from 'date-fns/locale';
 import { Button } from "../../../components/ui/button"
 import { Calendar } from "../../../components/ui/calendar"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon,CircleCheck } from "lucide-react"
 import { useToast } from "../../../hooks/use-toast"
 import { ScrollArea } from '../../../components/ui/scroll-area';
 import { FilePondFile, FilePondInitialFile } from 'filepond';
@@ -103,7 +103,7 @@ const handleSubmit = (e:FormEvent) => {
     return (
         <form onSubmit={handleSubmit}>
             <section>
-              <ScrollArea className='h-[450px]'>
+              <ScrollArea className='md:max-h-[450px] max-h-[520px]'>
               <div className='flex flex-col gap-y-6'>
                 <div className="input_div w-fit mx-auto">
                   <label htmlFor="nom" className='dark:text-white text-dark-secondary  opacity-[0.8]'>Nom :</label>
@@ -130,8 +130,8 @@ const handleSubmit = (e:FormEvent) => {
                         placeholder="Entrer le secteur d'activité du client"
                         autoComplete='off'/>
                 </div>
-                <div className='flex flex-row justify-evenly'>
-                  <div className="input_div w-fit mx-auto ">
+                <div className='flex md:flex-row flex-col gap-x-4 gap-y-6 justify-evenly'>
+                  <div className="input_div w-full mx-auto ">
                     <label htmlFor="sector" className='dark:text-white text-dark-secondary opacity-[0.8]'>Email :</label>
                       <input
                           type="email"
@@ -142,7 +142,7 @@ const handleSubmit = (e:FormEvent) => {
                           placeholder="Entrez l'adresse email du client"
                           autoComplete='off'/>
                   </div>
-                  <div className="input_div w-fit mx-auto ">
+                  <div className="input_div w-full mx-auto ">
                     <label htmlFor="sector" className='dark:text-white text-dark-secondary  opacity-[0.8]'>Contact :</label>
                       <input
                           type="text"
@@ -221,8 +221,8 @@ const handleSubmit = (e:FormEvent) => {
                   labelIdle='Faites glisser et déposez un logo ou <span class="filepond--label-action">Parcourir</span>' />
                 </div>
                 </div>
-                  <div className='w-fit ml-auto mt-6 py-2'>
-                      <button  disabled={isLoading}  type="submit" className=' w-32 py-1.5 px-4 bg-[#356B8C] rounded-[4px] flex justify-center text-white font-bold'>
+                  <div className='w-full ml-auto mt-6 py-2'>
+                      <button  disabled={isLoading}  type="submit" className=' md:w-32 w-full py-1.5 px-4 bg-[#356B8C] rounded-[4px] flex justify-center text-white font-bold'>
                           {isLoading ? (
                             <>
                               <svg 
@@ -247,7 +247,7 @@ const handleSubmit = (e:FormEvent) => {
                               </svg>
                             </>
                           ) : (
-                            "Valider"
+                           <span className='flex flex-row items-center gap-x-2'> Valider <CircleCheck size={18}/></span>
                           )}
                       </button>
                   </div>

@@ -25,6 +25,11 @@ const AddUser = ({ openAddUserDialog, setOpenAddUserDialog, dataRefresh }) =>{
    const [email, setEmail] = useState("");
    const [role, setRole] = useState("Admin");
 
+const [screenSize, setScreenSize] = useState({
+        width: window.innerWidth - 25,
+        height: window.innerHeight
+    });
+
   const { toast } = useToast();
    const addUser = (e) =>{
         e.preventDefault();
@@ -63,7 +68,7 @@ const AddUser = ({ openAddUserDialog, setOpenAddUserDialog, dataRefresh }) =>{
    
 return (
     <Dialog open={openAddUserDialog} onOpenChange={setOpenAddUserDialog}>
-          <DialogContent className="md:max-w-[450px] max-h-[500px] min-h-[200px] border-none py-3 px-4">
+          <DialogContent className={`md:max-w-[450px] max-w-[${screenSize.width}px] max-h-[500px] min-h-[200px] border-none py-3 px-4`}>
             <DialogTitle className="dark:text-white text-dark-secondary font-bold ">
                 Inviter un membre
             </DialogTitle>

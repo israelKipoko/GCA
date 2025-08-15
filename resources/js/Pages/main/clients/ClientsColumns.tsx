@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { User, Phone, Mail, MapPin, Globe, BriefcaseBusiness } from "lucide-react";
+import { User, Phone, Mail, MapPin, Globe, BriefcaseBusiness,ArrowUpDown  } from "lucide-react";
 
 export type User = {
   avatar_link: string;
@@ -23,42 +23,68 @@ export type Client = {
 export const columns: ColumnDef<Client>[] = [
   {
     accessorKey: "id",
+    enableHiding: false
   },
   {
     accessorKey: "name",
-    header: () => <div className="text-left flex items-center gap-x-1"><User size={20} />Nom</div>,
+    enableHiding: false,
+    header: ({ column }) =>{ 
+    return (
+    <div 
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    className="text-left flex items-center gap-x-1 cursor-pointer">Nom   <ArrowUpDown className="ml-2 h-4 w-4" /></div>
+   )},
     cell: ({ row }) => {
-      return <div className="text-left">{row.getValue("name")}</div>
+      const logo:any = row.getValue("logo");
+      return (
+        <div className=" capitalize font-bold flex items-center justify-left gap-x-2 ">
+          {logo ?
+          <div >
+            <img src={logo}  className="w-[30px] h-[30px] rounded-full"/>
+          </div>:
+          <div className=" rounded-full w-[30px] h-[30px] flex items-center justify-center bg-[#ffffff44]">
+           <User size={18} className=" dark:text-white text-dark-secondary"/>
+          </div>
+          }
+          <h1>{row.getValue("name")}</h1>
+        </div>
+      )
     },
   },
   {
     accessorKey: "sector",
-    header: () => <div className="text-center flex items-center gap-x-1"><Globe size={20} />Secteur d'activité</div>,
+    header: ({ column }) =>{
+      return( 
+      <div 
+       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      className="text-center flex justify-center items-center gap-x-1 cursor-pointer">Secteur d'activité   <ArrowUpDown className="ml-2 h-4 w-4" /></div>)},
     cell: ({row}) => {
       return <div className="text-center">{row.getValue("sector")}</div>
   },
   },
   {
     accessorKey: "location",
-    header: () => <div className="text-center flex items-center gap-x-1"><MapPin size={20} />Adresse</div>,
+    header: ({ column }) =>{ 
+    return (
+    <div className="text-center flex justify-center items-center gap-x-1">Adresse</div>)},
   },
   {
     accessorKey: "email",
-    header: () => <div className="text-center flex items-center gap-x-1"><Mail size={20} />Email</div>,
+    header: () => <div className="text-center flex justify-center items-center gap-x-1">Email</div>,
       cell: ({row}) => {
          return <div className="lowercase ">{row.getValue("email")}</div>
      },
   },
   {
     accessorKey: "phone",
-    header: () => <div className="text-center flex flex-row items-center gap-x-1"><Phone size={20} />TéléPhone</div>,
+    header: () => <div className="text-center flex justify-center flex-row items-center gap-x-1">TéléPhone</div>,
       cell: ({row}) => {
          return <div className="lowercase">{row.getValue("phone")}</div>
      },
   },
   {
     accessorKey: "count_cases",
-    header: () => <div className="text-center flex flex-row items-center gap-x-1"><BriefcaseBusiness size={20} />Nbr. Dossiers</div>,
+    header: () => <div className="text-center flex flex-row justify-center items-center gap-x-1">Nbr. Dossiers</div>,
     cell: ({row}) => {
       const cases = row.getValue("count_cases")
 
@@ -71,5 +97,6 @@ export const columns: ColumnDef<Client>[] = [
   },
   {
     accessorKey: "logo",
+    enableHiding: false,
   },
 ]

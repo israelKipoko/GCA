@@ -8,7 +8,7 @@ import React from 'react'
     DialogTrigger,
   } from "../../../../components/ui/dialog";
 import { fr, enUS } from 'date-fns/locale';
-  import { Video, Plus,CalendarIcon, CircleCheck,BriefcaseBusiness,Trash2,MoreVertical,Eye,CalendarClock } from 'lucide-react';
+  import { Video, Plus,CalendarIcon, Users,BriefcaseBusiness,Trash2,MoreVertical,Eye,CalendarClock } from 'lucide-react';
   import { format,parseISO, isAfter, isEqual } from "date-fns"
   import {
     TooltipProvider,
@@ -17,10 +17,13 @@ import { fr, enUS } from 'date-fns/locale';
     TooltipContent,
   } from "../../../../components/ui/tooltip";
 function DisplayEvent({openDisplayEvent,setOpenDisplayEvent,event }) {
+    if (!event || !openDisplayEvent) return null;
+
   return (
-     <Dialog open={openDisplayEvent} onOpenChange={setOpenDisplayEvent}>
-        <DialogContent className="md:max-w-[450px] max-h-[500px] min-h-[200px] border-none p-3">
-            <DialogTitle className="dark:text-white text-dark-secondary font-bold capitalize flex items-center gap-x-2">
+     <section open={openDisplayEvent} onOpenChange={setOpenDisplayEvent}>
+        <div className="md:max-w-[450px] max-h-[500px] min-h-[200px] border-none p-3">
+            <DialogTitle className='hidden'></DialogTitle>
+            <div className="dark:text-white text-dark-secondary font-bold capitalize flex items-center gap-x-2">
                {event?.case == null?
                     <div className='bg-[#ffc10766] rounded-full w-8 h-8 flex items-center justify-center'>
                         <TooltipProvider>
@@ -47,15 +50,15 @@ function DisplayEvent({openDisplayEvent,setOpenDisplayEvent,event }) {
                         </TooltipProvider>
                     </div>}
                 {event?.title}
-            </DialogTitle>
+            </div>
                 {(() => {
                     const description = event?.case?.description || event?.note;
                     if (!description) return ""; // fallback if no date is available
                     try {
                     return(
-                    <DialogDescription>
+                    <p>
                         {description}
-                    </DialogDescription>)
+                    </p>)
                     } catch {
                     return '—'; // fallback if parse fails
                     }
@@ -107,6 +110,31 @@ function DisplayEvent({openDisplayEvent,setOpenDisplayEvent,event }) {
                         </div>
                     </div>:""
                     }
+                       {event?.groups &&(
+                            event.groups.map((group, index) => (
+                                <div key={index} className=' dark:text-white text-dark-secondary'>
+                                <p className="flex items-center gap-x-2 text-[15px] capitalize"><Users size={14}/> {group.name}</p>
+                                <div className="ml-2">
+                                    {group.users.map((user, index) =>(
+                                    <TooltipProvider key={index}>
+                                        <Tooltip>
+                                        {(index==0)?
+                                        <TooltipTrigger className="border-none w-fit ">
+                                            <img src={user.avatar_link}  className="w-[35px] h-[35px] rounded-full"/>
+                                        </TooltipTrigger>:
+                                            <TooltipTrigger className="border-none w-fit  -ml-2">
+                                                <img src={user.avatar_link}  className="w-[30px] h-[30px] rounded-full" />
+                                            </TooltipTrigger>}
+                                        <TooltipContent className="bg-[#262626] border-none">
+                                            <p>{user.name}</p>
+                                        </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    ))}
+                                </div>
+                                
+                                </div>
+                            )))} 
                 </div>
                 {(() => {
                     const link = event?.link;
@@ -122,8 +150,8 @@ function DisplayEvent({openDisplayEvent,setOpenDisplayEvent,event }) {
                 })()}
                 
             </section>
-         </DialogContent>
-    </Dialog>
+         </div>
+    </section>
   )
 }
 

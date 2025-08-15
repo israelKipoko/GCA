@@ -25,7 +25,10 @@ const CreateGroup = ({allUsers, openCreateGroup, setOpenCreateGroup, refreshLayo
    const optionsRef = useRef(null);
    const [selectedOptions, setSelectedOptions] = useState([]);
    const [filter, setFilter] = useState('');
-
+const [screenSize, setScreenSize] = useState({
+        width: window.innerWidth - 25,
+        height: window.innerHeight
+    });
 
    const handleRemoveOption = (id) => {
       const removedUser = usersList.find(user => user.id === id);
@@ -96,7 +99,7 @@ const handleOptionClick = (id) => {
   }, []);
 return (
     <Dialog open={openCreateGroup} onOpenChange={setOpenCreateGroup}>
-          <DialogContent className="md:max-w-[450px] max-h-[500px] min-h-[200px] border-none py-3 px-4">
+          <DialogContent className={`md:max-w-[450px] max-w-[${screenSize.width}px] max-h-[500px] min-h-[200px] border-none py-3 px-4`}>
             <DialogTitle className="dark:text-white text-dark-secondary font-bold ">
                 Créer un groupe
             </DialogTitle>

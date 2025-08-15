@@ -9,6 +9,7 @@ import { CheckCircle, Circle } from 'lucide-react';
 import CountUp from "../utils/CounterUp";
 import { useTranslation } from "react-i18next";
 import { Link } from '@inertiajs/react';
+import { Skeleton } from "../../../../components/ui/skeleton"
 import {
     Carousel,
     CarouselContent,
@@ -19,6 +20,7 @@ import {
 
 const PendingCases = () =>{
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isDataLoading, setIsDataLoading] = useState(false);
 
   const dataRefresh = () => {
     setRefreshKey((oldKey) => oldKey + 1);
@@ -27,9 +29,11 @@ const PendingCases = () =>{
   const [data, setData] = useState([]);
 
   var transformedData;
-   function getData() {
-      axios.get('/folders/show-pending-folders')
-        .then(response => {
+   async function getData() {
+    try{
+      setIsDataLoading(true);
+      const response = await axios.get('/folders/show-pending-folders')
+        // .then(response => {
           transformedData = response.data[0].map(element => ({
             id:element.id,
             title: element.title,
@@ -41,11 +45,12 @@ const PendingCases = () =>{
             uncompleted_tasks_count: element.uncompleted_tasks_count,
           }));
          setData(transformedData);
-        })
-        .catch(error => {
+        // })
+        }catch(error){
           console.log(error)
-
-        });
+        }finally{
+          setIsDataLoading(false);
+        }
 
        
    return transformedData
@@ -96,9 +101,14 @@ const PendingCases = () =>{
       <Carousel opts={{loop: false,}} className=''>
       <ScrollArea>
         <CarouselContent className='  '>
-           {data.length ? (
+          {isDataLoading?
+           <CarouselItem className={cn(open?"md:basis-1/3 basis-full":" basis-1/3")}>
+              <Skeleton className="h-[100px] w-[320px] rounded-md" />
+           </CarouselItem>
+          :
+           data.length ? (
               data.map((item,index) => (
-                  <CarouselItem key={index} className={cn(open?"basis-1/3 ":"md:basis-1/2 lg:basis-1/4")}>
+                  <CarouselItem key={index} className={cn(open?"md:basis-1/3 basis-full":" basis-1/3")}>
                       <Link href={`/home/pending-cases/`+ item.id}>
                           <Card className=' dark:bg-[#313131] bg-light-thirdly border-none py-2 relative overflow-hidden'>
                               <CardHeader className='px-2 '>
@@ -110,7 +120,7 @@ const PendingCases = () =>{
                                       :
                                       <div></div>
                                   } */}
-                                    <h1 className={cn('font-bold text-[16px] capitalize dark:opacity-[0.8] dark:text-[#fff] text-dark-secondary')}>
+                                    <h1 className={cn('font-bold md:text-[16px] capitalize dark:text-[#fff] text-dark-secondary')}>
                                         {item.title}
                                     </h1>
                                   </CardTitle>
@@ -149,8 +159,8 @@ const PendingCases = () =>{
                                     </div>
                                   </div>}
                               </CardContent>
-                              <div className='h-[120px] absolute top-2 -right-28 z-10'>
-                                <img src={hammer} alt='hammer' className='w-full h-full object-fit-fill '/>
+                              <div className='md:h-[120px] h-[100px] absolute md:top-2 top-4 md:-right-28 -right-20 z-10'>
+                                <img src={hammer} alt='hammer' className='w-full h-full object-fill '/>
                               </div>
                           </Card>
                       </Link>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState,useRef,useContext } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../components/ui/tabs";
+import { SidebarProvider, SidebarTrigger } from "../../../../components/ui/sidebar"
 import { SlidersHorizontal, UserRoundCog, Users, SquareArrowUpRight, Camera } from "lucide-react"
 import axios from 'axios';
 import { Switch } from "../../../../components/ui/switch"
@@ -42,7 +43,12 @@ const SettingsDialog = ({ user, allUsers, refreshParent, refreshLayout, openedTa
         localStorage.setItem("lang", lang);
     };
 
+    const [screenSize, setScreenSize] = useState({
+        width: window.innerWidth - 25,
+        height: window.innerHeight
+    });
     const [activeTab, setActiveTab] = useState(openedTab);
+    const [isTabOpen, setIsTabOpen] = useState(false);
 
     const [name, setName] = useState(user.length!=0?user[0].name:"");
     const [isRemembered, setIsRemembered] = useState(user.length!=0?(user[0].remember==1?true:false):false);
@@ -158,38 +164,41 @@ const SettingsDialog = ({ user, allUsers, refreshParent, refreshLayout, openedTa
    })
 return (
     <Dialog open={openSettingsDialog} onOpenChange={setOpenSettingsDialog}>
-        <DialogContent className="md:max-w-[1000px] h-[500px] border-none p-0 rounded-md">
+        <DialogContent className={`md:max-w-[1000px] max-w-[${screenSize.width}px] h-[500px] border-none p-0 rounded-md `}>
             <DialogTitle className="dark:text-white text-dark-secondary font-bold hidden">
             </DialogTitle>
-              <Tabs defaultValue={openedTab} className="flex w-full p-0">
-                <TabsList className="p-2 flex-col gap-y-0.5 w-[300px] justify-start items-start todo_wrapper_tabs_list h-full">
-                    <section className={cn('flex flex-row gap-x-2 rounded-[4px] items-center justify-center p-1')}>
-                        <div className={cn(" rounded-full w-[25px] h-[25px] cursor-pointer")}>
-                            <img src={user.length!=0?user[0].avatar:""} alt="user-profile" className='w-full h-full rounded-full object-fit-contain'/>
-                        </div>
-                        <div className='flex flex-row items-center  opacity-[0.8]'>
-                            <div className='flex flex-col items-start dark:text-white text-dark-secondary'>
-                            <h1 className='text-[14px] font-bold capitalize'>{user.length!=0?user[0].name:""}</h1>
-                            <p className='text-[12px]'>{user.length!=0?user[0].email:""}</p>
+              <Tabs defaultValue={openedTab} className="flex md:flex-row flex-col w-full p-0">
+                {/* <ScrollArea orientation="horizontal" className='w-full md:hidden block' > */}
+                    <TabsList className=" p-2 md:flex-col flex-row gap-y-0.5  w-[300px]  md:justify-start justify-evenly items-start todo_wrapper_tabs_list md:h-full h-[50px]">
+                        <section className={cn('md:flex hidden flex-row gap-x-2 rounded-[4px] items-center justify-center p-1')}>
+                            <div className={cn(" rounded-full w-[25px] h-[25px] cursor-pointer")}>
+                                <img src={user.length!=0?user[0].avatar:""} alt="user-profile" className='w-full h-full rounded-full object-contain'/>
                             </div>
-                        </div>
-                    </section>
-                    {settingsTabs.map((tab,index)=> (
-                        <TabsTrigger key={index} onClick={()=> setActiveTab(tab.value)} value={tab.value} className={cn("todo_wrapper_tabs dark:text-white text-dark-secondary opacity-[0.8] font-bold",activeTab==tab.value?"active_tab":"")}>
-                           <div>
-                                <tab.icon size={16}/> <h1>{tab.name}</h1>  
-                            </div> 
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
-                <TabsContent value="profile" className=' w-full h-[500px] m-0 p-3 rounded-md'>
-                    <section className='h-full'>
-                        <ScrollArea className='h-full'>
-                            <h1 className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">{t("Profil")}</h1>
-                            <div className='w-full h-full'>
-                                <div className='flex flex-col items-center  gap-y-3 w-fit mx-auto my-6'>
+                            <div className='flex flex-row items-center  opacity-[0.8]'>
+                                <div className='flex flex-col items-start dark:text-white text-dark-secondary'>
+                                <h1 className='text-[14px] font-bold capitalize'>{user.length!=0?user[0].name:""}</h1>
+                                <p className='text-[12px]'>{user.length!=0?user[0].email:""}</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        {settingsTabs.map((tab,index)=> (
+                            <TabsTrigger key={index} onClick={()=>{setActiveTab(tab.value); setIsTabOpen(tab.value)}}value={tab.value} className={cn(" todo_wrapper_tabs dark:text-white  text-dark-secondary opacity-[0.8] font-bold",activeTab==tab.value?"active_tab":"")}>
+                            <div className=' md:mx-0 mx-auto'>
+                                    <tab.icon size={16}/> <h1>{tab.name}</h1>  
+                                </div> 
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                {/* </ScrollArea> */}
+                <TabsContent value="profile" className='w-full m-0 p-3 rounded-r-md '>
+                    <section className='h-full w-full'>
+                        <ScrollArea className='max-h-[500px] w-full '>
+                            <h1 onClick={()=> setIsTabOpen(false)} className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">{t("Profil")}</h1>
+                            <div className='w-full h-full '>
+                                <div className=' flex flex-col items-center  gap-y-3 w-fit mx-auto my-6'>
                                     <div className='w-[80px] h-[80px] relative rounded-full'>
-                                        <img src={user.length!=0?user[0].avatar:""} alt="" className='w-full h-full rounded-full object-fit-contain' />
+                                        <img src={user.length!=0?user[0].avatar:""} alt="" className='w-full h-full rounded-full object-contain' />
                                         <div className='bg-[#31313144] opacitvy-[0.3] absolute inset-0 rounded-full '>
                                             <input  type="file"   id="avatar" onChange={handleImageChange}  className='hidden z-10 w-full h-full rounded-full' />
                                             {loading ? (
@@ -230,18 +239,18 @@ return (
                                         placeholder="Entrer votre nom"
                                         required autoComplete='off'/>
                                 </div>
-                                <div>
+                                <div className='w-full'>
                                     <p className='dark:text-white text-dark-secondary font-normal capitalize pb-3 border-b dark:border-[#ffffff11] border-light-hover '>paramètres du compte</p>
                                     <div className='flex flex-col gap-y-4'>
-                                        <div className='flex flex-row justify-between items-start py-2'>
+                                        <div className='w-full flex flex-row justify-between items-start py-2'>
                                             <div className='flex flex-col'>
                                                 <h1 className='dark:text-white text-dark-secondary capitalize text-[15px]'>Email</h1>
-                                                <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] w-[400px] leading-tight'>
+                                                <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] md:w-[400px] leading-tight'>
                                                     {user.length!=0?user[0].email:""}
                                                 </p>
                                             </div>
                                             <div>
-                                                <button onClick={setOpenEmailDialog} type="submit" className=' w-full py-1.5 px-2 dark:bg-[#d8d8d811] bg-[#29292922] transition-all hover:dark:bg-[#d8d8d833] hover:bg-[#29292933] opacity-[0.8] rounded-[4px] flex justify-center dark:text-white text-dark-secondary text-[14px] font-bold'>
+                                                <button onClick={setOpenEmailDialog} type="submit" className=' w-full py-1.5 px-2 dark:bg-[#d8d8d833] bg-[#29292933] transition-all hover:dark:bg-[#d8d8d833] hover:bg-[#29292933] opacity-[0.8] rounded-[4px] flex justify-center dark:text-white text-dark-secondary text-[14px] font-bold'>
                                                     Changer d'Email
                                                 </button>
                                             </div>
@@ -249,20 +258,20 @@ return (
                                         <div className='flex flex-row justify-between items-start py-2'>
                                             <div className='flex flex-col'>
                                                 <h1 className='dark:text-white text-dark-secondary capitalize text-[15px]'>Mot de passe</h1>
-                                                <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] w-[400px] leading-tight'>
+                                                <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] md:w-[400px] leading-tight'>
                                                     Changez votre mot de passe
                                                 </p>
                                             </div>
                                             <div>
-                                                <button onClick={setOpenPasswordDialog} type="submit" className=' w-full py-1.5 px-2 dark:bg-[#d8d8d811] bg-[#29292922] transition-all hover:dark:bg-[#d8d8d833] hover:bg-[#29292933] opacity-[0.8] rounded-[4px] flex justify-center dark:text-white text-dark-secondary text-[14px] font-bold'>
-                                                    Changer de mot de passe
+                                                <button onClick={setOpenPasswordDialog} type="submit" className=' w-full py-1.5 px-2 dark:bg-[#d8d8d833] bg-[#29292933] transition-all hover:dark:bg-[#d8d8d833] hover:bg-[#29292933] opacity-[0.8] rounded-[4px] flex justify-center dark:text-white text-dark-secondary text-[14px] font-bold'>
+                                                     Modifier <span className='md:block hidden ml-1'> le mot de passe</span>
                                                 </button>
                                             </div>
                                         </div>
                                         <div className='flex flex-row justify-between items-start py-2'>
                                             <div className='flex flex-col'>
                                                 <h1 className='dark:text-white text-dark-secondary capitalize text-[15px]'>Se souvenir de vous</h1>
-                                                <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] w-[400px] leading-tight'>
+                                                <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] md:w-[400px] leading-tight'>
                                                     Restez connecté à l’application sans avoir à saisir votre mot de passe à chaque connexion
                                                 </p>
                                             </div>
@@ -276,7 +285,7 @@ return (
                                         <div className='flex flex-row justify-between items-start py-2 border-t border-[#ffffff11]'>
                                             <div className='flex flex-col'>
                                                 <h1 className='dark:text-[#D84444] text-red-600 capitalize text-[15px]'> Supprimer mon Compte</h1>
-                                                <p className='text-[13px]  dark:text-white text-dark-secondary opacity-[0.8] w-[400px] leading-tight'>
+                                                <p className='text-[13px]  dark:text-white text-dark-secondary opacity-[0.8] md:w-[400px] leading-tight'>
                                                     Supprimer définitivement votre compte.
                                                 </p>
                                             </div>
@@ -293,20 +302,20 @@ return (
                         </ScrollArea>
                     </section>
                 </TabsContent>
-                <TabsContent value="settings" className=' w-full  h-[500px] m-0 p-3 rounded-md'>
+                <TabsContent value="settings" className='w-full  h-[500px] m-0 p-3 rounded-r-rmd'>
                     <section className='h-full'>
                         <ScrollArea className='h-full'>
                         <h1 className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">Paramètres</h1>
                             <div className='flex flex-row justify-between items-start py-2 my-4 mb-4'>
                                 <div className='flex flex-col'>
                                     <h1 className='dark:text-white text-dark-secondary capitalize text-[15px]'>{t("Profil")}</h1>
-                                    <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] w-[400px] leading-tight'>
+                                    <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] md:w-[400px] leading-tight'>
                                         Changer la langue utilisée sur votre interface utilisateur.
                                     </p>
                                 </div>
                                 <div>
                                 <Select value={i18n.language}  onValueChange={changeLanguage} >
-                                    <SelectTrigger className="w-[150px] dark:bg-[#d8d8d811] bg-[#29292922] transition-all hover:dark:bg-[#d8d8d833] opacity-[0.8] rounded-md outline-none focus:outline-none dark:text-white text-dark-secondary">
+                                    <SelectTrigger className="w-[150px] dark:bg-[#d8d8d833] bg-[#29292933] transition-all hover:dark:bg-[#d8d8d833] opacity-[0.8] rounded-md outline-none focus:outline-none dark:text-white text-dark-secondary">
                                         <SelectValue  placeholder="Langage" />
                                     </SelectTrigger>
                                     <SelectContent className=''>
@@ -331,14 +340,14 @@ return (
                                 </div>
                             </div>
                             <div className='w-full h-full my-6'>
-                                <div className='flex flex-row justify-between items-start py-2'>
+                                <div className='flex md:flex-row flex-col gap-y-2 justify-between items-start py-2'>
                                     <div className='flex flex-col pt-3'>
                                         <h1 className='dark:text-white text-dark-secondary capitalize text-[15px]'>Thème</h1>
-                                        <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] w-[400px] leading-tight'>
+                                        <p className='text-[13px] dark:text-white text-dark-secondary opacity-[0.8] md:w-[400px] leading-tight'>
                                             Personnalisez l'apparence de Mobeko.
                                         </p>
                                     </div>
-                                    <div className='flex flex-row gap-x-4'>
+                                    <div className='flex flex-row gap-x-4 w-full md:justify-start justify-center'>
                                         <div className="flex flex-col space-y-2">
                                             <label className="flex flex-col gap-y-3 items-center  space-x-2 cursor-pointer">
                                                 <input
@@ -403,12 +412,12 @@ return (
                         </ScrollArea>
                     </section>
                 </TabsContent>
-                <TabsContent value="connections" className=' w-full h-full  m-0 p-3 rounded-md'>
+                <TabsContent value="connections" className='w-full h-full  m-0 p-3 rounded-r-md'>
                     <Connections user={user} refreshParent={refreshParent}/>
                 </TabsContent>
-                <TabsContent value="members" className=' w-full h-[500px] m-0 p-3 rounded-md'>
-                    <section className='h-full'>
-                        <ScrollArea className='h-full'>
+                <TabsContent value="members" className='w-full m-0 p-3  rounded-md'>
+                    <section className='h-full w-full '>
+                        <ScrollArea className='max-h-[500px] w-full '>
                             <h1 className="font-bold opacity-[0.8] dark:text-white text-dark-secondary text-[20px]">Membres</h1>
                             <Members allUsers={allUsers} refreshLayout={refreshLayout}/>
                         </ScrollArea>

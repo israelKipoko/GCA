@@ -1,16 +1,15 @@
 import React, { useEffect, useState,useRef } from 'react';
 import axios from 'axios';
+import { motion } from "framer-motion";
 import { Toaster } from "../../../components/ui/toaster"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { cn } from "../../../lib/utils";
-import { format } from 'date-fns';
+import { format, isEqual } from 'date-fns';
+import {Loader, Pencil, Trash2, Check, X} from 'lucide-react';
 import { Progress } from "../../../components/ui/progress"
-import { fr } from 'date-fns/locale';
 import { ScrollArea } from "../../../components/ui/scroll-area";
-import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 import "@cyntler/react-doc-viewer/dist/index.css";
-import TodoCreateInput from './utils/TodoCreateInput';
-import TodoItem from './utils/TodoItem';
+import WorkSpaceUtilities from './utils/WorkSpaceUtilities';
+import UploadedFiles from './utils/UploadedFiles';
 import {
   Tooltip,
   TooltipContent,
@@ -23,60 +22,53 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../../components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../../components/ui/popover";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-  DialogOverlay
-} from "../../../components/ui/dialog";
+import wordIcon from "../../../public/images/logos/docx_icon.svg";
+import powerpointIcon from "../../../public/images/logos/pptx.png";
+import excelIcon from "../../../public/images/logos/excel.png";
+import pdfIcon from "../../../public/images/icons/pdf-icon.png";
 
 import Echo from 'laravel-echo';
 
 import Pusher from 'pusher-js';
 
-window.Pusher = Pusher;
+// window.Pusher = Pusher;
 
-window.Echo = new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST,
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
-    enabledTransports: ['ws', 'wss'],
-});
+// window.Echo = new Echo({
+//     broadcaster: 'reverb',
+//     key: import.meta.env.VITE_REVERB_APP_KEY,
+//     wsHost: import.meta.env.VITE_REVERB_HOST,
+//     wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
+//     wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
+//     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+//     enabledTransports: ['ws', 'wss'],
+// });
 
 
 const WorkSpace = ({caseId,caseFolders}) =>{
 
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
-  const [assignedUsers, setAssignedUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [allFiles, setAllFiles] = useState([]);
   const textareaRef = useRef(null);
-  const [userRole, setUserRole] = useState('');
-  const [toggleDocRenderer, setToggleDocRedenrer] = useState(false);
-  const [docToRender, setDocToRender] = useState([]);
-  const [docInfo,setDocInfo] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isFileUpoading, setIsFileUpoading] = useState(false);
   const [filesUploaded, setFilesUploaded] = useState([]);
   const [showProgress, setShowProgress] = useState(false);
   const [caseFiles, setCaseFiles] = useState(caseFolders);
-  var transformedData;
+  const [openMessageOptions, setOpenMessageOptions] = useState(null);
+  const [deletedMessage, setDeletedMessage] = useState([]);
+  const [isDeletingMessage, setIsDeletingMessage] = useState(false);
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [editedMessage, setEditedMessage] = useState("");
+  const [messageToEdit, setMessageToEdit] = useState(null);
+  const [editLoader, setEditLoader] = useState(false);
+
+  const messageOptionRef = useRef(null);
+  const [loader, setLoader] = useState(false);
+  var transformedData; 
   var transformedUserData;
   const dialogRef = useRef(null);
-  const audio = new Audio('../../../sounds/completed_2.mp3');
 
   function getMessages(){
     axios.get('/cases/get-all-case-messages/'+caseId)
@@ -88,8 +80,10 @@ const WorkSpace = ({caseId,caseFolders}) =>{
         avatar: element.user.avatar_link,
         files: element.media,
         date: element.date,
-        realDate: element.created_at
+        realDate: element.created_at,
+        modifedAt: element.updated_at
       }));
+      console.log(response.data[0])
       setAllFiles([]);
       transformedData.forEach((item) =>{
         if(item.files.length != 0){
@@ -115,75 +109,57 @@ const WorkSpace = ({caseId,caseFolders}) =>{
     });
 
   }
-  window.Echo.channel('messages')
-.listen('Message', (event)=>{
-  getMessages();
-})
-  function getTasks(){
-    axios.get('/tasks/get-all-case-tasks/'+caseId)
-    .then(response => {
-      var transformedDataTasks = response.data[0].map(element => ({
-        id:element.id,
-        title: element.title,
-        note: element.note,
-        status: element.status,
-        assigned: element.assigned_to,
-      }));
-      let userId = response.data[1];
-      setUserRole(response.data[2]);
-      setTasks([]);
-      transformedDataTasks.forEach((task) => {
-       if(task.assigned != null){
-          if(response.data[2] == "Admin"){
-            setTasks(prevAffectedTasks => [...prevAffectedTasks,task]);
-          }else if(task.assigned.includes(userId)){
-            //  if(task.status == "pending")
-            setTasks(prevAffectedTasks => [...prevAffectedTasks,task]);
-            //  else
-            //    setCompletedAffectedTasks(prevAffectedTasks => [...prevAffectedTasks,task]);
-           }
-        }else{
-          setTasks(prevTasks => [...prevTasks,task]);
-        }
-      });
-    })
-    .catch(error => {
-      console.log(error.message)
+//   window.Echo.channel('messages')
+// .listen('Message', (event)=>{
+//   getMessages();
+// })
+  async function deleteMessage(ID){
+    setIsDeletingMessage(true);
+    try {
+      await axios.put('/cases/messages/delete-message',{ID});
+        setDeletedMessage(prev => [...prev,ID]);
+    } catch (error) {
+    }finally{
+      setIsDeletingMessage(false);
+    }
 
-    });
+  }
+  async function editMessage(ID){
+    if(editedMessage === "") return;
+    setEditLoader(true);
+    try {
+      await axios.put('/cases/messages/edit-message',{ID,editedMessage});
+      getMessages();
+    } catch (error) {
+      console.log(error)
+    }finally{
+      cancelEditingMessage();
+      setEditLoader(false);
+    }
+
   }
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refreshParent = () => {
     setRefreshKey((oldKey) => oldKey + 1);
   };
-  useEffect(() => {
-    getMessages();
-    getTasks();
-    const textarea = textareaRef.current;
-    const handleInput = () => {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    };
-
-    textarea.addEventListener('input', handleInput);
-    textarea.dispatchEvent(new Event('input'));
-
-    
-    return () => {
-      textarea.removeEventListener('input', handleInput);
-    };
-
-  }, [refreshKey]);
+  const [screenSize, setScreenSize] = useState({
+        width: window.innerWidth - 25,
+        height: window.innerHeight
+    });
+  
 
   const handleFileChange = (event) => {
     setIsFileUpoading(true);
     const files = Array.from(event.target.files);
-    
-    transformedData = files.map(file => ({
+      const transformedData = files.map(file => ({
         name: file.name,
         size: file.size,
+        type: file.type,
         loading: 0,
+        url: file.type.startsWith("image/") 
+            ? URL.createObjectURL(file) 
+            : null
     }));
     setFilesUploaded((prevFilesUploaded) => [...prevFilesUploaded, ...transformedData]);
 
@@ -208,10 +184,10 @@ const WorkSpace = ({caseId,caseFolders}) =>{
           return newFiles;
         });
         if(loaded == total){
-          //something
+          setShowProgress(false)
         }
       },
-    }).catch(console.error);
+    }).catch(console.log);
   };
 
   const removeFile = (id) => {
@@ -241,126 +217,87 @@ const WorkSpace = ({caseId,caseFolders}) =>{
     return str.trim().split(/\s+/).length === 1;
   };
 
-  const ViewDoc = (url,message=null,model_id=null) => {
-   var doc = [
-      { uri: url},
-    ];
-    if(model_id != null){
-      message = messages.find(item => item.id === model_id);
-    }
-    setDocToRender(doc)
-    setDocInfo(message)
-    setToggleDocRedenrer(true);
-  }
-  const SendMessage = (event) => {
-    if(newMessage !== '' || filesUploaded.length != 0){
-      axios.post('/cases/create-new-message/'+caseId,{
-        newComment: newMessage,
-        fileLength: filesUploaded.length ?? 0,
-      })
-      .then(response => {
-        refreshParent();
-        setNewMessage('');
-        setIsFileUpoading(false);
-        setShowProgress(false)
+  const SendMessage = async (event) => {
+    try{
+      setLoader(true);
+      if(newMessage !== '' || filesUploaded.length != 0){
+
+      const response = await axios.post('/cases/create-new-message/'+caseId,{
+          newComment: newMessage,
+          fileLength: filesUploaded.length ?? 0,
+        })
+        // .then(response => {
+          refreshParent();
+          setNewMessage('');
+          setIsFileUpoading(false);
+          setShowProgress(false)
         setFilesUploaded([]);
-      })
-      .catch(error => {
+      }
+      }catch(error){
         console.log(error)
-      });
-    }
+      }finally{
+        setLoader(false);
+      };
     };
 
   const [toggledTabs , setToggledTabs]  = useState('');
   const [isTabClick , setIsTabClick]  = useState(false);
-  const [newTask , setNewTask]  = useState('');
-  const TabsToggle = (tabs) =>{
-    setIsTabClick(true);
-    setToggledTabs(tabs);
-  };
 
-  const CreateTask = (event,id = null ,dueDate) =>{
-    event.preventDefault();
-    console.log(dueDate)
-    axios.post('/tasks/create-new-task/'+caseId,{
-      title: newTask,
-      users: assignedUsers,
-      dueDate: dueDate,
-    })
-    .then(response => {
-      getTasks();
-      setNewTask('')
-      setAssignedUsers([])
-    })
-    .catch(error => {
-      console.log(error.message)
-    });
+  const MessageOptionMouseEnter = (index) =>{
+    if(isEditingMessage) return; // Do not show the options when the user is editing a message
+
+    setOpenMessageOptions(index);
   }
-  const ChangeStatus = (id) =>{
-    axios.post('/tasks/update-status',{
-      task_id: id,
-    })
-    .then(response => {
-      getTasks();
-      if(response.data == "completed"){
-        audio.play();
-      }
-    })
-    .catch(error => {
-      console.log(error.message)
-    });
-  };
-  const addUsersToTask = (id) =>{
-    setAssignedUsers((currentUsers) => {
-      if (currentUsers.includes(id)) {
-        return currentUsers.filter((user) => user !== id);
-      } else {
-        return [...currentUsers, id];
-      }
-    });
+   const MessageOptionMouseLeave = (event) =>{
+    if (messageOptionRef.current && !messageOptionRef.current.contains(event.target)){
+       setOpenMessageOptions(null);
+     }
   }
+ 
+  const cancelEditingMessage = ()=>{
+    setIsEditingMessage(false);
+    setMessageToEdit(null);
+    setEditedMessage("");
+  }
+
+  useEffect(() => {
+    getMessages();
+    const textarea = textareaRef.current;
+    const handleInput = () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    };
+
+    textarea.addEventListener('input', handleInput);
+    textarea.dispatchEvent(new Event('input'));
+
+     document.addEventListener("mousedown", MessageOptionMouseLeave);
+    
+    return () => {
+      textarea.removeEventListener('input', handleInput);
+      document.removeEventListener("mousedown", MessageOptionMouseLeave);
+    };
+
+  
+  }, [refreshKey]);
   return (
-    <section className='flex flex-row gap-x-4 w-full'>
-      <section className=" w-[600px]">
-          <div>
-               <Dialog open={toggleDocRenderer} ref={dialogRef}   modal={false}>
-               <DialogContent className='w-[1000px] border-none dark:bg-dark-secondary bg-light-thirdly '>
-                 <section className='w-full h-full flex flex-row relative'>
-                     <ScrollArea className='w-[700px] h-[400px] '>
-                         <DocViewer documents={docToRender} pluginRenderers={DocViewerRenderers} style={{height:400,overflowY:"auto"}}/>
-                     </ScrollArea>
-                     <div className='w-[250px] h-full p-2 workspace_box_shadow'>
-                       <div className='w-full'>
-                           <div className='flex flex-row gap-x-2 items-center'>
-                               <div className='w-[25px] h-[25px]'>
-                                 <img src={docInfo.avatar} alt="avatar" className=" object-contain rounded-full" />
-                               </div>
-                               <h1 className='dark:text-white text-dark-secondary text-[14px] capitalize'>{docInfo.name}</h1>
-                           </div>
-                           <p className='pl-4 my-1 text-white w-full'>
-                               {docInfo.comment}
-                           </p>
-                       <div className={cn(" opacity-[0.5] text-[#ddd] text-[13px] w-fit ml-auto capitalize")}>{docInfo.length != 0 ?(format(new Date(docInfo.realDate), "dd MMMM yyyy HH:mm", { locale: fr })):(<h1>dd</h1>)}</div>
-                       </div>
-                     </div>
-                     <button className='absolute -top-6 -right-2' onClick={() => setToggleDocRedenrer(false)}>
-                         <i class='bx bx-x bx-md dark:text-white text-dark-secondary '></i>
-                     </button>
-                 </section>
-                 
-               </DialogContent>
-             </Dialog>
+    <section className='flex flex-row gap-x-4 w-full mb-6'>
+      <section className=" w-[620px]">
+          <div>         
              {caseFiles.length != 0 ? (
                 <section className='apps p-1 flex flex-wrap gap-x-1'>
                   {caseFiles.map((file,index) => (
                     <div key={index} className='w-[220px] h-[40px] relative flex fex-row gap-x-2 items-center p-2 dark:bg-dark-secondary bg-light-thirdly dark:text-white text-dark-secondary text-[12px]  rounded-[4px]'>
-                      <div>
-                          <i className='bx bxs-file dark:text-white text-dark-secondary text-[18px]'></i>
-                      </div>
-                      <div>
-                          <h1 className='upload_file_name flex flex-wrap'>{file.name}</h1> 
-                          <p className='text-[10px]'>{formatFileSize(file.size)}</p>
-                      </div>
+                     <div className='flex flex-row'>
+                       <div className='w-full'>
+                            <i className='bx bxs-file dark:text-white text-dark-secondary text-[18px]'></i>
+                        </div>
+                        <div>
+                            <h1 className='upload_file_name flex flex-wrap'>{file.name}</h1> 
+                            <p className='text-[10px]'>{formatFileSize(file.size)}</p>
+                        </div>
+                     </div>
+                     
                     <DropdownMenu>
                         <DropdownMenuTrigger className='h-full '>
                             <div className='dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
@@ -378,55 +315,167 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                   </div>))}
                 </section>
               ):""}
-          <ScrollArea className="py-1 px-2 workspace_message_box_wrapper ">
-            <div className='w-full flex flex-col gap-y-4'>
+          <ScrollArea className="max-h-[500px]">
+            <div className='w-fit flex flex-col'>
             {messages.length ? (
                   messages.map((message,index) =>(
-                      <div key={index} className='flex  flex-row items-start flex-wrap gap-x-1'>
+                      <div key={index} className='flex flex-row items-end w-fit  gap-x-1 py-4 px-3'>
                           <div className='w-[25px] h-[25px]'>
                             <img src={message.avatar} alt="avatar" className=" object-contain rounded-full" />
                           </div>
-                        <div className='flex flex-col justify-center py-0.5 w-fit '>
-                            <div>
-                              <h1 className='dark:text-white text-dark-secondary text-[14px] capitalize'>{message.name} <span className={cn("ml-1 opacity-[0.5] dark:text-white text-dark-secondary  text-[13px]",isSingleWord(message.date) ? 'capitalize' : 'lowercase')}>{message.date}</span></h1>
+                        {deletedMessage.length > 0 && deletedMessage.includes(message.id) ?  
+                          <div className='bg-[#356B8C44] rounded-md py-2 px-3'>
+                            <h1 className='dark:text-white text-dark-secondary text-[13px] capitalize'>Vous avez supprimé ce message</h1>
+                          </div>
+                          :
+                          <div className='flex flex-col justify-center py-0.5 w-fit'>
+                            <div className='flex flex-row justify-between'>
+                              <h1 className='dark:text-white text-dark-secondary text-[13px] capitalize'>{message.name} <span className={cn("ml-1 opacity-[0.5] dark:text-white text-dark-secondary  text-[13px]",isSingleWord(message.date) ? 'capitalize' : 'lowercase')}>{message.date}</span></h1>
+                              <p className='dark:text-white text-dark-secondary text-[13px] opacity-[0.5] '>{isEqual(message.realDate, message.modifedAt)?"": "Modifé"}</p>
                             </div>
-                            <div className='message_box'>
-                              <p className='text-[15px]  w-fit py-1 rounded-[4px] dark:text-white text-dark-secondary'>{message.comment}</p>
-                              <div className='flex flex-wrap gap-2 w-fit'>
-                                {message.files.map((file,index)=>(
-                                  <div key={index}>
-                                    <div className='w-[240px] h-[50px] relative flex fex-row gap-x-2 items-center p-2 dark:bg-dark-secondary bg-light-thirdly dark:text-white text-dark-secondary text-[12px]  rounded-[4px]'>
-                                      <div>
-                                          <i class='bx bxs-file dark:text-white text-dark-secondary text-[18px]'></i>
+                              <div className={`bg-[#356B8C44] rounded-md w-fit px-2 py-1 relative`} onMouseEnter={()=>MessageOptionMouseEnter(index)} onMouseLeave={(event)=>MessageOptionMouseLeave(event)}>
+                                <div className='flex flex-wrap flex-1 gap-2 w-fit'>
+                                  {message.files.map((file,index)=>(
+                                    <div key={index} className=''>
+                                      <div className='w-fit z-500  upload_file_name relative flex fex-row gap-x-2 items-center dark:bg-dark-hover bg-light-hover dark:text-white text-dark-secondary text-[12px]  rounded-[4px]'>
+                                      <div className='flex flex-row items-center gap-x-1 px-2 w-fit h-fit'>
+                                            {
+                                              
+                                                file.mime_type == "application/vnd.openxmlformats-officedocument.presentationml.presentation"  || file.type == "application/vnd.ms-powerpoint"?
+                                                  <UploadedFiles name={file.name} size={file.size} icon={powerpointIcon} url={file.original_url}/>
+                                                :
+                                                (file.mime_type == "application/pdf"?
+                                                  <UploadedFiles name={file.name} size={file.size} icon={file.thumb_url} url={file.original_url}/>
+                                                    :
+                                                file.mime_type == "application/vnd.oasis.opendocument.text" || file.type == "application/msword" || file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"?
+                                                  <UploadedFiles name={file.name} size={file.size} icon={wordIcon} url={file.original_url}/>
+                                                :
+                                                file.mime_type == "application/vnd.ms-excel" || file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ?
+                                                  <UploadedFiles name={file.name} size={file.size} icon={excelIcon} url={file.original_url}/>
+                                                  :
+                                                file.mime_type = "image" ?
+                                                <a href={file.original_url} target='_blank' className='max-h-[220px] min-h-[50px] flex items-center w-[420px] cursor-pointer'>
+                                                    <img src={file.original_url} alt="file" className='w-full h-full object-contain '/>
+                                                </a>
+                                                :
+                                                  <UploadedFiles name={file.name} size={file.size}/>
+                                                )
+                                            }
+                                          {/* <div>
+                                              <h1 className='upload_file_name flex flex-wrap w-[350px]'>{file.name}</h1> 
+                                              <p className='text-[10px]'>{formatFileSize(file.size)}</p>
+                                          </div> */}
                                       </div>
-                                      <div>
-                                          <h1 className='upload_file_name'>{file.file_name}</h1> 
-                                          <p className='text-[10px]'>{formatFileSize(file.size)}</p>
-                                      </div>
-                                      <DropdownMenu>
-                                          <DropdownMenuTrigger className='h-full '>
-                                              <div className='dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
-                                                  <i class='bx bx-chevron-down dark:text-white text-dark-secondary bx-sm'></i>
-                                              </div>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent side='top' className='w-[180px] dark:bg-dark-secondary bg-light-thirdly border-none flex flex-col'>
-                                              <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover' onClick={(e) => ViewDoc(file.original_url,message,null)}>
-                                                <i class='bx bx-file-find dark:text-white text-dark-secondary text-[18px]'></i>Aperçu
+                                        {/* <DropdownMenu>
+                                            <DropdownMenuTrigger className='h-full '>
+                                                <div className='dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
+                                                    <i class='bx bx-chevron-down dark:text-white text-dark-secondary bx-sm'></i>
+                                                </div>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent side='top' className='w-[180px] dark:bg-dark-secondary bg-light-thirdly border-none flex flex-col'>
+                                                <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover'>
+                                                  <a className='flex flex-row items-center gap-x-2 w-full h-full'  href={file.original_url} download={file.file_name}>
+                                                      <i class='bx bxs-download dark:text-white text-dark-secondary text-[18px]'></i>Télécharger
+                                                  </a>
                                                 </DropdownMenuItem>
-                                              <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover'>
-                                                 <a className='flex flex-row items-center gap-x-2 w-full h-full'  href={file.original_url} download={file.file_name}>
-                                                    <i class='bx bxs-download dark:text-white text-dark-secondary text-[18px]'></i>Télécharger
-                                                 </a>
-                                              </DropdownMenuItem>
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu> */}
+                                      </div>
                                     </div>
+                                ))}
+                                </div>
+                                {isEditingMessage && messageToEdit == index?
+                                <div className='relative'>
+                                  <div className='absolute bottom-0 right-0 py-2 px-3 flex flex-row gap-x-2'>
+                                     <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger  onClick={cancelEditingMessage} asChild className='cursor-pointer'>
+                                         <X size={20} className='dark:text-white text-dark-secondary'/>
+                                        </TooltipTrigger>
+                                        <TooltipContent className='dark:bg-dark-secondary bg-light-thirdly border-none dark:text-white text-dark-secondary'>
+                                          Annuler
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+
+                                      {editLoader?
+                                      <div>
+                                         <Loader size={18} className="dark:text-white text-dark-secondary animate-spin [animation-duration:2s]"/>
+                                      </div>
+                                        :
+                                     <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger onClick={()=>!(editedMessage === message.comment || editedMessage === "")&&editMessage(message.id)} asChild className={`cursor-pointer ${editedMessage === message.comment || editedMessage === ""? "opacity-[0.4]": ""}`}>
+                                         <Check size={20} className={`dark:text-white text-dark-secondary `}/>
+                                        </TooltipTrigger>
+                                        <TooltipContent className='dark:bg-dark-secondary bg-light-thirdly border-none dark:text-white text-dark-secondary'>
+                                          Confirmer
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                      }
                                   </div>
-                              ))}
+                                  <textarea 
+                                    value={editedMessage}
+                                    onChange={(e)=> setEditedMessage(e.target.value) }
+                                    // ref={textareaRef} 
+                                    type="text" 
+                                    className='auto_expand_textarea pr-6 h-[100px]  px-1 py-2 text-[15px] focus:outline-none dark:text-white text-dark-secondary dark:bg-dark-secondary bg-light-thirdly border-none' rows={1} placeholder='Type something'></textarea>
+                                </div>
+                                :
+                                <p className='text-[15px]  w-fit py-1 rounded-[4px] dark:text-white text-dark-secondary'>{message.comment}</p>
+                                  }
+                                {openMessageOptions == index &&
+                                  <motion.div
+                                  ref={messageOptionRef}
+                                    // onMouseLeave={()=>{optionOnMouseLeave()}}
+                                    initial={{ opacity: 0, y: 30 }} // Start invisible and shifted down
+                                    animate={{ opacity: 1, y: 0 }} // Move up to original position
+                                    transition={{ duration: 0.3, ease: "easeInOut" }} // Smooth transition
+                                    className='absolute -top-8 -right-4 z-10'>
+
+                                    <div className='flex flex-row items-center gap-x-3 px-3 py-2 shadow-lg dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary rounded-md'>
+                                       
+                                         <TooltipProvider>
+                                          <Tooltip >
+                                            <TooltipTrigger onClick={()=>{setEditedMessage(message.comment); setOpenMessageOptions(null); setIsEditingMessage(true); setMessageToEdit(index)}}>
+                                              <Pencil  size={18} className="cursor-pointer "/>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              Modifier
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+
+                                        {isDeletingMessage ?
+                                          <TooltipProvider>
+                                            <Tooltip >
+                                              <TooltipTrigger  onClick={()=>deleteMessage(message.id)}>
+                                                <Loader size={18} className="dark:text-white text-dark-secondary animate-spin [animation-duration:2s]"/>
+                                              </TooltipTrigger>
+                                              <TooltipContent>
+                                                Suppression...
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        :
+                                        <TooltipProvider>
+                                          <Tooltip >
+                                            <TooltipTrigger  onClick={()=>deleteMessage(message.id)}>
+                                              <Trash2  size={18} className="cursor-pointer text-destructive"/>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              Supprimer
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                        }
+                                    </div>
+                                  </motion.div>
+                                }
                               </div>
-                            
-                            </div>
-                        </div>
+                          </div>
+                        }
                     </div>
                   ))):
                   (
@@ -440,29 +489,89 @@ const WorkSpace = ({caseId,caseFolders}) =>{
           </ScrollArea>
             <div className='mt-2  dark:bg-dark-secondary bg-light-thirdly rounded-[4px]'>
               {isFileUpoading && (
-                <div className='flex flex-row flex-wrap gap-x-1 items-center p-2  border-b'>
+                <div className='flex flex-row flex-wrap gap-1 items-center p-2  border-b'>
                     {filesUploaded.map((file,index) =>(
-                      <div key={index} className={cn('relative flex flex-row items-center gap-2 h-[50px] p-1 workspace_box_shadow rounded-[4px] relative', filesUploaded.length > 2 ? "w-[190px]":"w-[200px]")}>
-                         <div>
-                              <i class='bx bxs-file dark:text-white text-dark-secondary text-[18px]'></i>
-                          </div>
-                          <div>
-                              <h1 className='dark:text-white text-dark-secondary text-[12px] upload_file_name'>{file.name}</h1> 
-                              <p className='dark:text-white text-dark-secondary text-[10px]'>{formatFileSize(file.size)}</p>
-                          </div>
-                          <DropdownMenu>
+                      <div key={index} className={cn('relative  upload_file_name flex flex-row items-center gap-2 h-[50px]  workspace_box_shadow rounded-[4px] relative')}>
+                          <div className='flex flex-row items-center gap-x-1 px-2 w-fit h-fit dark:text-white text-dark-secondary text-[15px]'>
+                                  {
+                                      file.type == "application/vnd.openxmlformats-officedocument.presentationml.presentation"  || file.type == "application/vnd.ms-powerpoint"?
+                                            <div className='w-[250px] flex flex-row items-center gap-x-2'>
+                                            <div className='h-[50px] w-[40px]'>
+                                              <img src={powerpointIcon} alt="file" className='w-[40px] h-full object-contain '/>
+                                            </div>
+                                            <div>
+                                                <h1 className='upload_file_name flex flex-wrap '>{file.name}</h1> 
+                                                <p className='text-[10px]'>{formatFileSize(file.size)}</p>
+                                            </div> 
+                                          </div>
+                                      :
+                                      (file.type == "application/pdf"?
+                                        <div className='w-[250px] flex flex-row items-center gap-x-2 '>
+                                          <div className='h-[50px] w-[40px]'>
+                                            <img src={pdfIcon} alt="file" className='w-full h-full object-contain '/>
+                                          </div>
+                                          <div>
+                                              <h1 className='upload_file_name flex flex-wrap '>{file.name}</h1> 
+                                              <p className='text-[10px]'>{formatFileSize(file.size)}</p>
+                                          </div> 
+                                        </div>
+                                        
+                                          :
+                                      file.type == "application/vnd.oasis.opendocument.text" || file.type == "application/msword" || file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"?
+                                            <div className='w-[250px] flex flex-row items-center gap-x-2'>
+                                            <div className='h-[50px] w-[40px]'>
+                                              <img src={wordIcon} alt="file" className='w-[40px] h-full object-contain '/>
+                                            </div>
+                                            <div>
+                                                <h1 className='upload_file_name flex flex-wrap '>{file.name}</h1> 
+                                                <p className='text-[10px]'>{formatFileSize(file.size)}</p>
+                                            </div> 
+                                          </div>
+                                      :
+                                      file.type == "application/vnd.ms-excel" || file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ?
+                                            <div className='w-[250px] flex flex-row items-center gap-x-2'>
+                                            <div className='h-[50px] w-[40px]'>
+                                              <img src={excelIcon} alt="file" className='w-[40px] h-full object-contain '/>
+                                            </div>
+                                            <div>
+                                                <h1 className='upload_file_name flex flex-wrap w-[200px]'>{file.name}</h1> 
+                                                <p className='text-[10px]'>{formatFileSize(file.size)}</p>
+                                            </div> 
+                                          </div> 
+                                        :
+                                      file.type = "image" ?
+                                      <div className='max-h-[220px] min-h-[50px] flex items-center w-[420px]'>
+                                          <img src={file.url} alt="file" className='w-full h-full object-contain '/>
+                                      </div>
+                                      :
+                                        <div className='w-[250px] flex flex-row items-center gap-x-2'>
+                                        <div className='h-[50px] w-[40px]'>
+                                          <i class='bx bxs-file dark:text-white text-dark-secondary text-[20px]'></i>
+                                        </div>
+                                        <div>
+                                            <h1 className='upload_file_name flex flex-wrap '>{file.name}</h1> 
+                                            <p className='text-[10px]'>{formatFileSize(file.size)}</p>
+                                        </div> 
+                                      </div> 
+                                      )
+                                  }
+                                {/* <div>
+                                    <h1 className='upload_file_name flex flex-wrap w-[350px]'>{file.name}</h1> 
+                                    <p className='text-[10px]'>{formatFileSize(file.size)}</p>
+                                </div> */}
+                            </div>
+                          {/* <DropdownMenu>
                             <DropdownMenuTrigger className='h-full '>
                                 <div className='dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-r-[4px] hover:cursor-pointer h-full absolute right-0 top-1/2 flex items-center -translate-y-1/2 p-1'>
                                     <i class='bx bx-chevron-down dark:text-white text-dark-secondary bx-sm'></i>
                                 </div>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent side='top' className='w-[180px] dark:bg-dark-secondary bg-light-thirdly border-none flex flex-col'>
-                                {/* <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover'><i class='bx bx-file-find dark:text-white text-dark-secondary text-[18px]'></i>Aperçu</DropdownMenuItem> */}
                                 <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover' onClick={() => removeFile(index) }>
                                     <i class='bx bx-x text-red-600 text-[20px]'></i>Supprimer
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
-                          </DropdownMenu>
+                          </DropdownMenu> */}
                            {showProgress ? <Progress value={file.loading} className=" h-1 left-0 w-full absolute bottom-0" />:""}
                       </div>
                     ))}
@@ -487,7 +596,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                   </div>
                     <textarea 
                     value={newMessage}
-                    onChange={(e)=> setNewMessage(e.target.value)}
+                    onChange={(e)=> setNewMessage(e.target.value) }
                     ref={textareaRef} 
                     type="text" 
                     className='auto_expand_textarea pr-6 h-[20px] w-full px-1 py-2 text-[15px] focus:outline-none dark:text-white text-dark-secondary dark:bg-dark-secondary bg-light-thirdly border-none' rows={1} placeholder='Type something'></textarea>
@@ -496,9 +605,13 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
+                          {loader ?
+                          <Loader size={20} className="dark:text-white text-dark-secondary animate-spin [animation-duration:2s]" /> 
+                          :
                           <div className=' '>
                             <button onClick={SendMessage}  className='h-fit  mt-1 my-auto'><i class='bx bxs-send text-[#0f6cbd] tefxt-[#335b74] bx-sm'></i></button>
                           </div>
+                          }
                         </TooltipTrigger>
                         <TooltipContent className='dark:bg-dark-secondary bg-light-thirdly border-none dark:text-white text-dark-secondary'>
                           <p className='text-[12px]'>Envoyer</p>
@@ -511,104 +624,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
           </div>
       </section>
       <section className='flex-1 pt-4'>
-        {!isTabClick? 
-        <section className='w-fit mx-auto '>
-          <div className='workspace_tools_wrapper' onClick={(e)=> TabsToggle('task')}> 
-            <div className='flex flex-col justify-center' >
-              <div className='flex items-center gap-x-1'>
-                <h1 className='dark:text-white text-dark-secondary '>Vos tâches</h1><span className='dark:text-white text-dark-secondary'>{tasks.length}</span>
-              </div>
-            </div>
-            <div><i className='bx bx-chevrons-right text-[18px] dark:text-white text-dark-secondary'></i></div>
-          </div>
-          <div className='workspace_tools_wrapper' onClick={(e)=> TabsToggle('docs')}>
-            <div className='flex items-center gap-x-1'>
-              <h1 className='dark:text-white text-dark-secondary '>Documents Partagés</h1> <span className='dark:text-white text-dark-secondary'>{allFiles.length}</span>
-            </div>
-            <div><i className='bx bx-chevrons-right text-[18px] dark:text-white text-dark-secondary'></i></div>
-          </div> 
-        </section>
-        :
-          (toggledTabs == 'task')? 
-          <section className='w-[500px] mx-auto'>
-              <header className='workspace_tabs_header'>
-                <div className='w-fit cursor-pointer absolute' onClick={(e)=> setIsTabClick(false)}><i className='bx bx-chevrons-left text-[20px]'></i></div>
-                <h1 className='text-center w-full'>Tâches</h1>
-              </header>
-              <section className='w-full'>
-                    <div className='workspace_tabs_content_wrapper w-full'>
-                      <div className='todo_items  mt-1 w-full'>
-                      <ScrollArea className='h-full'>
-                        <div className=''>
-                        {tasks.length ? (
-                          tasks.map((task,taskIndex)=>(
-                            <TodoItem key={taskIndex} ChangeStatus={ChangeStatus} task={task} users={users}/>
-                          ))
-                        ): (
-                          <div className="flex flex-col  items-center h-fit my-auto  no-event mt-4">
-                          <img className="w-[60px] h-[60px]" src="../../../icons/no-task.png" alt="No task"/>
-                            <p className="text-[13px] text-center dark:text-white text-dark-secondary">Les tâches rélatives à ce dossier apparaîtront ici.</p>
-                          </div>
-                        )}
-                        </div>
-                      </ScrollArea>
-                      </div>
-                      <TodoCreateInput newTask={newTask} setNewTask={setNewTask} CreateTask={CreateTask} users={users} assignedUsers={assignedUsers} isAssign={true} addUsersToTask={addUsersToTask} />
-                    </div>
-              </section>
-          </section>
-          :
-          <section className='w-[500px] mx-auto'>
-              <header className='workspace_tabs_header'>
-                <div className='w-fit cursor-pointer absolute' onClick={(e)=> setIsTabClick(false)}><i className='bx bx-chevrons-left text-[20px]'></i></div>
-                <h1 className='text-center w-full'>Documents</h1>
-              </header>
-              <ScrollArea className='mt-2'>
-                  <div className='flex flex-col gap-y-1'>
-                  {allFiles.length ? (
-                    allFiles.map((file,index)=>(
-                      <div key={index}>
-                         <div className='relative flex fex-row gap-x-2 items-center p-2 dark:bg-dark-secondary bg-light-thirdly dark:text-white text-dark-secondary text-[12px]  rounded-[4px]'>
-                            <div>
-                                <i class='bx bxs-file dark:text-white text-dark-secondary text-[18px]'></i>
-                            </div>
-                            <div>
-                                <h1 className='upload_file_name'>{file.file_name}</h1> 
-                                <p className='text-[10px]'>{formatFileSize(file.size)}</p>
-                            </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger className='h-full p-1 absolute right-0 top-1/2 flex items-center -translate-y-1/2'>
-                                    <div className='dark:hover:bg-[#d8d8d833] hover:bg-light-hover rounded-r-[4px] hover:cursor-pointer h-full flex items-center '>
-                                        <i class='bx bx-chevron-down dark:text-white text-dark-secondary bx-sm'></i>
-                                    </div>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent side='top' className='w-[180px] dark:bg-dark-secondary bg-light-thirdly border-none flex flex-col'>
-                                    <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover' onClick={() => ViewDoc(file.original_url,null,file.model_id)}>
-                                      <i class='bx bx-file-find dark:text-white text-dark-secondary text-[18px]'></i>Aperçu
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className='dark:text-white text-dark-secondary text-[14px] hover:cursor-pointer dark:hover:bg-[#d8d8d833] hover:bg-light-hover'>
-                                        <a className='flex flex-row items-center gap-x-2 w-full h-full'  href={file.original_url} download={file.file_name}>
-                                          <i class='bx bxs-download dark:text-white text-dark-secondary text-[18px]'></i>Télécharger
-                                        </a>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                          </div>
-                      </div>
-                    ))
-                  ):(
-                    <div>
-                       <div className="flex flex-col  items-center h-fit my-auto  no-event mt-4">
-                          <img className="w-[60px] h-[60px]" src="../../../icons/no-task.png" alt="No task"/>
-                            <p className="text-[13px] text-center">Les documents partagés apparaîtront ici.</p>
-                        </div>
-                    </div>
-                  )}
-                  </div>
-              </ScrollArea>
-          </section>
-}
-          
+        <WorkSpaceUtilities tasks={tasks} files={allFiles} users={users} caseID={caseId}/>
       </section>
     </section>
 

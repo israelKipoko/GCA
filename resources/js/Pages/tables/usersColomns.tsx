@@ -76,7 +76,7 @@ export const columns = (changeUserRole: (id: number, name: string, role: string)
      cell: ({row}) => {
         return <div className="text-center mx-auto  w-fit px-2 py-1 rounded-md">
           <Select value={row.getValue("role")} onValueChange={(role) => changeUserRole(row.getValue("name"), row.getValue("id"),role)}>
-              <SelectTrigger className="w-[180px] dark:bg-[#d8d8d811] bg-[#29292922] border border-[#ffffff66] font-bold opacity-[0.8] rounded-md outline-none focus:outline-none ">
+              <SelectTrigger className="md:w-[180px] dark:bg-[#d8d8d811] bg-[#29292922] border border-[#ffffff66] font-bold opacity-[0.8] rounded-md outline-none focus:outline-none ">
                   <SelectValue  placeholder="Priorité opacity-[0.6]" className='dark:text-white text-dark-secondary font-bold'/>
               </SelectTrigger>
               <SelectContent className=''>

@@ -50,12 +50,12 @@ theme: {
 				DEFAULT: 'hsl(var(--muted))',
 				foreground: 'hsl(var(--muted-foreground))'
 			},
-			destructive: {
-				DEFAULT: 'hsl(var(--destructive))',
-				foreground: 'hsl(var(--destructive-foreground))'
-			},
 			action: {
-				DEFAULT: '#356B8C',
+				// DEFAULT: '#356B8C',
+				DEFAULT: '#007bff',
+			},
+			hover: {
+				DEFAULT: '#007bff'
 			},
 			destructive:{
 				DEFAULT: '#dc2626',

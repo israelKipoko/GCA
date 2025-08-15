@@ -54,7 +54,7 @@ const TodoItem = ({ task, users, ChangeStatus, isCaseTitle}) =>{
 return (
     <div  className="todo_item dark:bg-dark-secondary bg-light-thirdly border-b dark:border-[#393a4c] border-[#335b74]">
         <div className="check  rounded-full" onClick={()=> ChangeStatus(task.id)}>
-            <div className={cn("check_mark border-[2px] dark:border-[#393a4c] border-[#356B8C] ",task.status=="pending"?"":"checked")}>
+            <div className={cn("check_mark border-[2px] dark:border-[#d8d8d877] border-[#356B8C] ",task.status=="pending"?"":"checked")}>
                 <img src="../../../icons/icon-check.svg"/>
             </div>
         </div>
