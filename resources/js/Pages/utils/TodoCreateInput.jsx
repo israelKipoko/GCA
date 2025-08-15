@@ -30,7 +30,7 @@ const TodoCreateInput = ({ newTask, setNewTask, CreateTask, isAssign, users, ass
         setDueDate(format(date, 'yyyy-MM-dd'));
       };
     return (
-        <div className="addTaskInput dark:bg-[#414040] bg-light-secondary shadow-lg border dark:border-[#393a4c] border-[#335b74]">
+        <div className="addTaskInput dark:bg-[#414040] bg-light-secondary shadow-lg dark:border-b border dark:border-[#393a4c] border-[#335b74]">
             <div className="check " onClick={(e)  => { 
                     CreateTask(e, caseId,dueDate); 
                     setDueDate(null)}}>
