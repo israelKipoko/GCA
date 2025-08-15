@@ -138,7 +138,7 @@ const addUsersToTask = (id) =>{
     getTasks();
   },[])
   return (
-   <Tabs defaultValue='task' className=' w-[500px] mx-auto'>
+   <Tabs defaultValue='task' className=' w-[500px] mx-auto md:block hidden'>
     <TabsList className='w-fit flex gap-x-0.5'>
         <TabsTrigger  onClick={()=>setDefaultTab("task")} className={`w-full text-center flex justify-center rounded-md ${defaultTab === "task"? "dark:bg-dark-hover bg-light-hover":""}`} value="task">Vos Tâches </TabsTrigger>
         <TabsTrigger onClick={()=>setDefaultTab("files")} className={` w-full text-center flex justify-center rounded-md  ${defaultTab === "files"? "dark:bg-dark-hover bg-light-hover":""}`} value="files">Documents partagés</TabsTrigger>
@@ -187,16 +187,16 @@ const addUsersToTask = (id) =>{
                       </div> */}
                        <div className='h-[50px] w-[40px] '>
                              {
-                              file.mime_type == "application/vnd.openxmlformats-officedocument.presentationml.presentation"  || file.type == "application/vnd.ms-powerpoint"?
+                              file.mime_type == "application/vnd.openxmlformats-officedocument.presentationml.presentation"  || file.mime_type == "application/vnd.ms-powerpoint"?
                                   <img src={powerpointIcon} alt="file" className='w-[40px] h-full object-contain '/>
                               :
                               (file.mime_type == "application/pdf"?
                                   <img src={file.thumb_url} alt="file" className='w-full h-full object-contain '/>
                                   :
-                              file.mime_type == "application/vnd.oasis.opendocument.text" || file.type == "application/msword" || file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"?
+                              file.mime_type == "application/vnd.oasis.opendocument.text" || file.mime_type == "application/msword" || file.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"?
                                   <img src={wordIcon} alt="file" className='w-[40px] h-full object-contain '/>
                               :
-                              file.mime_type == "application/vnd.ms-excel" || file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ?
+                              file.mime_type == "application/vnd.ms-excel" || file.mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ?
                                   <img src={excelIcon} alt="file" className='w-[40px] h-full object-contain '/>
                                 :
                               file.mime_type = "image" ?

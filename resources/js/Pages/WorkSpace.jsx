@@ -281,8 +281,8 @@ const WorkSpace = ({caseId,caseFolders}) =>{
   
   }, [refreshKey]);
   return (
-    <section className='flex flex-row gap-x-4 w-full mb-6'>
-      <section className=" w-[620px]">
+    <section className='flex flex-row gap-x-4 w-full mb-6 '>
+      <section className=" md:w-[620px] w-[350px] mx-auto">
           <div>         
              {caseFiles.length != 0 ? (
                 <section className='apps p-1 flex flex-wrap gap-x-1'>
@@ -354,7 +354,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
                                                   <UploadedFiles name={file.name} size={file.size} icon={excelIcon} url={file.original_url}/>
                                                   :
                                                 file.mime_type = "image" ?
-                                                <a href={file.original_url} target='_blank' className='max-h-[220px] min-h-[50px] flex items-center w-[420px] cursor-pointer'>
+                                                <a href={file.original_url} target='_blank' className='max-h-[220px] min-h-[50px] flex items-center md:w-[420px] w-[350px] cursor-pointer'>
                                                     <img src={file.original_url} alt="file" className='w-full h-full object-contain '/>
                                                 </a>
                                                 :
@@ -491,7 +491,7 @@ const WorkSpace = ({caseId,caseFolders}) =>{
               {isFileUpoading && (
                 <div className='flex flex-row flex-wrap gap-1 items-center p-2  border-b'>
                     {filesUploaded.map((file,index) =>(
-                      <div key={index} className={cn('relative  upload_file_name flex flex-row items-center gap-2 h-[50px]  workspace_box_shadow rounded-[4px] relative')}>
+                      <div key={index} className={cn('relative  upload_file_name flex flex-row items-center gap-2 h-[50px]  workspace_box_shadow rounded-[4px]')}>
                           <div className='flex flex-row items-center gap-x-1 px-2 w-fit h-fit dark:text-white text-dark-secondary text-[15px]'>
                                   {
                                       file.type == "application/vnd.openxmlformats-officedocument.presentationml.presentation"  || file.type == "application/vnd.ms-powerpoint"?

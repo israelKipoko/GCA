@@ -294,7 +294,7 @@ return (
                             {event.time.start_time && 
                             <div className='flex items-center gap-x-1 mb-2'>
                               <Clock size={18} className='dark:text-white text-dark-secondary'/>
-                              <span className='flex flex-row text-[14px] font-bold dark:text-[#fff] text-dark-secondary opacity-[0.6]'>{event.time.start_time} - {event.time.end_time}</span>
+                              <span className='flex flex-row text-[14px] font-bold dark:text-[#fff] text-dark-secondary opacity-[0.6]'>{format(parseISO(event.time.start_time), 'HH:mm', { locale: fr })} - {format(parseISO(event.time.end_time), 'HH:mm', { locale: fr })}</span>
                             </div>}
                             <div className='flex flex-col gap-y-2'>
                                 {event.participants.length ?

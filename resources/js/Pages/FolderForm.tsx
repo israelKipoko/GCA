@@ -584,7 +584,7 @@ const handleSubmit = (e:FormEvent) => {
                     <label htmlFor="hs-autoheight-textarea" className='text-[14px] dark:text-white text-dark-secondary opacity-[0.8]'>Description :</label>
                     <textarea id="hs-autoheight-textarea" value={description}  onChange={(e)=> setDescription(e.target.value)} name="note" className="event_title_input dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary focus:outline-none rounded-none text-[14px] py-3 px-4 block w-full text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:focus:ring-neutral-600" rows={3} placeholder="Description du dossier..." autoComplete='off' />
                 </div>
-                <div className="input_div w-[500px] mx-auto">
+                {/* <div className="input_div w-[500px] mx-auto">
                   <label htmlFor="file" className='text-[14px] dark:text-white text-dark-secondary opacity-[0.8]'>Documents :</label>
                   <FilePond 
                   ref={pondRef}
@@ -616,7 +616,7 @@ const handleSubmit = (e:FormEvent) => {
                   oninit={handleInit}
                   onupdatefiles={handleUpdateFiles}
                   labelIdle='Faites glisser et déposez vos fichiers ou <span class="filepond--label-action">Parcourir</span>' />
-                </div>
+                </div> */}
                 </div>
                   <div className='md:w-fit w-full ml-auto mt-6 py-2'>
                       <button  disabled={isLoading}  type="submit" className='action_button md:w-32 w-full py-1.5 px-4 cbg-[#356B8C] flex flex-row items-center gap-x-2  rounded-[4px] justify-center text-white font-bold'>

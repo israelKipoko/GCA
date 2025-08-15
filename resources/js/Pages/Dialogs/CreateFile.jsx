@@ -3,24 +3,27 @@ import { FilePond, registerPlugin } from 'react-filepond';
 import axios from 'axios'
 import { useToast } from "../../../../hooks/use-toast";
 // import { FilePondFile, FilePondInitialFile } from 'filepond';
+import Uploader from '../utils/Uploader';
 
 function CreateFile({refreshData,setOpenCreateFileDialog,libraryID}) {
-    const pondRef = useRef(null);
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    // const pondRef = useRef(null);
+    // const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       const [files, setFiles] = useState([]);
       const [loading, setLoading] = useState(false);
 
-      const handleInit = () => {
-        console.log('FilePond instance has initialized');
-    };
+    //   const handleInit = () => {
+    //     console.log('FilePond instance has initialized');
+    // };
 
-      const handleUpdateFiles = (fileItems) => {
-        setFiles(fileItems.map(fileItem => fileItem.file));
-    };
+    //   const handleUpdateFiles = (fileItems) => {
+    //     setFiles(fileItems.map(fileItem => fileItem.file));
+    // };
 
      const { toast } = useToast();
     const CreateFiles = async(e)=>{
         e.preventDefault();
+        if(files.length <= 0) return;
+
         setLoading(true);
 
         const fileLength = files.length;
@@ -52,7 +55,8 @@ function CreateFile({refreshData,setOpenCreateFileDialog,libraryID}) {
       <form onSubmit={CreateFiles} className=' border-none flex flex-col gap-y-6 myd-4'>
          <div className="input_div w-[400px] mx-auto">
             <label htmlFor="file" className='text-[14px] dark:text-white text-dark-secondary opacity-[0.8]'>Documents :</label>
-          <FilePond 
+          <Uploader multiple={true} files={files} setFiles={setFiles}/>
+          {/* <FilePond 
             ref={pondRef}
             files={files}
             name="file"
@@ -82,11 +86,11 @@ function CreateFile({refreshData,setOpenCreateFileDialog,libraryID}) {
             }}
             oninit={handleInit}
             onupdatefiles={handleUpdateFiles}
-            labelIdle='Faites glisser et déposez vos fichiers ou <span class="filepond--label-action">Parcourir</span>' />
+            labelIdle='Faites glisser et déposez vos fichiers ou <span class="filepond--label-action">Parcourir</span>' /> */}
         </div>
 
         <div className=' w-full ml-auto'>
-            <button  disabled={loading}  type="submit" className='w-full transition-transform duration-300 transform hover:scale-[1.035]  py-1.5 px-4 bg-[#356B8C] rounded-[4px] flex justify-center text-white text-[14px] font-bold'>
+            <button  disabled={loading}  type="submit" className='w-full transition-transform duration-300 transform hover:scale-[1.035]  py-1.5 px-4 bg-action rounded-[4px] flex justify-center text-white text-[14px] font-bold'>
                 {loading ? (
                     <>
                     <svg 

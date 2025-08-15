@@ -66,5 +66,7 @@
      "sector": "Sector",
      "location": "Location",
      "phone": "Phone",
-     "count_cases": "Cases"
+     "count_cases": "Cases",
+     "Drag & drop here": "Drag & drop here",
+     "or click to select": "or click to select"
   }

@@ -82,6 +82,7 @@ const [isLoading, setIsLoading] = useState(false);
                 thumb_url: element.thumb_url,
                 total: element.total_docs,
             }));
+            console.log(transformedData)
             setFiles(transformedData);
             setFilteredData(transformedData);
             setPagination({
@@ -202,6 +203,7 @@ const [isLoading, setIsLoading] = useState(false);
                         </Button>
                         </DialogTrigger>
                         <DialogContent className="md:w-[450px]  w-[350px] border-none">
+                            <DialogTitle className='hidden'></DialogTitle>
                             <DialogHeader>
                                 {/* <DialogTitle className="dark:text-white text-dark-secondary font-bold">Nouveau Document</DialogTitle> */}
                                 {/* <DialogDescription className="dark:text-white text-dark-secondary font-bold">
@@ -244,7 +246,7 @@ const [isLoading, setIsLoading] = useState(false);
                                             <img src={excelIcon} alt="file" className='w-full h-full object-contain '/>
                                             :
                                         file.type = "image" ?
-                                            <img src={file.original_url} alt="file" className='w-full h-full object-contain '/>
+                                            <img src={file.url} alt="file" className='w-full h-full object-contain '/>
                                         :
                                         <i class='bx bxs-file dark:text-white text-dark-secondary text-[20px]'></i>
                                         )
@@ -255,10 +257,12 @@ const [isLoading, setIsLoading] = useState(false);
                                     <p className='opacity-[0.7] text-[13px]'>{formatFileSize(file.size)}</p>
                                 </div>
                             </div>
+                            {!file.type.type =="img"&&
                             <div className='w-[150px] md:block hidden'>
                                 <h1 className='font-bold capitalize text-[12px] opacity-[0.6] text-center'>Type</h1>
                                 <p className=' text-[14px] upload_file_name text-center'>{file.type}</p>
                             </div>
+                            }
                             <div className=' md:block hidden'>
                                 <h1 className='font-bold capitalize text-[12px] opacity-[0.6] text-center'>{t("Dernière modification")}</h1>
                                 <p className=' text-[14px] text-center'>{formatDate(file.modification_date)}</p>

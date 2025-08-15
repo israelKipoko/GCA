@@ -33,7 +33,7 @@ return (
             <aside className=''>
                 <SidebarTrigger className=' absolute z-10 top-2 dark:text-white text-dark-secondary'/>
             </aside>
-            <main className=' flex flex-col pl-2 gap-y-6 mt-9 w-full float-right '>
+            <main className=' flex flex-col pl-2 gap-y-6 mt-9 w-full '>
                 <div className="flex flex-col gap-y-2 ml-4">
                     <div className="flex flex-col gap-x-1 ">
                         <h1 className="dark:text-white text-dark-secondary font-bold text-[17px] ">Titre:</h1>
@@ -57,7 +57,7 @@ return (
                         {caseInfo.status}
                         </span> */}
                         {/* <div className="capitalize" id={cn( caseInfo.status == "pending"? "case_status_pending": "case_status_submitted")}><span className="w-[8px] h-[8px] rounded-full bg-[#ffde4d]"> </span>{caseInfo.status}</div> */}
-                        <div className="flex gap-x-2 assigned_to_profile pl-4">
+                        <div className="flex gap-x-2 assigned_to_profile ">
                             {users.map((user,index) => (
                                 <div key={index} className="user_picture element_tooltip_container w-[30px] h-[30px]">
                                     <TooltipProvider>

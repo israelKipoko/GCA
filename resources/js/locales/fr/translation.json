@@ -66,5 +66,7 @@
      "sector": "Secteur d'activité",
      "location": "Adresse",
      "phone": "Téléphone",
-     "count_cases": "Dossiers"
+     "count_cases": "Dossiers",
+      "Drag & drop here": "Glissez et déposez vos fichiers ou",
+     "or click to select": "Parcourir"
   }
