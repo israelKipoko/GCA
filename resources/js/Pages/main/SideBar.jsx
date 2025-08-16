@@ -148,7 +148,11 @@ return (
     <SidebarHeader className='p-1.5'>
         <div className='bg-[#007bff] rounded-[4px]  flex justify-center'>
           <div className='w-full  h-[40px] flex items-center  justify-center'>
-              {open?<img src={logo1} alt='logo' className='w-[170px] object-contain'/>: <img src={logo2} alt='logo' className='w-[70px] h-[40px] object-contain'/>}
+              {isMobile?
+                openMobile?<img src={logo1} alt='logo' className='w-[170px] object-contain'/>: <img src={logo2} alt='logo' className='w-[70px] h-[40px] object-contain'/>
+                :
+              open?<img src={logo1} alt='logo' className='w-[170px] object-contain'/>: <img src={logo2} alt='logo' className='w-[70px] h-[40px] object-contain'/>
+              }
           </div>
         </div>
       </SidebarHeader>
@@ -212,14 +216,25 @@ return (
                     <div className={cn(" rounded-full",open?"w-[38px] h-[38px]":"w-[35px] h-[35px] cursor-pointer")}>
                         <img src={user.length!=0?user[0].avatar:""} alt="user-profile" className='w-full h-full rounded-full object-contain'/>
                     </div>
-                     {open &&
+                     {isMobile?
+                      <div className='flex flex-col items-start dark:text-white text-dark-secondary'>
+                          <h1 className='text-[14px] font-bold capitalize'>{user.length!=0?user[0].name:""}</h1>
+                          <p className='text-[12px]'>{user.length!=0?user[0].email:""}</p>
+                        </div>
+                      :
+                     open &&
                       <div className='flex flex-col items-start dark:text-white text-dark-secondary'>
                         <h1 className='text-[14px] font-bold capitalize'>{user.length!=0?user[0].name:""}</h1>
                         <p className='text-[12px]'>{user.length!=0?user[0].email:""}</p>
                       </div>
                       }
                   </div>
-                  {open?
+                  {isMobile?
+                   <div className='flex flex-row items-center'>
+                        <ChevronsUpDown size={20} className='dark:text-white text-dark-secondary'/>
+                    </div>
+                    :
+                  open?
                     <div className='flex flex-row items-center'>
                         <ChevronsUpDown size={20} className='dark:text-white text-dark-secondary'/>
                     </div>:

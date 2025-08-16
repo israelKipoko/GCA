@@ -71,7 +71,10 @@ export function DataTable<TData, TValue>({
         },
       }
   })
-
+    const [screenSize, setScreenSize] = useState({
+            width: window.innerWidth - 25,
+            height: window.innerHeight
+        });
   interface Element {
     id: number;
     title: string;
@@ -141,7 +144,7 @@ export function DataTable<TData, TValue>({
                       <span className="md:block hidden">Créer un client</span> <Plus size={18}/>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="md:w-[600px] w-[350px] border-none md:px-6 px-3">
+                <DialogContent  className={`max-w-xs md:max-w-lg lg:max-w-xl border-none md:px-6 px-3`}  >
                   <DialogHeader>
                     <DialogTitle className="dark:text-white text-dark-secondary font-bold">Nouveau Client</DialogTitle>
                   </DialogHeader>

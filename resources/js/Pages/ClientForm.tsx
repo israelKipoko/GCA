@@ -167,7 +167,7 @@ const handleSubmit = (e:FormEvent) => {
                 </div>
                 <div  className="input_div w-[500px] mx-auto">
                   <label htmlFor="logo" className='dark:text-white text-dark-secondary opacity-[0.8]'>Logo :</label>
-                  {/* <FilePond 
+                  <FilePond 
                   ref={pondRef}
                   files={files}
                   name="logo"
@@ -218,7 +218,7 @@ const handleSubmit = (e:FormEvent) => {
                 }}
                   oninit={handleInit}
                   onupdatefiles={handleUpdateFiles}
-                  labelIdle='Faites glisser et déposez un logo ou <span class="filepond--label-action">Parcourir</span>' /> */}
+                  labelIdle='Faites glisser et déposez un logo ou <span class="filepond--label-action">Parcourir</span>' />
                 </div>
                 </div>
                   <div className='w-full ml-auto mt-6 py-2'>

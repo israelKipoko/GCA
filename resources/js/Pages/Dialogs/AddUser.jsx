@@ -68,7 +68,7 @@ const [screenSize, setScreenSize] = useState({
    
 return (
     <Dialog open={openAddUserDialog} onOpenChange={setOpenAddUserDialog}>
-          <DialogContent className={`md:max-w-[450px] max-w-[${screenSize.width}px] max-h-[500px] min-h-[200px] border-none py-3 px-4`}>
+          <DialogContent className={`max-w-xs md:max-w-lg lg:max-w-[450px] max-h-[500px] min-h-[200px] border-none py-3 px-4`}>
             <DialogTitle className="dark:text-white text-dark-secondary font-bold ">
                 Inviter un membre
             </DialogTitle>

@@ -62,7 +62,7 @@ const DeleteGroup: React.FC<DeleteGroupDialogProps> = ({
 
 return (
     <Dialog open={openDeleteAccountDialog} onOpenChange={setOpenDeleteAccountDialog}>
-          <DialogContent className="md:max-w-[450px] max-h-[500px] min-h-[200px] border-none p-3">
+          <DialogContent className="max-w-xs md:max-w-lg lg:max-w-[450px] max-h-[500px] min-h-[200px] border-none p-3">
             <DialogTitle className="dark:text-white text-dark-secondary font-bold hidden">
             </DialogTitle>
             <form onSubmit={deleteGroup} className='w-full flex flex-col items-center justify-center gap-y-4 '>

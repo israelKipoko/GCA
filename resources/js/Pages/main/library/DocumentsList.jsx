@@ -202,7 +202,7 @@ const [isLoading, setIsLoading] = useState(false);
                            <span className='md:block hidden'> {t("Ajouter")}</span> <Plus size={18}/>
                         </Button>
                         </DialogTrigger>
-                        <DialogContent className="md:w-[450px]  w-[350px] border-none">
+                        <DialogContent className="max-w-xs md:max-w-lg lg:max-w-[450px] border-none">
                             <DialogTitle className='hidden'></DialogTitle>
                             <DialogHeader>
                                 {/* <DialogTitle className="dark:text-white text-dark-secondary font-bold">Nouveau Document</DialogTitle> */}

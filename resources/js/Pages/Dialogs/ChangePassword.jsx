@@ -58,7 +58,7 @@ function ChangePassword({openPasswordDialog, setOpenPasswordDialog }) {
     };
   return (
     <Dialog open={openPasswordDialog} onOpenChange={setOpenPasswordDialog}>
-        <DialogContent className="md:max-w-[450px] max-h-[500px] min-h-[200px] border-none p-3">
+        <DialogContent className="max-w-xs md:max-w-lg lg:max-w-[450px] max-h-[500px] min-h-[200px] border-none p-3">
             <DialogTitle className="dark:text-white text-dark-secondary font-bold">Changer votre mot de passe</DialogTitle>
             <form onSubmit={handleSubmit} className='w-full flex flex-col items-center justify-center gap-y-4 '>
                 <div className='flex flex-col gap-y-2 w-full'>

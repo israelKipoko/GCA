@@ -91,7 +91,7 @@ const ChangeEmailDialog = ({ userEmail, openEmailDialod, setOpenEmailDialog }) =
     }
 return (
     <Dialog open={openEmailDialod} onOpenChange={setOpenEmailDialog}>
-          <DialogContent className="md:max-w-[350px] max-h-[400px] min-h-[200px]  border-none p-3">
+          <DialogContent className="max-w-xs md:max-w-lg lg:max-w-[450px] max-h-[400px] min-h-[200px]  border-none p-3">
             <DialogTitle className="text-white font-bold hidden">
             </DialogTitle>
                 <form onSubmit={submitNewEmail} className='w-full flex flex-col items-center justify-center gap-y-4 '>

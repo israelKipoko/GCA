@@ -24,7 +24,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
       <MsalProvider instance={msalInstance}>
       <I18nextProvider i18n={i18n}>
         <ThemeProvider>  {/* Wrap everything in ThemeProvider */}
-            <App {...props} />
+            <App {...props}/>
         </ThemeProvider>
       </I18nextProvider>
       </MsalProvider>

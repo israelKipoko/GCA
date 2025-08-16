@@ -16,7 +16,7 @@ function Library() {
             <aside>
                 <SidebarTrigger className=' fixed z-10 top-2 dark:text-white text-dark-secondary'/>
             </aside>
-            <main className="flex flex-col  gap-y-1 w-full ">
+            <main className="flex flex-col  gap-y-1 w-full md:px-0 px-2 ">
                 <div class="my-2">
                     <div class="">
                         <h1 class="dark:text-white text-dark-secondary font-bold text-[30px] md:ml-9 ml-0 md:text-start text-center">Bibliothèque</h1>

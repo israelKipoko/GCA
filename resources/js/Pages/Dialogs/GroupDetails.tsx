@@ -107,7 +107,7 @@ const removeMember = async (id: any, groupId:any) => {
   return (
     <>
     <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="md:max-w-[550px] ma00px] min-h-[200px] border-none p-6">
+        <DialogContent className="max-w-xs md:max-w-lg lg:max-w-[550px] min-h-[200px] border-none p-6">
            {/* Name of the group */}
             <div className="flex items-center h-fit gap-x-3 capitalize font-bold text-muted-foreground dark:text-white text-dark-secondary ">
                {!isChangingName?

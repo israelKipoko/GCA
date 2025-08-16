@@ -109,9 +109,9 @@ export const columns = (changeUserRole: (id: number, name: string, role: string)
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
-            <DropdownMenuItem className="font-bold">
+            {/* <DropdownMenuItem className="font-bold">
               <Eye/> Affichier le résumé
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="dark:text-[#D84444] text-red-600 font-bold" onClick={()=>setOpenDeleteAccountDialog(true)}>
               <Trash2/> Supprimer ce compte</DropdownMenuItem>

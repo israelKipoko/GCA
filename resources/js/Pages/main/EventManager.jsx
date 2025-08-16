@@ -175,7 +175,7 @@ return (
             <DialogTrigger> 
                 <button className='flex bg-action hover:bg-[#12538b] text-white font-bold rounded-[4px] p-1.5 items-center justify-center md:w-[120px] w-[100px] text-center md:text-[16px] text-[14px]'>Nouveau <Plus size={15} /></button>
             </DialogTrigger>
-            <DialogContent className={`md:w-[500px] w-[${screenSize.width}px]  border-none`}>
+            <DialogContent className={`max-w-xs md:max-w-lg lg:max-w-xl  border-none`}>
               <DialogHeader>
                 <DialogTitle className="dark:text-white text-dark-secondary font-bold">
                     {t("Nouvel Evénement")}

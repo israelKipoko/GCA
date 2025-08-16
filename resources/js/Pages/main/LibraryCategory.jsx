@@ -94,7 +94,7 @@ function LibraryCategory() {
                        <span className='md:flex hidden'> Créer une catégorie </span><Plus size={18}/>
                     </Button>
                     </DialogTrigger>
-                    <DialogContent className={`md:w-[450px]  w-[${screenSize.width}px] border-none`}>
+                    <DialogContent className={`max-w-xs md:max-w-lg lg:max-w-[450px] border-none`}>
                         <DialogHeader>
                             <DialogTitle className="dark:text-white text-dark-secondary font-bold">Nouvelle Catégorie</DialogTitle>
                             <DialogDescription className="dark:text-white text-dark-secondary font-bold">
@@ -149,7 +149,7 @@ function LibraryCategory() {
                                     <p className='text-[12px] text-left dark:text-[#fff] text-dark-secondary opacity-[0.7] -mb-1'>Documents</p>
                                 </div>
                             </CardContent>
-                                <div className='h-[120px] absolute top-6 -right-6 z-10'>
+                                <div className='w-[200px] h-[120px] absolute top-6 -right-14 z-10'>
                                     <img src={books} alt='books' className='w-full h-full object-contain '/>
                                 </div>
                         </Card>

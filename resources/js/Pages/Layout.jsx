@@ -31,15 +31,15 @@ const Layout = ({user}) =>{
             groups: element.groups,
             avatar: element.avatar_link,
           }));
+
           setAllUsers(transformedData);
         })
         .catch(error => {
-            console.log(error.message)
+            console.log(error)
           });
 
     }
     const [refreshKey, setRefreshKey] = useState(0);
-
     const refreshLayout = () => {
       setRefreshKey((oldKey) => oldKey + 1);
     };
@@ -64,7 +64,7 @@ return (
             <aside>
                 <SidebarTrigger className=' absolute z-10 top-2 dark:text-white text-dark-secondary '/>
             </aside>
-            <section className=' flex flex-col float-right  md:px-3 px-0 m-0 gap-y-9 w-full'>
+            <section className=' flex flex-col float-right  md:px-3 px-2 m-0 gap-y-9 w-full'>
                 <section className="pt-9 ">
                     <div>
                         <h1 className="dark:text-white text-dark-secondary font-bold md:text-[24px] text-[20px] capitalize text-center">{t(greeting)}, {user.firstname} {user.name}</h1>

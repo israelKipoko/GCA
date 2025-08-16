@@ -111,7 +111,7 @@ const NewGroupMember: React.FC<NewMemberDialogsProps> = ({
     }, []);
   return (
     <Dialog open={openNewGroupMemberDialog} onOpenChange={setOpenNewGroupMemberDialog}>
-      <DialogContent className="md:max-w-[450px] max-h-[500px] min-h-[230px] border-none p-6" autoFocus={false}>
+      <DialogContent className="max-w-xs md:max-w-lg lg:max-w-[450px] max-h-[500px] min-h-[230px] border-none p-6" autoFocus={false}>
           <DialogTitle className="dark:text-white text-dark-secondary font-bold ">
               Ajouter un nouveau membre
           </DialogTitle>

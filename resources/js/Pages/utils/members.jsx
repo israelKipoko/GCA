@@ -119,7 +119,7 @@ return (
             </TabsList>
               <div className=''>
                 <Button onClick={activeTab === "members"? setOpenAddUserDialog: setOpenCreateGroup} className="py-1 px-2 bg-action rounded-[4px]  flex flex-row gap-x-1 text-white font-bold">
-                  {activeTab === "members"? <span className=''>Ajouter un membr</span>  : <span className=''>Créer un groupe</span> }<Plus size={18}/>
+                  {activeTab === "members"? <span className=''>Ajouter un membre</span>  : <span className=''>Créer un groupe</span> }<Plus size={18}/>
                 </Button>
               </div>
           </div>
