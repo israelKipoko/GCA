@@ -385,7 +385,6 @@ function CreateEvent({allUsers,setUsers, users, refresh, setOpenDialog}) {
                               token: {
                                 colorTextPlaceholder: isDarkMode ? "#FFFFFF" : "#313131",
                                 colorIcon: isDarkMode ? "#FFFFFF" : "#313131",
-                                   colorIconHover: "#ffa07a",
                                 colorIconHover: "#ffa07a",
                                 cellHoverBg: isDarkMode ? "#1f1f1f" : "#1f1f1f",
                                 colorBgContainer: isDarkMode ? "#313131" : "#CFCFCF",

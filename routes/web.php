@@ -73,6 +73,7 @@ Route::get('/home/pending-cases/{case}',[ActivityController::class,"showCaseDeta
 Route::get('/cases/get-all-case-messages/{case}',[ActivityController::class,"getAllCaseMessages"]);
 Route::post('/cases/create-new-message/{case}',[ActivityController::class,"createMessage"]);
 Route::post('/cases/upload-file',[ActivityController::class,"uploadFile"])->middleware('auth');
+Route::post('/files/delete-uploaded-file',[ActivityController::class,"deleteUploadedFile"])->middleware('auth');
 Route::put('/cases/messages/delete-message', [CasesController::class, "DeleteMessage"])->middleware('auth');
 Route::put('/cases/messages/edit-message', [CasesController::class, "EditMessage"])->middleware('auth');
 

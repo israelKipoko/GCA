@@ -20,7 +20,7 @@ function Category() {
                <aside>
                    <SidebarTrigger className=' fixed z-10 top-2 dark:text-white text-dark-secondary'/>
                </aside>
-               <main className="flex flex-col  w-full ">
+               <main className="flex flex-col  w-full  md:px-0 px-2 ">
                    <div class="my-2 flex items-center gap-x-2 md:ml-9 relative">
                         <div className='h-[80px] w-[50px]'>
                             <img src={books} alt="books" className='w-full h-full object-contain'/>

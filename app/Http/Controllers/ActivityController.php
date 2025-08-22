@@ -327,13 +327,23 @@ class ActivityController extends Controller
             };
         }
 
-    public function deleteUploadedFile(Cases $case){
-        // $fileDetails = TemporaryFile::latest()->get();
-        // foreach($fileDetails as $file){
-        //     Storage::delete($file->path);
-        //     $file->delete();
-        // }
-        // return response()->noContent();
+    public function deleteUploadedFile(Request $request){
+       if($request->hasFile('file')){
+        $file = $request->file('file');
+        $fileName = $file->getClientOriginalName();
+        $fileSize = $file->getSize();
+
+       $fileToDelete = TemporaryFile::where("user_id", Auth::id())
+            ->where("name", $fileName)
+            ->where("size", $fileSize)
+            ->latest()
+            ->first();
+        Storage::delete('temporary/'.$fileToDelete->path);
+        if ($fileToDelete) {
+            $fileToDelete->delete();
+        } 
+        return response()->json([200]);
+        };
     }
 
     public function submitCase(Request $request, Cases $case){
