@@ -56,37 +56,6 @@ function CreateFile({refreshData,setOpenCreateFileDialog,libraryID}) {
          <div className="input_div w-[400px] mx-auto">
             <label htmlFor="file" className='text-[14px] dark:text-white text-dark-secondary opacity-[0.8]'>Documents :</label>
           <Uploader multiple={true} files={files} setFiles={setFiles}/>
-          {/* <FilePond 
-            ref={pondRef}
-            files={files}
-            name="file"
-            allowMultiple={true}  
-            acceptedFileTypes={[
-                'image/*',                                      // All image formats
-                'application/pdf',                              // PDF files
-                'application/msword',                           // Word (.doc) files
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // Word (.docx) files
-                'application/vnd.oasis.opendocument.text',      // ODT files
-                'application/vnd.ms-excel',                     // Excel (.xls) files
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // Excel (.xlsx) files
-                'application/vnd.ms-powerpoint',               // PowerPoint (.ppt) files
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation', // PowerPoint (.pptx) files
-                'text/plain'                                    // Plain text files
-            ]}
-            server={{
-                process: {
-                    url: '/cases/upload-file',
-                    method: 'POST',
-                    // withCredentials: false,
-                    headers: {
-                    'X-CSRF-TOKEN': csrfToken || '',
-                     'Accept': 'application/json'
-                },
-                }
-            }}
-            oninit={handleInit}
-            onupdatefiles={handleUpdateFiles}
-            labelIdle='Faites glisser et déposez vos fichiers ou <span class="filepond--label-action">Parcourir</span>' /> */}
         </div>
 
         <div className=' w-full ml-auto'>

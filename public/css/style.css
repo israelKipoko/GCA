@@ -104,6 +104,13 @@ body{
     border-top-left-radius: 16px;
     border-bottom-left-radius: 16px;
 }
+.full_overlay{
+  background: rgba(0, 0, 0,0.5);;
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border-radius: 16px;
+}
 #login_content{
     /* background: linear-gradient(to right, rgb(0, 0, 0,0.5), rgb(0, 0, 0,0) ) ; */
     position: absolute;

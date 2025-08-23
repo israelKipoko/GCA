@@ -8,6 +8,7 @@ use App\Models\Cases;
 use Inertia\Response;
 use App\Models\Groups;
 use App\Mail\AddMember;
+use App\Mail\ResetPasswordMail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Laravolt\Avatar\Facade as Avatar;
@@ -66,7 +67,6 @@ class UserController extends Controller
             
             $request->session()->regenerate();
 
-            // notify()->success('Vous êtes maintenant connecté!!');
             return  to_route('app.home');
         }
         return back()->withErrors(['email'=>'Invalid credentials'])->onlyInput('email');
@@ -138,9 +138,9 @@ class UserController extends Controller
         }
         function generateSecurePassword($length = 12){
                 $upper = Str::random(2, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'); // At least 2 uppercase letters
-                $lower = Str::random(4, 'abcdefghijklmnopqrstuvwxyz'); // At least 4 lowercase letters
+                $lower = Str::random(5, 'abcdefghijklmnopqrstuvwxyz'); // At least 4 lowercase letters
                 $numbers = Str::random(2, '0123456789'); // At least 2 numbers
-                $symbols = substr(str_shuffle('!@#$%^&*()-_=+[]{};:,.<>?'), 0, 2); 
+                $symbols = substr(str_shuffle('!@#$%^&*()-_=+[]{};:,.<>?'), 0, 1); 
 
                 // Merge all characters and shuffle
                 $password = str_shuffle($upper . $lower . $numbers . $symbols);
@@ -237,13 +237,53 @@ class UserController extends Controller
     
         return response()->json(['message' => 'Password changed successfully']);
     }
+
+    /* FORGOT PASSWORD */
+    public function forgotPassword(){
+        return Inertia::render('ForgotPassword');
+    }
+
+    public function resetPassword(Request $request){
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'email', 'exists:users,email'],
+        ], [
+            'email.exists' => "Cet email n'existe pas dans notre système.",
+            'email.email' => "Ceci n'est pas un email!",
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        function generateSecurePassword($length = 12){
+            $upper = Str::random(2, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'); // At least 2 uppercase letters
+            $lower = Str::random(5, 'abcdefghijklmnopqrstuvwxyz'); // At least 4 lowercase letters
+            $numbers = Str::random(2, '0123456789'); // At least 2 numbers
+            $symbols = substr(str_shuffle('!@#$%^&*()-_=+[]{};:,.<>?'), 0, 1); 
+
+            // Merge all characters and shuffle
+            $password = str_shuffle($upper . $lower . $numbers . $symbols);
+
+            return $password;
+        }
+        $password = generateSecurePassword();
+
+        $user = User::where("email", $request->email)->first();
+
+        Mail::to($request->email)->send(new ResetPasswordMail($request->email, $user->name, route('route_login'), $password));
+
+        $user->password = Hash::make($password);
+        $user->save();
+
+        return redirect()->back()->with('success', 'The Password was reset successfully');
+    }
     /* LOGOUT */
     public function logout(Request $request){
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Inertia::location('/GCA/welcome');
+        return Inertia::location('/Mobeko/welcome');
     }
     /* LOGOUT */
 }

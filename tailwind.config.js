@@ -42,7 +42,7 @@ theme: {
 			},
 			light: {
 				primary: '#e7e7e7',
-				secondary: '#dfdfdf',
+				secondary: '#EFEFEF',
 				thirdly: '#f6f6f6',
 				hover: '#e7e7e7'
 			},

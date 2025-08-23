@@ -26,7 +26,7 @@ Route::get('/foo', function () {
     Artisan::call('storage:link');
 });
 Route::get('/', function(){
-    return redirect('/GCA/welcome');
+    return redirect('/mobeko/welcome');
 });
 
 Route::get('/foot', function(){
@@ -36,8 +36,10 @@ Route::get('/foot', function(){
 Route::get('/email', function(){
     return view('emails/add-member');
 });
-Route::get('/GCA/welcome', [UserController::class, "index"])->name('route_login');
+Route::get('/Mobeko/welcome', [UserController::class, "index"])->name('route_login');
 Route::post('/authenticate/user', [UserController::class, "authenticate"]);
+Route::get('/Mobeko/forgot-password', [UserController::class, "forgotPassword"])->middleware('throttle:50,10');
+Route::post('/Mobeko/reset-password', [UserController::class, "resetPassword"])->middleware("web")->middleware('throttle:50,10');
 Route::get('/GCA/auth/register/new_user',[UserController::class, "register"])->middleware('auth');
 Route::post('/GCA/auth/register/new_user/store',[UserController::class, "store"])->middleware('auth'); 
 

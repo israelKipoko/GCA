@@ -211,7 +211,7 @@ return (
       <SidebarFooter className='p-0 pb-1 px-0.2'>
           <DropdownMenu>
             <DropdownMenuTrigger>
-                <section className={cn('flex flex-row  w-full gap-x-1 rounded-[4px] justify-between py-2 px-2',open?"dark:hover:bg-[#d8d8d833] hover:bg-light-hover  dark:bg-dark-hover bg-light-hover cursor-pointer":"")}>
+                <section className={cn('flex flex-row  w-full gap-x-1 -[4px] justify-between py-2 px-2 border-t-2',open?"dark:hover:bg-[#d8d8d833] hover:bg-light-hover  dark:bg-dark-hover  bg-lsight-secondary cursor-pointer":"")}>
                   <div className='flex gap-x-2'>
                     <div className={cn(" rounded-full",open?"w-[38px] h-[38px]":"w-[35px] h-[35px] cursor-pointer")}>
                         <img src={user.length!=0?user[0].avatar:""} alt="user-profile" className='w-full h-full rounded-full object-contain'/>

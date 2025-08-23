@@ -82,7 +82,6 @@ const [isLoading, setIsLoading] = useState(false);
                 thumb_url: element.thumb_url,
                 total: element.total_docs,
             }));
-            console.log(transformedData)
             setFiles(transformedData);
             setFilteredData(transformedData);
             setPagination({
@@ -180,7 +179,7 @@ const [isLoading, setIsLoading] = useState(false);
                     {filterTitles.map((filter,index)=>{
                         const isActive = JSON.stringify(mimeType) === JSON.stringify(filter.value);
                         return (
-                        <button key={index} onClick={()=>setMimeType(filter.value)} className={`transition-all duration-300 transform border-2  font-medium py-1 px-4 hover:border-[#356B8C] dark:hover:text-[#356B8C] hover:text-[#356B8C] rounded-[16px] text-[14px]  ${isActive? "border-2 border-[#356B8C] dark:text-[#356B8C] text-[#356B8C]": "dark:text-white text-dark-secondary dark:border-dark-hover border-light-hover"}`}>
+                        <button key={index} onClick={()=>setMimeType(filter.value)} className={`transition-all duration-300 transform border-2  py-1 px-4 hover:border-action dark:hover:text-[#356B8C] rounded-[16px] text-[14px]  ${isActive? "border-2 bg-action text-white font-bold": "dark:text-white text-dark-secondary bg-[#356B8C66]"}`}>
                             {filter.title}
                         </button>
                         );

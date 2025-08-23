@@ -1,8 +1,7 @@
 import React, { useState, } from 'react';
-import { router,usePage } from '@inertiajs/react'
+import { router,usePage, Link } from '@inertiajs/react'
 import backgroud from "../../../public/images/bg-image-1.avif";
 import logo from "../../../public/icons/Mobeko_logo1.png"
-import logoIcon from "../../../public/icons/mobeko_logo2.png"
 import { ArrowRight } from 'lucide-react';
 import { useTranslation } from "react-i18next"
 
@@ -26,7 +25,7 @@ return (
         <section id="login_page" className="py-12 px-6">
             <section id="login_content" className=" flex lg:flex-basis flex-wrap lg:gap-y-4 gap-y-9  justify-around md:w-[75%] w-full">
                 <div className=" md:w-[450px] px-4  text-center flex flex-col justify-around text-[#fff] font-bold">
-                    <div className=" rounded-[4px] md:w-[100px] w-[200px] md:h-[40px] h-[50px] text-white w-fit mx-auto">
+                    <div className=" rounded-[4px]  w-[200px] md:h-[40px] h-[50px] text-white w-fit mx-auto">
                         <img src={logo} className="w-full h-full object-contain" alt="logo"/>
                     </div>
                     <div className="overlay"></div>
@@ -74,8 +73,11 @@ return (
                                     <button onClick={()=> setSeePassword(!seePassword)} type='button' className="password_eye" ><i title="montrer le mot de passe" className=" eye fa-solid fa-eye fa-lg text-[#9a9996]"></i></button>
                                     <i className="fa-solid fa-lock credentials_icons"></i>
                                 </div>
-                                {/* <p className="mt-2 text-[#000] transition-all ease-in-out hover:text-[#395556] md:text-lg text-[13px]"><a href="/forgot-password" className="text-[16px]" title={{__('public.réinitialiser mon mot de passe')}}>
-                                    Mot de passe oublié'?</a></p> */}
+                                <div className='flex justify-end w-full'>
+                                    <Link href='/Mobeko/forgot-password' className='mt-2  transition-all ease-in-out text-[#262626] font-bold  text-[14px] hover:underline '>
+                                        Mot de passe oublié?
+                                    </Link>
+                                </div>
                             </div>
                             
                             <div className="mb-6 mx-auto w-fit">

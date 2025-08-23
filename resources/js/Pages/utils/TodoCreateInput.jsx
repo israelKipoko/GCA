@@ -30,7 +30,7 @@ const TodoCreateInput = ({ newTask, setNewTask, CreateTask, isAssign, users, ass
         setDueDate(format(date, 'yyyy-MM-dd'));
       };
     return (
-        <div className="addTaskInput dark:bg-[#414040] bg-light-secondary shadow-lg dark:border-b border dark:border-[#393a4c] border-[#335b74]">
+        <div className="addTaskInput dark:bg-[#414040] bg-light-thirdly shadow-lg dark:border-b border-b  dark:border-[#393a4c] border-[#335b74]">
             <div className="check " onClick={(e)  => { 
                     CreateTask(e, caseId,dueDate); 
                     setDueDate(null)}}>
@@ -50,7 +50,7 @@ const TodoCreateInput = ({ newTask, setNewTask, CreateTask, isAssign, users, ass
                     setDueDate(null)
                 }}>
             <div className='relative'>
-                <input type="text" value={newTask}  onChange={(e)=> setNewTask(e.target.value)} className='dark:text-white text-dark-secondary dark:bg-[#414040] bg-light-secondary' placeholder="Ajouter une tâche" id="new_task" name="new_task" autoComplete='off'/>
+                <input type="text" value={newTask}  onChange={(e)=> setNewTask(e.target.value)} className='dark:text-white text-dark-secondary dark:bg-[#414040] bg-light-thirdly' placeholder="Ajouter une tâche" id="new_task" name="new_task" autoComplete='off'/>
                   <div className='flex flex-row items-center gap-x-2 mt-1'>
                         {isAssign ?
                            assignedUsers.length != 0?

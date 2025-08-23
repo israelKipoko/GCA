@@ -5,9 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-         <!-- <link rel="stylesheet" href="{{asset('build/assets/app-Ct6HUe97.css')}}"> 
-         <link rel="stylesheet" href="{{asset('build/assets/app-1k2ytpoC.css')}}">  -->
-        @vite(['resources/css/app.css']) 
+         <link rel="stylesheet" href="{{asset('build/assets/app-Ct6HUe97.css')}}"> 
+         <link rel="stylesheet" href="{{asset('build/assets/app-Fs9QLtbX.css')}}"> 
+        {{-- @vite(['resources/css/app.css'])  --}}
         <link rel="icon" href="{{ asset('icons/mobeko_logo2.png') }}" type="image/x-icon">
 
         <link rel="stylesheet" href="{{asset('css/style.css')}}">
@@ -22,8 +22,8 @@
         referrerpolicy="no-referrer"/>
 
         @viteReactRefresh
-        <!-- <script type="module" src="{{asset('build/assets/app-BUvcQbj5.js')}}"></script>  -->
-        @vite(['resources/js/app.jsx']) 
+        <script type="module" src="{{asset('build/assets/app-ORFHu9uJ.js')}}"></script>
+        {{-- @vite(['resources/js/app.jsx'])  --}}
         @inertiaHead
         <!-- Fonts -->
         <link rel="stylesheet" href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
