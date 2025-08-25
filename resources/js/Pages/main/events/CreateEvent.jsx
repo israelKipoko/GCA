@@ -227,7 +227,7 @@ function CreateEvent({allUsers,setUsers, users, refresh, setOpenDialog}) {
             <label htmlFor="title" className='dark:text-white text-dark-secondary  opacity-[0.8]'>{t("Titre")}:</label>
                 <input
                     type="text"
-                    className="event_title_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
+                    className="event_title_input focus:outline-none text-[16px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
                     name="title"
                     id="title"
                     value={title}
@@ -272,7 +272,7 @@ function CreateEvent({allUsers,setUsers, users, refresh, setOpenDialog}) {
                     <input
                         ref={triggerRef}
                         id="selected_participants"
-                        className="dark:text-white w-full text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[14px] select-placeholder"
+                        className="dark:text-white w-full text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[16px] select-placeholder"
                         onFocus={() => setIsUsersOptionsOpen(true)}
                         onInput={(e) => setFilter((e.target).value.toLowerCase())}
                         placeholder={t("Choisissez les participants")} autoComplete='off'/>
@@ -413,7 +413,7 @@ function CreateEvent({allUsers,setUsers, users, refresh, setOpenDialog}) {
                     type="text"
                     value={eventLink}
                     onChange={(e)=> setEventLink(e.target.value)}
-                    className="event_title_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
+                    className="event_title_input focus:outline-none text-[16px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
                     popupClassName="dark:bg-dark-secondary bg-white dark:text-white text-black"
                     name="eventLink"
                     id="eventLink"

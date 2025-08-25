@@ -159,8 +159,8 @@ const PendingCases = () =>{
                                     </div>
                                   </div>}
                               </CardContent>
-                              <div className='md:h-[120px] h-[100px] absolute md:top-2 top-4 md:-right-28 -right-20 z-10'>
-                                <img src={hammer} alt='hammer' className='w-full h-full object-fill '/>
+                              <div className='w-[200px] md:h-[120px] h-[100px] absolute md:top-2 top-4 -right-14  z-10'>
+                                <img src={hammer} alt='hammer' className='w-full h-full object-contain '/>
                               </div>
                           </Card>
                       </Link>

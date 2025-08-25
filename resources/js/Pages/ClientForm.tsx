@@ -109,7 +109,7 @@ const handleSubmit = (e:FormEvent) => {
                   <label htmlFor="nom" className='dark:text-white text-dark-secondary  opacity-[0.8]'>Nom :</label>
                     <input
                         type="text"
-                        className="event_title_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
+                        className="event_title_input focus:outline-none text-[16px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
                         name="name"
                         id="name"
                         value={newClientName}
@@ -122,7 +122,7 @@ const handleSubmit = (e:FormEvent) => {
                   <label htmlFor="sector" className='dark:text-white text-dark-secondary  opacity-[0.8]'>Secteur d'activité :</label>
                     <input
                         type="text"
-                        className="event_title_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
+                        className="event_title_input focus:outline-none text-[16px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
                         name="sector"
                         id="sector"
                         value={sector}
@@ -135,7 +135,7 @@ const handleSubmit = (e:FormEvent) => {
                     <label htmlFor="sector" className='dark:text-white text-dark-secondary opacity-[0.8]'>Email :</label>
                       <input
                           type="email"
-                          className="short_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
+                          className="short_input focus:outline-none text-[16px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
                           name="address"
                           value={email}
                           onChange={(e)=> setEmail(e.target.value)}
@@ -146,7 +146,7 @@ const handleSubmit = (e:FormEvent) => {
                     <label htmlFor="sector" className='dark:text-white text-dark-secondary  opacity-[0.8]'>Contact :</label>
                       <input
                           type="text"
-                          className="short_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
+                          className="short_input focus:outline-none text-[16px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
                           name="address"
                           value={phone}
                           onChange={(e)=> setPhone(e.target.value)}
@@ -158,7 +158,7 @@ const handleSubmit = (e:FormEvent) => {
                   <label htmlFor="sector" className='dark:text-white text-dark-secondary  opacity-[0.8]'>Adresse :</label>
                     <input
                         type="text"
-                        className="event_title_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
+                        className="event_title_input focus:outline-none text-[16px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
                         name="address"
                         value={address}
                         onChange={(e)=> setAddress(e.target.value)}

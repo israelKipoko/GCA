@@ -26,7 +26,7 @@ Route::get('/foo', function () {
     Artisan::call('storage:link');
 });
 Route::get('/', function(){
-    return redirect('/mobeko/welcome');
+    return redirect('/Mobeko/welcome');
 });
 
 Route::get('/foot', function(){

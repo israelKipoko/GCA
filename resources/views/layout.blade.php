@@ -6,7 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
          <link rel="stylesheet" href="{{asset('build/assets/app-Ct6HUe97.css')}}"> 
-         <link rel="stylesheet" href="{{asset('build/assets/app-Fs9QLtbX.css')}}"> 
+         <link rel="stylesheet" href="{{asset('build/assets/app-DJIPQkqX.css')}}"> 
         {{-- @vite(['resources/css/app.css'])  --}}
         <link rel="icon" href="{{ asset('icons/mobeko_logo2.png') }}" type="image/x-icon">
 
@@ -22,7 +22,7 @@
         referrerpolicy="no-referrer"/>
 
         @viteReactRefresh
-        <script type="module" src="{{asset('build/assets/app-ORFHu9uJ.js')}}"></script>
+        <script type="module" src="{{asset('build/assets/app-C5856Y6t.js')}}"></script>
         {{-- @vite(['resources/js/app.jsx'])  --}}
         @inertiaHead
         <!-- Fonts -->

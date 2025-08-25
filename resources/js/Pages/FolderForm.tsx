@@ -349,7 +349,7 @@ const handleSubmit = (e:FormEvent) => {
                   <label htmlFor="title" className='dark:text-white text-dark-secondary opacity-[0.8]'>Titre :</label>
                     <input
                         type="text"
-                        className="event_title_input focus:outline-none text-[14px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
+                        className="event_title_input focus:outline-none text-[16px] dark:bg-dark-primary bg-light-primary dark:text-white text-dark-secondary "
                         id="title"
                         name="title"
                         value={title}
@@ -377,7 +377,7 @@ const handleSubmit = (e:FormEvent) => {
                       <input
                         ref={triggerClientRef}
                         id="selected_participants"
-                        className="dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[14px] select-placeholder"
+                        className="dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[16px] select-placeholder"
                         value={newClientName}
                         onChange={(e)=> setNewClientName(e.target.value)}
                         onFocus={() => setIsClientDropdownOpen(true)}
@@ -387,7 +387,7 @@ const handleSubmit = (e:FormEvent) => {
                         <input
                         ref={triggerClientRef}
                         id="selected_participants"
-                        className="dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[14px] select-placeholder"
+                        className="dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[16px] select-placeholder"
                         onFocus={() => setIsClientDropdownOpen(true)}
                         onInput={(e) => setClientFilter((e.target as HTMLInputElement).value.toLowerCase())}
                         placeholder="Ajouter un client" autoComplete='off'/>}
@@ -459,7 +459,7 @@ const handleSubmit = (e:FormEvent) => {
                     <input
                         ref={triggerRef}
                         id="selected_participants"
-                        className="dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[14px] select-placeholder"
+                        className="dark:text-white text-dark-secondary dark:bg-dark-primary bg-light-primary participants_input focus:outline-none text-[16px] select-placeholder"
                         onFocus={() => setIsDropdownOpen(true)}
                         onInput={(e) => setFilter((e.target as HTMLInputElement).value.toLowerCase())}
                         placeholder="Ajouter des contribuants" autoComplete='off'/>
